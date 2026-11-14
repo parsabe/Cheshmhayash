@@ -696,11 +696,12 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 	S.WhiteTemp = Env.Temperature;
 }
 
-void ACHLevelBuilder::BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance)
+void ACHLevelBuilder::BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance, bool bLit)
 {
-	UMaterialInterface* Rock = Unlit(RockColor);
-	UMaterialInterface* RockFar = Unlit(RockColor * 1.25f + FLinearColor(0.004f, 0.006f, 0.010f));
-	UMaterialInterface* Snow = Unlit(SnowColor);
+	const FLinearColor FarColor = RockColor * 1.25f + FLinearColor(0.004f, 0.006f, 0.010f);
+	UMaterialInterface* Rock = bLit ? Lit(RockColor, 0.95f, 0.f) : Unlit(RockColor);
+	UMaterialInterface* RockFar = bLit ? Lit(FarColor, 0.95f, 0.f) : Unlit(FarColor);
+	UMaterialInterface* Snow = bLit ? Lit(SnowColor, 0.6f, 0.f) : Unlit(SnowColor);
 
 	const float BaseZ = -0.02f * Distance;
 	auto Peak = [&](float OffsetDegrees, float DistanceScale, float Radius, float Height, UMaterialInterface* Material)

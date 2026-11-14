@@ -68,6 +68,17 @@ void ACHFilmable::Setup(const FString& InClipId, const FString& InCaptionFa, con
 	Range = InRange;
 }
 
+void ACHFilmable::SetGlowVisible(bool bVisible)
+{
+	Sprite->SetVisibility(bVisible);
+	Light->SetVisibility(bVisible);
+	if (!bVisible)
+	{
+		Sprite->SetHiddenInGame(true);
+		Light->SetHiddenInGame(true);
+	}
+}
+
 void ACHFilmable::MarkFilmed()
 {
 	// hidden at once so the glow is not in the captured clip

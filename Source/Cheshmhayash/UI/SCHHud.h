@@ -46,6 +46,9 @@ public:
 	void Toast(const FString& Fa, const FString& En, const FLinearColor& Color, float Seconds = 2.8f, UTexture* Image = nullptr);
 	void ShowControls(float Seconds) { ControlsTime = Seconds; }
 
+	/** A phone lock-screen notification sliding up from the bottom (a message nobody will read). */
+	void Notify(const FString& Title, const FString& Fa, const FString& En, float Seconds);
+
 private:
 	TSharedRef<SWidget> MakeCorner(EHorizontalAlignment H, EVerticalAlignment V);
 
@@ -115,4 +118,12 @@ private:
 	TSharedPtr<FSlateBrush> ToastBrush;
 
 	float ControlsTime = 0.f;
+
+	FString NoteTitle;
+	FString NoteFa;
+	FString NoteEn;
+	float NoteTime = 0.f;
+	float NoteDuration = 0.f;
+	TSharedPtr<SWidget> NoteCard;
+	float NoteAlpha() const;
 };

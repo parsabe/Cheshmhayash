@@ -21,6 +21,17 @@ public:
 	/** Fixed camera for narrative scenes. nullptr returns the view to the player's own camera. */
 	void SetSceneCamera(AActor* Camera, float BlendTime);
 
+	/** Shakes the player's view (shots nearby). Zero-mean, so the aim does not drift. */
+	void Shake(float Seconds, float Strength);
+
 	/** Multiplies mouse look speed. */
 	float MouseSensitivity = 1.f;
+
+private:
+	void UpdateShake(float DeltaTime);
+
+	float ShakeTime = 0.f;
+	float ShakeDuration = 0.f;
+	float ShakeStrength = 0.f;
+	FRotator ShakeOffset = FRotator::ZeroRotator;
 };

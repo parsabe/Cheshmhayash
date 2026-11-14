@@ -13,7 +13,18 @@ void ACHLoc_Streets::Build(const FString& InVariant)
 	PlayerBoomLength = 330.f;
 	PlayerBoomOffset = FVector(0.f, 55.f, 75.f);
 
-	BuildTest();
+	if (Variant == TEXT("nights"))
+	{
+		BuildNights();
+	}
+	else if (Variant == TEXT("lastnight"))
+	{
+		BuildLastNight();
+	}
+	else
+	{
+		BuildTest();
+	}
 }
 
 void ACHLoc_Streets::BuildTest()

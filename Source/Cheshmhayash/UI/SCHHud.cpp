@@ -350,6 +350,56 @@ void SCHHud::Construct(const FArguments& InArgs)
 			]
 		]
 
+		// ---- a notification on a phone nobody is holding
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Bottom)
+		.Padding(0.f, 0.f, 0.f, 64.f)
+		[
+			SAssignNew(NoteCard, SBorder)
+			.BorderImage(CH::RoundedBrush(22.f))
+			.BorderBackgroundColor_Lambda([this]() { return FSlateColor(FLinearColor(0.10f, 0.105f, 0.12f, 0.92f * NoteAlpha())); })
+			.Padding(FMargin(26.f, 18.f, 26.f, 20.f))
+			.Visibility_Lambda([this]() { return NoteAlpha() > 0.f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+			[
+				SNew(SBox)
+				.WidthOverride(560.f)
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(STextBlock)
+						.Text_Lambda([this]() { return FText::FromString(NoteTitle); })
+						.Font(CH::LatinFont(13.f, CH::EWeight::Bold, 160))
+						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.7f, 0.69f, 0.66f, NoteAlpha())); })
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.f, 10.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Text_Lambda([this]() { return FText::FromString(NoteFa); })
+						.Font(CH::FarsiFont(24.f))
+						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.95f, 0.93f, 0.9f, NoteAlpha())); })
+						.WrapTextAt(560.f)
+						.TextShapingMethod(ETextShapingMethod::FullShaping)
+						.TextFlowDirection(ETextFlowDirection::RightToLeft)
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.f, 6.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Text_Lambda([this]() { return FText::FromString(NoteEn); })
+						.Font(CH::LatinFont(16.f, CH::EWeight::Light))
+						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.72f, 0.71f, 0.68f, NoteAlpha())); })
+						.WrapTextAt(560.f)
+					]
+				]
+			]
+		]
+
 		// ---- controls, bottom right (first time only)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
@@ -445,6 +495,39 @@ void SCHHud::Advance(float DeltaTime)
 	{
 		ControlsTime -= DeltaTime;
 	}
+	if (NoteDuration > 0.f)
+	{
+		NoteTime += DeltaTime;
+		if (NoteTime > NoteDuration)
+		{
+			NoteDuration = 0.f;
+		}
+		if (NoteCard.IsValid())
+		{
+			const float Slide = FMath::InterpEaseOut(0.f, 1.f, FMath::Clamp(NoteTime / 0.7f, 0.f, 1.f), 2.5f);
+			NoteCard->SetRenderTransform(TOptional<FSlateRenderTransform>(FSlateRenderTransform(FVector2f(0.f, (1.f - Slide) * 60.f))));
+		}
+	}
+}
+
+void SCHHud::Notify(const FString& Title, const FString& Fa, const FString& En, float Seconds)
+{
+	NoteTitle = Title;
+	NoteFa = Fa;
+	NoteEn = En;
+	NoteTime = 0.f;
+	NoteDuration = FMath::Max(1.f, Seconds);
+}
+
+float SCHHud::NoteAlpha() const
+{
+	if (NoteDuration <= 0.f)
+	{
+		return 0.f;
+	}
+	const float In = FMath::Clamp(NoteTime / 0.7f, 0.f, 1.f);
+	const float Out = FMath::Clamp((NoteDuration - NoteTime) / 1.2f, 0.f, 1.f);
+	return In * Out;
 }
 
 // ---------------------------------------------------------------------------------------------

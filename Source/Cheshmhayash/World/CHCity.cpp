@@ -193,16 +193,17 @@ float ACHCityBuilder::Building(float MinX, float MinY, float SizeX, float SizeY,
 {
 	FRandomStream Rng(Style.Seed * 977 + 3);
 	const int32 Floors = FMath::Max(1, Style.Floors);
-	const float Height = GroundFloorH + (Floors - 1) * FloorH;
+	const float Height = Style.HeightOverride > 0.f ? Style.HeightOverride : GroundFloorH + (Floors - 1) * FloorH;
 	UMaterialInterface* Wall = MFacades.Num() > 0 ? MFacades[Rng.RandRange(0, MFacades.Num() - 1)] : MBand;
 
 	// the mass, the roof and its parapet (walkable)
 	BoxAt(MinX, MinY, -20.f, SizeX, SizeY, Height + 20.f, Wall);
 	Box(FVector(MinX + SizeX * 0.5f, MinY + SizeY * 0.5f, Height + 1.5f), FVector(SizeX - 2.f * ParapetT, SizeY - 2.f * ParapetT, 3.f), MRoof, false);
-	BoxAt(MinX, MinY, Height, SizeX, ParapetT, ParapetH, Wall);
-	BoxAt(MinX, MinY + SizeY - ParapetT, Height, SizeX, ParapetT, ParapetH, Wall);
-	BoxAt(MinX, MinY + ParapetT, Height, ParapetT, SizeY - 2.f * ParapetT, ParapetH, Wall);
-	BoxAt(MinX + SizeX - ParapetT, MinY + ParapetT, Height, ParapetT, SizeY - 2.f * ParapetT, ParapetH, Wall);
+	auto ParapetFor = [&Style](uint8 Bit) { return (Style.LowParapets & Bit) ? 45.f : ParapetH; };
+	BoxAt(MinX, MinY, Height, SizeX, ParapetT, ParapetFor(4), Wall);
+	BoxAt(MinX, MinY + SizeY - ParapetT, Height, SizeX, ParapetT, ParapetFor(8), Wall);
+	BoxAt(MinX, MinY + ParapetT, Height, ParapetT, SizeY - 2.f * ParapetT, ParapetFor(1), Wall);
+	BoxAt(MinX + SizeX - ParapetT, MinY + ParapetT, Height, ParapetT, SizeY - 2.f * ParapetT, ParapetFor(2), Wall);
 
 	struct FSide
 	{

@@ -74,7 +74,10 @@ public:
 	// ---- the player
 	APawn* GetPlayerPawn() const;
 	float GetPlayerVisibility() const { return PlayerVisibility; }
-	bool IsPlayerUntouchable() const { return bDevGhost || GraceTime > 0.f || RestartTime > 0.f; }
+	bool IsPlayerUntouchable() const { return bDevGhost || bSuspended || GraceTime > 0.f || RestartTime > 0.f; }
+	/** A story interlude is playing: nobody sees him, nothing can be filmed or used. */
+	void SetSuspended(bool bInSuspended);
+	bool IsSuspended() const { return bSuspended; }
 	bool IsInputBlocked() const { return RestartTime > 0.f; }
 	bool IsInVanZone() const { return bInVanZone; }
 	bool IsHidden() const { return bHidden; }
@@ -122,6 +125,7 @@ private:
 	FString HintEn;
 	int32 SecondChances = 0;
 	bool bActive = false;
+	bool bSuspended = false;
 
 	float PlayerVisibility = 1.f;
 	bool bHidden = false;
@@ -147,4 +151,7 @@ private:
 	TArray<FVector> BotPath;
 	int32 BotIndex = 0;
 	float BotRepath = 0.f;
+	float BotUseTime = 0.f;
+	float BotStuckTime = 0.f;
+	TSet<FString> UsedExits;
 };

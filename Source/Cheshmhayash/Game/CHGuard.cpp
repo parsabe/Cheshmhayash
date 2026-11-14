@@ -297,6 +297,10 @@ void ACHGuard::ResetGuard()
 	{
 		Reveal(false);
 	}
+	if (bStartDormant)
+	{
+		SetDormant(true);
+	}
 }
 
 void ACHGuard::Stun(float Seconds)
@@ -308,7 +312,7 @@ void ACHGuard::Stun(float Seconds)
 
 void ACHGuard::HearNoise(const FVector& Where, float Amount)
 {
-	if (State == ECHGuardState::Chase || State == ECHGuardState::Stunned)
+	if (bDormant || State == ECHGuardState::Chase || State == ECHGuardState::Stunned)
 	{
 		return;
 	}
@@ -319,6 +323,26 @@ void ACHGuard::HearNoise(const FVector& Where, float Amount)
 	{
 		SetState(ECHGuardState::Suspicious);
 	}
+}
+
+void ACHGuard::Alert(const FVector& Where)
+{
+	SetDormant(false);
+	LastKnown = Where;
+	LostTime = 0.f;
+	SetState(ECHGuardState::Chase);
+}
+
+void ACHGuard::SetDormant(bool bInDormant)
+{
+	if (!bDormant && bInDormant)
+	{
+		bStartDormant = true;
+	}
+	bDormant = bInDormant;
+	SetActorHiddenInGame(bDormant);
+	SetActorEnableCollision(!bDormant);
+	GetCharacterMovement()->StopMovementImmediately();
 }
 
 void ACHGuard::Reveal(bool bInRevealed)
@@ -681,6 +705,14 @@ void ACHGuard::Tick(float DeltaSeconds)
 
 	UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
 	const bool bLive = Segment && Segment->IsActive();
+
+	if (bDormant)
+	{
+		Cone->SetVisibility(false);
+		Flashlight->SetVisibility(false);
+		AlertMark->SetVisibility(false);
+		return;
+	}
 
 	if (State == ECHGuardState::Stunned)
 	{

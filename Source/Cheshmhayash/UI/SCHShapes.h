@@ -34,6 +34,27 @@ private:
 	bool bTopToBottom = true;
 };
 
+/**
+ * His right eye closing: the right half of the picture goes dark from the outer edge inwards,
+ * with a soft, slightly trembling edge. Close 0 = open, 1 = the whole right half is black.
+ */
+class SCHEyeShade : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SCHEyeShade) : _Close(0.f) {}
+		SLATE_ATTRIBUTE(float, Close)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs);
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override { return FVector2D(8.0, 8.0); }
+
+private:
+	TAttribute<float> Close;
+};
+
 /** An eye: two lids and an iris. Used as the "being seen" meter. */
 class SCHEye : public SLeafWidget
 {

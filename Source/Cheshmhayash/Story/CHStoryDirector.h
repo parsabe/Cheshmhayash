@@ -87,6 +87,12 @@ public:
 	void InputPause();
 	void DevSkipScene();
 	bool IsPlayerControlEnabled() const { return bPlayerControl && !bTraveling; }
+	/** false in segments where he may film or use things but not walk (the final rooftop). */
+	bool IsMoveAllowed() const { return bMoveAllowed; }
+
+	/** Runs a short scene (an encounter: text, a choice) inside the running gameplay segment, then returns to it. */
+	void PlayInterlude(const FString& SceneId);
+	bool IsInInterlude() const { return bInInterlude; }
 
 	// ---- choices
 	void SetFlag(const FString& Name, const FString& Value);
@@ -122,6 +128,7 @@ private:
 	void StartStory();
 	void StartScene(int32 Index);
 	void NextScene();
+	void EndInterlude();
 	void TravelTo(const FString& Location, const FString& Variant);
 	void ApplySceneSetup();
 
@@ -174,7 +181,13 @@ private:
 	bool bTraveling = false;
 	bool bPlayerControl = false;
 	bool bSegmentDone = false;
+	bool bMoveAllowed = true;
 	int32 SegmentChances = 0;
+
+	bool bInInterlude = false;
+	int32 ReturnScene = INDEX_NONE;
+	int32 ReturnBeat = 0;
+	bool bReturnControl = false;
 
 	bool bAdvancePressed = false;
 	int32 NavInput = 0;
@@ -204,6 +217,7 @@ private:
 	bool bDevQuit = false;
 	bool bDevKeys = false;
 	TArray<float> DevShotTimes;
+	TArray<FString> DevInterludes;
 	int32 DevNextShot = 0;
 	double DevStartSeconds = 0.0;
 	double DevLastShotSeconds = 0.0;

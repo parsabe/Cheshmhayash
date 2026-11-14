@@ -38,6 +38,10 @@ public:
 	float AimAngle = 12.f;
 	/** Size of the glow sprite in cm. */
 	float GlowSize = 140.f;
+	/** Far away (the sun): skip the line of sight test. */
+	bool bIgnoreSight = false;
+
+	void SetGlowVisible(bool bVisible);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Filmable")

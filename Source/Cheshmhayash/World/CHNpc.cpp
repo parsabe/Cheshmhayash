@@ -23,6 +23,8 @@ ACHNpc::ACHNpc()
 	Body->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	Body->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	Body->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+	// keep animating off screen: a fall that starts during a fade must have finished when we cut to it
+	Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MannyFinder(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
 	static ConstructorHelpers::FObjectFinder<UAnimSequence> IdleFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle"));
@@ -115,14 +117,34 @@ void ACHNpc::SetSink(float Centimetres)
 	Body->SetRelativeLocation(FVector(0.f, 0.f, -Sink));
 }
 
-void ACHNpc::PlayFall()
+void ACHNpc::PlayFall(bool bRagdoll)
 {
 	bMoving = false;
 	if (FallAnim)
 	{
 		CurrentAnim = FallAnim;
 		Body->PlayAnimation(FallAnim, false);
+		Body->SetPlayRate(1.f);
 	}
+	// the animation only starts the collapse; physics lays him down
+	RagdollTimer = bRagdoll ? (FallAnim ? FallAnim->GetPlayLength() * 0.85f : 0.01f) : -1.f;
+}
+
+void ACHNpc::StartRagdoll()
+{
+	RagdollTimer = -1.f;
+	for (UStaticMeshComponent* Shape : Shapes)
+	{
+		if (Shape)
+		{
+			Shape->SetVisibility(false);
+		}
+	}
+	Body->SetCollisionProfileName(TEXT("Ragdoll"));
+	Body->SetAllBodiesSimulatePhysics(true);
+	Body->SetSimulatePhysics(true);
+	Body->WakeAllRigidBodies();
+	Body->bBlendPhysics = true;
 }
 
 void ACHNpc::Freeze()
@@ -139,6 +161,15 @@ void ACHNpc::Tick(float DeltaSeconds)
 	if (bFrozen)
 	{
 		return;
+	}
+
+	if (RagdollTimer >= 0.f)
+	{
+		RagdollTimer -= DeltaSeconds;
+		if (RagdollTimer < 0.f)
+		{
+			StartRagdoll();
+		}
 	}
 
 	if (bMoving)

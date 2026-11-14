@@ -36,8 +36,9 @@ public:
 	void SetSink(float Centimetres);
 	/** Trembling shoulders. */
 	void SetShaking(bool bInShaking) { bShaking = bInShaking; }
-	/** Plays the fall animation once and holds the last frame. */
-	void PlayFall();
+	/** Plays the fall animation once; with bRagdoll, physics lays the body down afterwards. */
+	void PlayFall(bool bRagdoll = false);
+	void StartRagdoll();
 	/** Freezes the current pose. */
 	void Freeze();
 
@@ -80,6 +81,7 @@ private:
 	float TargetYaw = 0.f;
 	float Sink = 0.f;
 	float ShakeTime = 0.f;
+	float RagdollTimer = -1.f;
 	bool bMoving = false;
 	bool bTurning = false;
 	bool bShaking = false;

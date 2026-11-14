@@ -32,6 +32,7 @@
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
 #include "UI/SCHDialogueOverlay.h"
+#include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHRootOverlay.h"
 #include "UnrealClient.h"
@@ -376,7 +377,7 @@ bool UCHStoryDirector::LoadStoryFile(const FString& Name)
 		Scene.Location = JStr(Json, TEXT("location"));
 		Scene.Variant = JStr(Json, TEXT("variant"));
 		Scene.Player = JStr(Json, TEXT("player"), TEXT("he"));
-		Scene.bDev = JBool(Json, TEXT("dev"), false);
+		Scene.bDev = JBool(Json, TEXT("dev"), false) || JBool(Json, TEXT("interlude"), false);
 
 		const TArray<TSharedPtr<FJsonValue>>* BeatArray = nullptr;
 		if (Json.TryGetArrayField(TEXT("beats"), BeatArray) && BeatArray)
@@ -474,6 +475,13 @@ void UCHStoryDirector::StartScene(int32 Index)
 	bBeatStarted = false;
 	bPlayerControl = false;
 	bSegmentDone = false;
+	bMoveAllowed = true;
+	bInInterlude = false;
+	if (UI.IsValid())
+	{
+		UI->EyeTarget = 0.f;
+		UI->EyeClose = 0.f;
+	}
 
 	const FCHScene& Scene = Scenes[Index];
 	UE_LOG(LogCheshmhayash, Log, TEXT("Scene %s (location '%s' variant '%s')"), *Scene.Id, *Scene.Location, *Scene.Variant);
@@ -631,7 +639,14 @@ void UCHStoryDirector::Tick(float DeltaTime)
 			const FCHScene& Scene = Scenes[SceneIndex];
 			if (!Scene.Beats.IsValidIndex(BeatIndex))
 			{
-				NextScene();
+				if (bInInterlude)
+				{
+					EndInterlude();
+				}
+				else
+				{
+					NextScene();
+				}
 				bFirst = false;
 				continue;
 			}
@@ -818,6 +833,7 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	{
 		bSegmentDone = false;
 		bPlayerControl = true;
+		bMoveAllowed = JBool(Beat, TEXT("move"), true);
 
 		// second chances: a base number plus one for every kindness the player chose
 		SegmentChances = static_cast<int32>(JNum(Beat, TEXT("chances"), 0.0));
@@ -833,7 +849,8 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			bControlsShown = true;
 			UI->Hud->ShowControls(14.f);
 		}
-		if (Controller)
+		// "keep_camera": stay on the scene camera (filming the sunrise from where he sits)
+		if (Controller && !JBool(Beat, TEXT("keep_camera"), false))
 		{
 			Controller->SetSceneCamera(nullptr, static_cast<float>(JNum(Beat, TEXT("blend"), 0.0)));
 		}
@@ -907,6 +924,109 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	else if (Type == TEXT("toast"))
 	{
 		Toast(JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), CH::Col::Paper, static_cast<float>(JNum(Beat, TEXT("seconds"), 2.8)));
+	}
+	else if (Type == TEXT("eye"))
+	{
+		// his right eye: "close" 1 = the right half goes dark
+		UI->EyeTarget = static_cast<float>(JNum(Beat, TEXT("close"), 1.0));
+		const float Time = static_cast<float>(JNum(Beat, TEXT("time"), 2.5));
+		UI->EyeRate = Time > 0.f ? 1.f / Time : 100.f;
+		if (Time <= 0.f)
+		{
+			UI->EyeClose = UI->EyeTarget;
+		}
+	}
+	else if (Type == TEXT("shake"))
+	{
+		if (Controller)
+		{
+			Controller->Shake(static_cast<float>(JNum(Beat, TEXT("seconds"), 1.0)), static_cast<float>(JNum(Beat, TEXT("strength"), 1.5)));
+		}
+	}
+	else if (Type == TEXT("flash"))
+	{
+		Flash(JStr(Beat, TEXT("color")) == TEXT("red") ? FLinearColor(0.7f, 0.03f, 0.02f) : FLinearColor::White, static_cast<float>(JNum(Beat, TEXT("time"), 0.6)));
+	}
+	else if (Type == TEXT("montage"))
+	{
+		// the director's cut: every clip he filmed, in order; the last one freezes
+		SetFade(1.f, 0.f, FLinearColor::Black);
+		UI->Dialogue->Hide();
+		UI->Captions->Clear();
+		bRec = false;
+		TArray<FCHMontageClip> Montage;
+		for (const FCHClip& Clip : Clips)
+		{
+			FCHMontageClip Item;
+			Item.Image = Clip.Image;
+			Item.Fa = Clip.CaptionFa;
+			Item.En = Clip.CaptionEn;
+			Item.Stamp = Clip.Chapter <= 1 ? TEXT("SHAHRIVAR 1401") : TEXT("MEHR 1401");
+			Montage.Add(Item);
+		}
+		if (Montage.Num() > 0)
+		{
+			Montage.Last().Stamp = TEXT("24 MEHR 1401  06:04");
+		}
+		UI->Montage->Play(Montage, JStr(Beat, TEXT("fa"), TEXT("آنچه چشم‌هایش دید")), JStr(Beat, TEXT("en"), TEXT("WHAT HIS EYES SAW")));
+	}
+	else if (Type == TEXT("interlude"))
+	{
+		PlayInterlude(JStr(Beat, TEXT("scene")));
+	}
+	else if (Type == TEXT("notify"))
+	{
+		UI->Hud->Notify(JStr(Beat, TEXT("title")), JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("seconds"), 8.0)));
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// Interludes: a short story moment inside a running gameplay segment
+// ---------------------------------------------------------------------------------------------
+
+void UCHStoryDirector::PlayInterlude(const FString& SceneId)
+{
+	const int32 Index = FindScene(SceneId);
+	if (Index == INDEX_NONE || bInInterlude || bTraveling)
+	{
+		UE_LOG(LogCheshmhayash, Warning, TEXT("Interlude '%s' not played"), *SceneId);
+		return;
+	}
+	bInInterlude = true;
+	ReturnScene = SceneIndex;
+	ReturnBeat = BeatIndex;
+	bReturnControl = bPlayerControl;
+	if (UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(GetWorld()))
+	{
+		Segment->SetSuspended(true);
+	}
+	SceneIndex = Index;
+	BeatIndex = 0;
+	bBeatStarted = false;
+	bPlayerControl = false;
+	UE_LOG(LogCheshmhayash, Log, TEXT("Interlude %s"), *SceneId);
+}
+
+void UCHStoryDirector::EndInterlude()
+{
+	bInInterlude = false;
+	SceneIndex = ReturnScene;
+	BeatIndex = ReturnBeat;
+	// the beat we came from (the gameplay segment) keeps running
+	bBeatStarted = true;
+	bPlayerControl = bReturnControl;
+	UI->Dialogue->Hide();
+	if (ACHPlayerController* Controller = GetController())
+	{
+		Controller->SetSceneCamera(nullptr, 0.8f);
+	}
+	if (UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(GetWorld()))
+	{
+		Segment->SetSuspended(false);
+	}
+	if (Builder.IsValid())
+	{
+		Builder->OnInterludeEnded();
 	}
 }
 
@@ -1250,6 +1370,18 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 	{
 		return BeatTime >= static_cast<float>(JNum(Beat, TEXT("hold"), 0.0));
 	}
+	if (Type == TEXT("montage"))
+	{
+		if (ConsumeAdvance() && BeatTime > 2.f)
+		{
+			UI->Montage->Skip();
+		}
+		return UI->Montage->IsFinished();
+	}
+	if (Type == TEXT("eye"))
+	{
+		return !JBool(Beat, TEXT("wait"), false) || FMath::IsNearlyEqual(UI->EyeClose, UI->EyeTarget, 0.001f);
+	}
 
 	// instant beats: caption, control, camera, event, flag, place, hide_text and anything unknown
 	return true;
@@ -1291,6 +1423,28 @@ void UCHStoryDirector::ParseDevOptions()
 	bDevAuto = FParse::Param(CommandLine, TEXT("chauto"));
 	bDevBot = FParse::Param(CommandLine, TEXT("chbot"));
 	bDevGhost = FParse::Param(CommandLine, TEXT("chghost"));
+	FString Interludes;
+	if (FParse::Value(CommandLine, TEXT("chinterlude="), Interludes, false))
+	{
+		Interludes.ParseIntoArray(DevInterludes, TEXT(","), true);
+	}
+
+	// -chflags=window_seat=A,walk_offer=B : pretend earlier choices were made
+	FString DevFlags;
+	if (FParse::Value(CommandLine, TEXT("chflags="), DevFlags, false))
+	{
+		TArray<FString> Pairs;
+		DevFlags.ParseIntoArray(Pairs, TEXT(","), true);
+		for (const FString& Pair : Pairs)
+		{
+			FString Name;
+			FString Value;
+			if (Pair.Split(TEXT("="), &Name, &Value))
+			{
+				SetFlag(Name, Value);
+			}
+		}
+	}
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
 
@@ -1309,6 +1463,14 @@ void UCHStoryDirector::ParseDevOptions()
 
 void UCHStoryDirector::DevTick()
 {
+	// -chinterlude=a,b : play encounters once a gameplay segment has been running for a moment
+	if (DevInterludes.Num() > 0 && bPlayerControl && !bInInterlude && !bTraveling && BeatTime > 3.f && Scenes.IsValidIndex(SceneIndex)
+		&& Scenes[SceneIndex].Beats.IsValidIndex(BeatIndex) && JStr(*Scenes[SceneIndex].Beats[BeatIndex], TEXT("type")) == TEXT("gameplay"))
+	{
+		PlayInterlude(DevInterludes[0]);
+		DevInterludes.RemoveAt(0);
+	}
+
 	if (DevShotTimes.Num() == 0)
 	{
 		return;

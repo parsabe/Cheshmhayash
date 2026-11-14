@@ -10,6 +10,7 @@ class SCHCardLayer;
 class SCHChoiceList;
 class SCHDialogueOverlay;
 class SCHHud;
+class SCHMontage;
 class SCHPhoneOverlay;
 
 class SCHRootOverlay : public SCompoundWidget
@@ -33,12 +34,18 @@ public:
 	FLinearColor FadeColor = FLinearColor::Black;
 	float FadeAlpha = 1.f;
 
+	/** His right eye: 0 open, 1 the right half of the picture is dark. Animates towards EyeTarget. */
+	float EyeClose = 0.f;
+	float EyeTarget = 0.f;
+	float EyeRate = 0.5f;
+
 	TSharedPtr<SCHCardLayer> Cards;
 	TSharedPtr<SCHCardLayer> Captions;
 	TSharedPtr<SCHChoiceList> Menu;
 	TSharedPtr<SCHDialogueOverlay> Dialogue;
 	TSharedPtr<SCHPhoneOverlay> Phone;
 	TSharedPtr<SCHHud> Hud;
+	TSharedPtr<SCHMontage> Montage;
 
 private:
 	FSlateColor GetFadeColor() const;

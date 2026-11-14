@@ -113,6 +113,7 @@ void UCHSegmentSubsystem::Begin(ACHLevelBuilder* InBuilder, const FTransform& In
 	{
 		Checkpoint.bReached = false;
 	}
+	UsedExits.Reset();
 	const UCHStoryDirector* Director = UCHStoryDirector::Get(this);
 	bDevBot = Director && Director->IsDevBot();
 	bDevGhost = Director && Director->IsDevGhost();
@@ -131,6 +132,17 @@ void UCHSegmentSubsystem::End()
 		Hero->SetFilming(false);
 	}
 	PushHud();
+}
+
+void UCHSegmentSubsystem::SetSuspended(bool bInSuspended)
+{
+	bSuspended = bInSuspended;
+	if (!bSuspended)
+	{
+		// a moment to get his bearings
+		GraceTime = FMath::Max(GraceTime, 1.5f);
+	}
+	bFilmHeld = false;
 }
 
 void UCHSegmentSubsystem::SetHint(const FString& Fa, const FString& En)
@@ -163,7 +175,7 @@ void UCHSegmentSubsystem::Tick(float DeltaTime)
 	UpdateRestart(DeltaTime);
 
 	APawn* Pawn = GetPlayerPawn();
-	if (bActive && Pawn)
+	if (bActive && Pawn && !bSuspended)
 	{
 		UpdatePlayer(DeltaTime, Pawn);
 		UpdateDevBot(DeltaTime, Pawn);
@@ -274,7 +286,7 @@ void UCHSegmentSubsystem::UpdatePlayer(float DeltaTime, APawn* Pawn)
 void UCHSegmentSubsystem::UpdateDevBot(float DeltaTime, APawn* Pawn)
 {
 	bBotFilm = false;
-	if (!bDevBot || RestartTime > 0.f || Exits.Num() == 0)
+	if (!bDevBot || RestartTime > 0.f)
 	{
 		return;
 	}
@@ -284,6 +296,34 @@ void UCHSegmentSubsystem::UpdateDevBot(float DeltaTime, APawn* Pawn)
 		return;
 	}
 	const FVector Location = Pawn->GetActorLocation();
+
+	// a fixed scene camera (the final rooftop): film whatever it looks at
+	if (Controller->GetViewTarget() != Pawn)
+	{
+		bBotFilm = bFilmAllowed;
+		return;
+	}
+
+	// no way out: use the nearest thing that can be used
+	if (Exits.Num() == 0)
+	{
+		BotUseTime += DeltaTime;
+		if (BotUseTime > 2.f)
+		{
+			BotUseTime = 0.f;
+			for (const TWeakObjectPtr<ACHInteractable>& Interactable : Interactables)
+			{
+				if (Interactable.IsValid() && Interactable->IsEnabled())
+				{
+					Pawn->TeleportTo(Interactable->GetActorLocation() + FVector(-80.f, 0.f, 40.f), Pawn->GetActorRotation());
+					PromptTarget = Interactable;
+					Interact();
+					break;
+				}
+			}
+		}
+		return;
+	}
 
 	// film anything worth filming that is close and in sight
 	if (bFilmAllowed)
@@ -312,8 +352,36 @@ void UCHSegmentSubsystem::UpdateDevBot(float DeltaTime, APawn* Pawn)
 		}
 	}
 
-	// walk to the exit
-	const FVector Goal = Exits[0].Box.GetCenter();
+	// use whatever is close enough to use (encounters)
+	for (const TWeakObjectPtr<ACHInteractable>& Interactable : Interactables)
+	{
+		if (Interactable.IsValid() && Interactable->IsEnabled() && FVector::Dist2D(Interactable->GetActorLocation(), Location) < Interactable->Radius)
+		{
+			PromptTarget = Interactable;
+			Interact();
+			return;
+		}
+	}
+
+	// walk to the next exit not yet used
+	FVector Goal = Exits.Last().Box.GetCenter();
+	for (const FCHExit& Exit : Exits)
+	{
+		if (!UsedExits.Contains(Exit.Id))
+		{
+			Goal = Exit.Box.GetCenter();
+			break;
+		}
+	}
+	// stuck (a wall only he can climb): skip ahead
+	BotStuckTime = Pawn->GetVelocity().Size2D() < 40.f ? BotStuckTime + DeltaTime : 0.f;
+	if (BotStuckTime > 3.f)
+	{
+		BotStuckTime = 0.f;
+		const FVector Ahead = Location + (Goal - Location).GetSafeNormal2D() * FMath::Min(700.f, FVector::Dist2D(Goal, Location));
+		Pawn->TeleportTo(FVector(Ahead.X, Ahead.Y, Location.Z + 20.f), Pawn->GetActorRotation());
+		BotPath.Reset();
+	}
 	BotRepath -= DeltaTime;
 	if (BotPath.Num() == 0 || BotRepath <= 0.f)
 	{
@@ -394,11 +462,14 @@ void UCHSegmentSubsystem::UpdateFilming(float DeltaTime, APawn* Pawn)
 			continue;
 		}
 		// stop a little short: the moment may sit on a wall
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(CHFilmSight), false, Pawn);
-		const FVector End = CameraLocation + To * (1.f - FMath::Min(80.f / Distance, 0.5f));
-		if (GetWorld()->LineTraceTestByChannel(CameraLocation, End, ECC_Visibility, Params))
+		if (!Filmable->bIgnoreSight)
 		{
-			continue;
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(CHFilmSight), false, Pawn);
+			const FVector End = CameraLocation + To * (1.f - FMath::Min(80.f / Distance, 0.5f));
+			if (GetWorld()->LineTraceTestByChannel(CameraLocation, End, ECC_Visibility, Params))
+			{
+				continue;
+			}
 		}
 		if (Angle < BestAngle)
 		{
@@ -510,9 +581,11 @@ void UCHSegmentSubsystem::UpdateZones(APawn* Pawn)
 	}
 	for (const FCHExit& Exit : Exits)
 	{
-		if (Exit.Box.IsInsideOrOn(Location))
+		if (!UsedExits.Contains(Exit.Id) && Exit.Box.IsInsideOrOn(Location))
 		{
 			const FString Id = Exit.Id;
+			UsedExits.Add(Id);
+			BotPath.Reset();
 			if (Builder.IsValid())
 			{
 				Builder->OnSegmentExit(Id);
@@ -636,7 +709,7 @@ void UCHSegmentSubsystem::PushHud()
 	}
 
 	FCHHudState State;
-	State.bActive = bActive;
+	State.bActive = bActive && !bSuspended;
 	State.Suspicion = bActive ? MaxSuspicion : 0.f;
 	State.bChased = bActive && bAnyChasing;
 	State.bFilming = bActive && bFilming;

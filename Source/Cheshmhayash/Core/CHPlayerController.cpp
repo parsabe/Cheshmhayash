@@ -44,9 +44,42 @@ void ACHPlayerController::SetSceneCamera(AActor* Camera, float BlendTime)
 	}
 }
 
+void ACHPlayerController::Shake(float Seconds, float Strength)
+{
+	ShakeTime = 0.f;
+	ShakeDuration = FMath::Max(0.05f, Seconds);
+	ShakeStrength = Strength;
+}
+
+void ACHPlayerController::UpdateShake(float DeltaTime)
+{
+	if (ShakeDuration <= 0.f && ShakeOffset.IsNearlyZero())
+	{
+		return;
+	}
+	FRotator NewOffset = FRotator::ZeroRotator;
+	if (ShakeDuration > 0.f)
+	{
+		ShakeTime += DeltaTime;
+		const float Fade = FMath::Clamp(1.f - ShakeTime / ShakeDuration, 0.f, 1.f);
+		const float Amount = ShakeStrength * Fade * Fade;
+		NewOffset.Pitch = FMath::PerlinNoise1D(ShakeTime * 23.f) * Amount;
+		NewOffset.Yaw = FMath::PerlinNoise1D(ShakeTime * 19.f + 7.3f) * Amount;
+		if (ShakeTime >= ShakeDuration)
+		{
+			ShakeDuration = 0.f;
+			NewOffset = FRotator::ZeroRotator;
+		}
+	}
+	// apply only the change, so the offset never accumulates
+	SetControlRotation(GetControlRotation() + (NewOffset - ShakeOffset));
+	ShakeOffset = NewOffset;
+}
+
 void ACHPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+	UpdateShake(DeltaTime);
 
 	UCHStoryDirector* Director = UCHStoryDirector::Get(this);
 	if (!Director)
@@ -102,6 +135,10 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	if (Segment && WasInputKeyJustPressed(EKeys::E))
 	{
 		Segment->Interact();
+	}
+	if (!Director->IsMoveAllowed())
+	{
+		return;
 	}
 
 	float MouseX = 0.f;

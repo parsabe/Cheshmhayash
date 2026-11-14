@@ -23,6 +23,10 @@ struct FCHBuildingStyle
 	/** Fraction of windows lit at night. */
 	float LitWindows = 0.22f;
 	bool bRoofProps = true;
+	/** Sides whose roof parapet is low enough to step over (same bits as Facades). */
+	uint8 LowParapets = 0;
+	/** > 0: exact roof height instead of the one the floor count gives. */
+	float HeightOverride = 0.f;
 	int32 Seed = 0;
 };
 

@@ -123,6 +123,8 @@ public:
 	virtual void OnSegmentReset() {}
 	virtual void OnInteract(const FString& Id, ACHInteractable* What) {}
 	virtual void OnFilmed(const FString& Id) {}
+	/** A story interlude (an encounter) has finished and gameplay resumes. */
+	virtual void OnInterludeEnded() {}
 	/** Ends the running segment and lets the story continue. */
 	void FinishSegment();
 
@@ -201,7 +203,7 @@ protected:
 	 * The Alborz range on the horizon with Damavand at its centre, in compass direction YawDegrees.
 	 * Unlit silhouettes: the colours are the look.
 	 */
-	void BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance = 300000.f);
+	void BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance = 300000.f, bool bLit = false);
 
 	// ---- world-space Slate (Farsi shapes correctly here; engine text render components do not)
 	/**

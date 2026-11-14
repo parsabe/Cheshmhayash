@@ -52,6 +52,10 @@ public:
 	void ResetGuard();
 	void Stun(float Seconds);
 	void HearNoise(const FVector& Where, float Amount);
+	/** Straight into a chase towards a place (he drew them away, shots were fired). */
+	void Alert(const FVector& Where);
+	/** Guards that only wake up later in a segment (the last night). */
+	void SetDormant(bool bInDormant);
 
 	float GetSuspicion() const { return Suspicion; }
 	bool IsChasing() const { return State == ECHGuardState::Chase; }
@@ -138,4 +142,6 @@ private:
 	bool bSeesPlayer = false;
 	bool bRevealed = true;
 	bool bHasLight = true;
+	bool bDormant = false;
+	bool bStartDormant = false;
 };

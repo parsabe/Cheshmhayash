@@ -6,7 +6,9 @@
 #include "UI/SCHChoiceList.h"
 #include "UI/SCHDialogueOverlay.h"
 #include "UI/SCHHud.h"
+#include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
+#include "UI/SCHShapes.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
@@ -26,6 +28,13 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			SNew(SImage)
 			.Image(CH::WhiteBrush())
 			.ColorAndOpacity(this, &SCHRootOverlay::GetFlashColor)
+		]
+
+		// his right eye closing
+		+ SOverlay::Slot()
+		[
+			SNew(SCHEyeShade)
+			.Close_Lambda([this]() { return EyeClose; })
 		]
 
 		// screen fade
@@ -58,6 +67,12 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 		+ SOverlay::Slot()
 		[
 			SAssignNew(Dialogue, SCHDialogueOverlay)
+		]
+
+		// the director's cut
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Montage, SCHMontage)
 		]
 
 		// centre cards
@@ -95,7 +110,9 @@ void SCHRootOverlay::Advance(float DeltaTime)
 	Dialogue->Advance(DeltaTime);
 	Phone->Advance(DeltaTime);
 	Hud->Advance(DeltaTime);
+	Montage->Advance(DeltaTime);
 	FlashAlpha = FMath::Max(0.f, FlashAlpha - DeltaTime * FlashRate);
+	EyeClose = FMath::FInterpConstantTo(EyeClose, EyeTarget, DeltaTime, EyeRate);
 }
 
 void SCHRootOverlay::Flash(const FLinearColor& Color, float Seconds)

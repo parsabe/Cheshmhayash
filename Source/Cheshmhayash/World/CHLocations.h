@@ -39,7 +39,57 @@ private:
 	float DoorTarget = 0.f;
 };
 
-/** The city at night. Variants: "test" (one street to try the stealth), later the nights of Mehr. */
+/**
+ * The rooftop at the city's edge, facing east toward the mountains (2.6). Pre-dawn roofs to
+ * cross, the sunrise he films, the phone falling, and the last shot: the sun rising over
+ * Damavand, the light crossing the roofs until it reaches his face.
+ */
+UCLASS()
+class ACHLoc_FinalRoof : public ACHCityBuilder
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Build(const FString& InVariant) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void StartSegment(const FString& Segment, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) override;
+	virtual void OnFilmed(const FString& Id) override;
+
+private:
+	void SetSun(float Elevation, float Warmth);
+	void BuildRoof(float MinX, float MinY, float SizeX, float SizeY, float Height, uint8 LowSides, int32 Seed);
+	void BuildDistantCity();
+	TSharedRef<SWidget> MakePhoneScreen() const;
+
+	/** Sun elevation in degrees: below zero it is still under the horizon. */
+	float SunElevation = -4.f;
+	float SunFrom = -4.f;
+	float SunTo = -4.f;
+	float SunTime = 0.f;
+	float SunDuration = 1.f;
+
+	/** Phone falling from his hand. */
+	float FallTime = -1.f;
+	FTransform FallFrom;
+
+	float DevTimer = -1.f;
+	FString Segment;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> PhoneScreen;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> PhoneBody;
+};
+
+/**
+ * The city at night. Variants:
+ *   "test"      one street to try the stealth
+ *   "nights"    the nights of Mehr (2.4) and the alley where Mom's message arrives (2.5)
+ *   "lastnight" the biggest street, the crowd, the shots, the run (2.6)
+ */
 UCLASS()
 class ACHLoc_Streets : public ACHCityBuilder
 {
@@ -47,7 +97,54 @@ class ACHLoc_Streets : public ACHCityBuilder
 
 public:
 	virtual void Build(const FString& InVariant) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void StartSegment(const FString& Segment, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) override;
+	virtual void OnInterludeEnded() override;
+	virtual void OnSegmentExit(const FString& Id) override;
+	virtual void OnSegmentReset() override;
 
 private:
 	void BuildTest();
+	void BuildNights();
+	void BuildLastNight();
+	/** Shots, smoke, the crowd breaks, they come. */
+	void StartShots();
+	void SpawnCrowd(const FBox2D& Area, int32 Count, int32 Seed);
+
+	// nights of Mehr
+	UPROPERTY()
+	TArray<TObjectPtr<ACHGuard>> StudentGuards;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ACHNpc>> Students;
+
+	UPROPERTY()
+	TObjectPtr<USceneComponent> ShutterPivot;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ACHNpc>> ShopStudents;
+
+	FVector ShopDoor = FVector::ZeroVector;
+	FVector ShopCurb = FVector::ZeroVector;
+	float ShutterOpen = 0.f;
+	float ShopLoop = 0.f;
+	FString PendingInterlude;
+
+	// the last night
+	UPROPERTY()
+	TArray<TObjectPtr<ACHNpc>> Crowd;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UWidgetComponent>> Chants;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ACHGuard>> Chasers;
+
+	TArray<float> ChantAge;
+	TArray<FVector> ChantBase;
+	TArray<FVector> CrowdGoals;
+	bool bShotsFired = false;
+	float StreetsTime = 0.f;
 };

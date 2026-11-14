@@ -26,7 +26,7 @@ ACHPlayerCharacter::ACHPlayerCharacter()
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->bOrientRotationToMovement = true;
 	Movement->RotationRate = FRotator(0.f, 560.f, 0.f);
-	Movement->JumpZVelocity = 520.f;
+	Movement->JumpZVelocity = 600.f;
 	Movement->AirControl = 0.35f;
 	Movement->MaxWalkSpeed = JogSpeed;
 	Movement->MinAnalogWalkSpeed = 20.f;

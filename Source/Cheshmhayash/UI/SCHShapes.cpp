@@ -34,6 +34,41 @@ int32 SCHGradient::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	return LayerId;
 }
 
+void SCHEyeShade::Construct(const FArguments& InArgs)
+{
+	Close = InArgs._Close;
+	SetVisibility(EVisibility::HitTestInvisible);
+}
+
+int32 SCHEyeShade::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	const float Amount = FMath::Clamp(Close.Get(), 0.f, 1.f);
+	if (Amount <= 0.f)
+	{
+		return LayerId;
+	}
+	const FVector2f Size = FVector2f(AllottedGeometry.GetLocalSize());
+	const float Soft = Size.X * 0.09f;
+	// the dark reaches the centre line when fully closed; the soft edge sits just outside it
+	const float EdgeX = Size.X - (Size.X * 0.5f + Soft) * Amount;
+	const float SolidX = EdgeX + Soft;
+
+	if (SolidX < Size.X)
+	{
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
+			AllottedGeometry.ToPaintGeometry(FVector2f(Size.X - SolidX, Size.Y), FSlateLayoutTransform(FVector2f(SolidX, 0.f))),
+			CH::WhiteBrush(), ESlateDrawEffect::None, FLinearColor::Black);
+	}
+	TArray<FSlateGradientStop> Stops;
+	Stops.Emplace(FVector2D(0.0, 0.0), FLinearColor(0.f, 0.f, 0.f, 0.f));
+	Stops.Emplace(FVector2D(Soft, 0.0), FLinearColor(0.f, 0.f, 0.f, 1.f));
+	FSlateDrawElement::MakeGradient(OutDrawElements, LayerId,
+		AllottedGeometry.ToPaintGeometry(FVector2f(Soft, Size.Y), FSlateLayoutTransform(FVector2f(EdgeX, 0.f))),
+		MoveTemp(Stops), Orient_Vertical);
+	return LayerId;
+}
+
 void SCHEye::Construct(const FArguments& InArgs)
 {
 	Open = InArgs._Open;
