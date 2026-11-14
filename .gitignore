@@ -1,11 +1,3 @@
-# Unreal Engine generated
-Binaries/
-Intermediate/
-Saved/
-DerivedDataCache/
-Build/
-Backup/
-Dist/
 
 # IDE
 .vs/
