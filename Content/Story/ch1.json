@@ -1,0 +1,33 @@
+{
+  "scenes": [
+    {
+      "id": "1.0",
+      "chapter": 1,
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        {
+          "type": "chapter",
+          "fa_sub": "فصل یک · شهریور ۱۴۰۱",
+          "fa_title": "ون سبز",
+          "en_title": "The Green Van",
+          "en_sub": "CHAPTER ONE  ·  SHAHRIVAR 1401"
+        },
+        { "type": "silence", "seconds": 0.8 }
+      ]
+    },
+    {
+      "id": "1.1",
+      "chapter": 1,
+      "location": "Room",
+      "variant": "morning",
+      "beats": [
+        { "type": "camera", "mark": "Wide" },
+        { "type": "caption", "fa": "۲۲ شهریور ۱۴۰۱ · صبح", "en": "22 SHAHRIVAR 1401 · MORNING · HIS ROOM" },
+        { "type": "fade", "to": 0, "time": 3.0 },
+        { "type": "silence", "seconds": 4.0 },
+        { "type": "gameplay", "segment": "free", "blend": 2.5 }
+      ]
+    }
+  ]
+}

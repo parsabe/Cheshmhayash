@@ -1,0 +1,30 @@
+{
+  "scenes": [
+    {
+      "id": "boot",
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "silence", "seconds": 1.2 },
+        {
+          "type": "card",
+          "style": "opening",
+          "hold": 6.5,
+          "fa": [
+            "در این بازی هیچ صدایی نیست.",
+            "کسانی که این داستان را زندگی کردند، نمی‌توانند آزادانه حرف بزنند.",
+            "حرف‌هایشان اینجا نوشته شده است."
+          ],
+          "en": [
+            "There are no voices in this game.",
+            "The people who lived this story cannot speak freely.",
+            "Their words are written here instead."
+          ]
+        },
+        { "type": "silence", "seconds": 1.0 },
+        { "type": "title" },
+        { "type": "silence", "seconds": 1.0 }
+      ]
+    }
+  ]
+}

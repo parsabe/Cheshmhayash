@@ -1,0 +1,33 @@
+# Unreal Engine generated
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Build/
+Backup/
+Dist/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.sln
+*.slnx
+*.suo
+*.user
+*.VC.db
+*.opensdf
+*.sdf
+.vsconfig
+UpgradeLog*.htm
+
+# Generated audio sources are kept (RawAudio/*.wav), but not secrets
+.env
+*.key
+
+# Python
+__pycache__/
+*.pyc
+
+# Local assistant settings
+.claude/

@@ -1,0 +1,134 @@
+// Cheshm Hayash - shared UI fonts, brushes and palette.
+
+#include "UI/CHStyle.h"
+#include "Cheshmhayash.h"
+#include "Brushes/SlateColorBrush.h"
+#include "Fonts/CompositeFont.h"
+#include "Misc/PackageName.h"
+#include "Misc/Paths.h"
+#include "Styling/CoreStyle.h"
+#include "UObject/UObjectGlobals.h"
+
+namespace
+{
+	TSharedPtr<FStandaloneCompositeFont> GFarsiFont;
+	TSet<FName> GFarsiFaces;
+	bool bFarsiFontInitialized = false;
+
+	const TCHAR* WeightName(CH::EWeight Weight)
+	{
+		switch (Weight)
+		{
+		case CH::EWeight::Light: return TEXT("Light");
+		case CH::EWeight::Bold: return TEXT("Bold");
+		default: return TEXT("Regular");
+		}
+	}
+
+	void InitFarsiFont()
+	{
+		if (bFarsiFontInitialized)
+		{
+			return;
+		}
+		bFarsiFontInitialized = true;
+
+		TSharedRef<FStandaloneCompositeFont> Composite = MakeShared<FStandaloneCompositeFont>();
+		int32 NumAssets = 0;
+		int32 NumFiles = 0;
+
+		for (const TCHAR* Weight : { TEXT("Regular"), TEXT("Bold"), TEXT("Light") })
+		{
+			const FName FaceName(Weight);
+
+			// 1) Font Face asset created by Scripts/import_font.py
+			const FString PackageName = FString::Printf(TEXT("/Game/FontAssets/Vazirmatn_%s"), Weight);
+			if (FPackageName::DoesPackageExist(PackageName))
+			{
+				const FString ObjectPath = FString::Printf(TEXT("%s.Vazirmatn_%s"), *PackageName, Weight);
+				if (UObject* Face = StaticLoadObject(UObject::StaticClass(), nullptr, *ObjectPath))
+				{
+					FTypefaceEntry Entry(FaceName);
+					Entry.Font = FFontData(Face);
+					Composite->DefaultTypeface.Fonts.Add(MoveTemp(Entry));
+					GFarsiFaces.Add(FaceName);
+					++NumAssets;
+					continue;
+				}
+			}
+
+			// 2) Raw .ttf in Content/Fonts
+			const FString File = FPaths::ProjectContentDir() / FString::Printf(TEXT("Fonts/Vazirmatn-%s.ttf"), Weight);
+			if (FPaths::FileExists(File))
+			{
+				Composite->DefaultTypeface.AppendFont(FaceName, File, EFontHinting::Default, EFontLoadingPolicy::LazyLoad);
+				GFarsiFaces.Add(FaceName);
+				++NumFiles;
+			}
+		}
+
+		if (GFarsiFaces.Num() > 0)
+		{
+			const FString Fallback = FPaths::EngineContentDir() / TEXT("Slate/Fonts/DroidSansFallback.ttf");
+			if (FPaths::FileExists(Fallback))
+			{
+				Composite->FallbackTypeface.Typeface.AppendFont(TEXT("Regular"), Fallback, EFontHinting::Default, EFontLoadingPolicy::LazyLoad);
+			}
+			GFarsiFont = Composite;
+			UE_LOG(LogCheshmhayash, Log, TEXT("Vazirmatn loaded: %d font face assets, %d raw ttf files"), NumAssets, NumFiles);
+		}
+		else
+		{
+			UE_LOG(LogCheshmhayash, Warning, TEXT("Vazirmatn not found (Content/Fonts/Vazirmatn-*.ttf). Using the engine font for Farsi."));
+		}
+	}
+}
+
+FSlateFontInfo CH::FarsiFont(float Size, EWeight Weight)
+{
+	InitFarsiFont();
+	if (GFarsiFont.IsValid())
+	{
+		FName Face(WeightName(Weight));
+		if (!GFarsiFaces.Contains(Face))
+		{
+			Face = GFarsiFaces.Contains(TEXT("Regular")) ? FName(TEXT("Regular")) : *GFarsiFaces.CreateConstIterator();
+		}
+		return FSlateFontInfo(GFarsiFont, Size, Face);
+	}
+	return FCoreStyle::GetDefaultFontStyle(WeightName(Weight), Size);
+}
+
+FSlateFontInfo CH::LatinFont(float Size, EWeight Weight, int32 LetterSpacing)
+{
+	FSlateFontInfo Info = FCoreStyle::GetDefaultFontStyle(WeightName(Weight), Size);
+	Info.LetterSpacing = LetterSpacing;
+	return Info;
+}
+
+const FSlateBrush* CH::WhiteBrush()
+{
+	static const FSlateColorBrush Brush(FLinearColor::White);
+	return &Brush;
+}
+
+void CH::ShutdownStyle()
+{
+	GFarsiFont.Reset();
+	GFarsiFaces.Reset();
+	bFarsiFontInitialized = false;
+}
+
+FString CH::PersianDigits(const FString& In)
+{
+	FString Out = In;
+	for (int32 i = 0; i < Out.Len(); ++i)
+	{
+		const TCHAR C = Out[i];
+		if (C >= TEXT('0') && C <= TEXT('9'))
+		{
+			Out[i] = static_cast<TCHAR>(0x06F0 + (C - TEXT('0')));
+		}
+	}
+	return Out;
+}
