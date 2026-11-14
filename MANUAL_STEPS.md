@@ -29,14 +29,22 @@ The Persian font **Vazirmatn** (SIL Open Font License) is already in `Content/Fo
 If those files are ever lost: download them from https://github.com/rastikerdar/vazirmatn
 (folder `fonts/ttf`) into `Content/Fonts/`, then run `Scripts\setup_assets.bat`.
 
-## Audio (step 7)
+## Audio
 
-Generated audio needs a fal API key. Set it once in a terminal, then run the generator:
+The game already has sound: every track and effect is synthesised by
+`Scripts\gen_audio_procedural.py` (no recordings, no voices) and is imported in `/Game/Audio`.
+
+Optional, for richer music: generate the five music tracks with fal, then re-import.
 
 ```
 set FAL_KEY=your-key-here
-python Scripts\gen_audio_fal.py
+Scripts\gen_audio.bat fal
 Scripts\setup_assets.bat
 ```
 
-Without a key the game still runs, using only the procedurally generated sounds.
+The fal tracks land in `RawAudio\fal\` and replace the procedural track of the same name.
+Prompts and lengths are in `Scripts\audio_list.json`; the model ids are at the top of
+`Scripts\gen_audio_fal.py`. To regenerate the procedural audio: `Scripts\gen_audio.bat`.
+Sound effects from WeLoveIndies are optional: drop `.wav` files named like the ones in
+`RawAudio\` into `RawAudio\WeLoveIndies\` and re-run `Scripts\setup_assets.bat`
+(and add the credit line in `Content\Story\ending.json`).
