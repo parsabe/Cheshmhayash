@@ -22,11 +22,59 @@
       "location": "Room",
       "variant": "morning",
       "beats": [
+        { "type": "place", "mark": "He" },
         { "type": "camera", "mark": "Wide" },
         { "type": "caption", "fa": "۲۲ شهریور ۱۴۰۱ · صبح", "en": "22 SHAHRIVAR 1401 · MORNING · HIS ROOM" },
         { "type": "fade", "to": 0, "time": 3.0 },
-        { "type": "silence", "seconds": 4.0 },
-        { "type": "gameplay", "segment": "free", "blend": 2.5 }
+        { "type": "silence", "seconds": 2.5 },
+
+        { "type": "camera", "mark": "Calendar" },
+        { "type": "camera", "mark": "CalendarClose", "blend": 6.0 },
+        { "type": "silence", "seconds": 6.5 },
+
+        { "type": "camera", "mark": "Desk" },
+        { "type": "phone", "action": "call", "fa": "کیان", "en": "Kian" },
+        { "type": "silence", "seconds": 0.6 },
+        { "type": "text", "who": "kian", "fa": "شش هفته. شش هفتهٔ دیگه سوار قطاریم.", "en": "Six weeks. Six weeks and we're on a train." },
+        { "type": "text", "who": "he", "fa": "تو یه شهر سرد که هیچ‌کس ما رو نمی‌شناسه.", "en": "In a cold city where nobody knows us." },
+        { "type": "text", "who": "kian", "fa": "که هیچ‌کس ازمون کارت شناسایی نمی‌خواد.", "en": "Where nobody asks for our ID." },
+        { "type": "camera", "mark": "Tea" },
+        { "type": "text", "who": "he", "fa": "…دلم برای چایی تنگ می‌شه.", "en": "…I'll miss the tea." },
+        { "type": "text", "who": "kian", "fa": "اونجا هم چایی دارن.", "en": "They have tea there." },
+        { "type": "text", "who": "he", "fa": "این چایی رو نه.", "en": "Not this tea." },
+        { "type": "silence", "seconds": 1.2 },
+
+        { "type": "sfx", "name": "knock" },
+        { "type": "phone", "action": "close" },
+        { "type": "camera", "mark": "Door" },
+        { "type": "npc", "name": "sister", "action": "spawn", "look": "sister", "mark": "SisterHall" },
+        { "type": "event", "name": "door_open" },
+        { "type": "silence", "seconds": 0.7 },
+        { "type": "npc", "name": "sister", "action": "walk", "mark": "SisterIn", "speed": 105 },
+        { "type": "text", "who": "sister", "fa": "پول قرض بده. معروف که شدم پس می‌دم.", "en": "Lend me money. I'll pay you back when I'm famous." },
+        { "type": "text", "who": "he", "fa": "تو از شش‌سالگی معروفی. من هنوز منتظرم.", "en": "You've been famous since you were six. Still waiting." },
+        {
+          "type": "choice",
+          "flag": "walk_offer",
+          "who": "he",
+          "options": [
+            { "value": "A", "fa": "تا مترو باهات میام.", "en": "I'll walk you to the metro." },
+            { "value": "B", "fa": "روسری‌تو درست کن. امروز همه‌جا هستن.", "en": "Fix your scarf. They're everywhere today." }
+          ]
+        },
+        { "type": "text", "who": "sister", "if": "walk_offer=A", "fa": "بچه نیستم.", "en": "I'm not a child." },
+        { "type": "text", "who": "sister", "if": "walk_offer=B", "fa": "بذار نگاه کنن.", "en": "Let them look." },
+        { "type": "npc", "name": "sister", "action": "walk", "mark": "SisterHall", "speed": 150 },
+        { "type": "npc", "name": "sister", "action": "remove" },
+        { "type": "event", "name": "door_close" },
+        { "type": "sfx", "name": "door" },
+        { "type": "silence", "seconds": 1.8 },
+
+        { "type": "camera", "mark": "Tea" },
+        { "type": "camera", "mark": "TeaClose", "blend": 7.0 },
+        { "type": "silence", "seconds": 5.5 },
+        { "type": "fade", "to": 1, "time": 2.5 },
+        { "type": "silence", "seconds": 1.0 }
       ]
     }
   ]

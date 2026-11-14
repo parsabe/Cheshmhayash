@@ -10,6 +10,7 @@
 #include "CHStoryDirector.generated.h"
 
 class ACHLevelBuilder;
+class ACHNpc;
 class ACHPlayerController;
 class FJsonObject;
 class SCHRootOverlay;
@@ -55,6 +56,8 @@ public:
 	// ---- input (from the player controller)
 	void InputAdvance() { bAdvancePressed = true; }
 	void InputNav(int32 Direction) { NavInput += Direction; }
+	/** Number keys pick a choice directly (0-based). */
+	void InputChoice(int32 Index) { DirectChoice = Index; }
 	void InputPause();
 	void DevSkipScene();
 	bool IsPlayerControlEnabled() const { return bPlayerControl && !bTraveling; }
@@ -86,6 +89,14 @@ private:
 	void BeginBeat(const FJsonObject& Beat);
 	/** Returns true when the beat is finished. */
 	bool UpdateBeat(const FJsonObject& Beat, float DeltaTime);
+	void BeginPhoneBeat(const FJsonObject& Beat);
+	bool UpdatePhoneBeat(const FJsonObject& Beat, float DeltaTime);
+	/** Shared by "text" beats and spoken choices: handles skip / advance. True when the line is done. */
+	bool UpdateDialogueLine(const FJsonObject& Beat);
+	/** Type of the next beat that will actually run in this scene. */
+	FString PeekNextType() const;
+	/** A letter was typed in the dialogue (or on the phone). */
+	void OnTypeTick(bool bPhone);
 
 	void EnsureUI();
 	void UpdateFade(float DeltaTime);
@@ -121,6 +132,12 @@ private:
 
 	bool bAdvancePressed = false;
 	int32 NavInput = 0;
+	int32 DirectChoice = INDEX_NONE;
+
+	/** Time spent in the current phase of a beat, and time spent waiting after its animation ended. */
+	float PhaseTime = 0.f;
+	float IdleTime = 0.f;
+	TWeakObjectPtr<ACHNpc> WaitNpc;
 
 	float FadeAlpha = 1.f;
 	float FadeTarget = 1.f;
@@ -129,6 +146,7 @@ private:
 
 	// dev
 	FString DevStartScene;
+	int32 DevPick = 0;
 	bool bDevAuto = false;
 	bool bDevQuit = false;
 	bool bDevKeys = false;

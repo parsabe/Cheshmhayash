@@ -21,12 +21,16 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "Story/CHJson.h"
 #include "UI/CHStyle.h"
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
+#include "UI/SCHDialogueOverlay.h"
+#include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHRootOverlay.h"
 #include "UnrealClient.h"
 #include "World/CHLevelBuilder.h"
+#include "World/CHNpc.h"
 
 namespace
 {
@@ -69,6 +73,46 @@ namespace
 			Out.Add(Object.GetStringField(Key));
 		}
 		return Out;
+	}
+
+	/** Speaker labels. There are no voices, so a name tag tells who is talking. "he" is never named. */
+	void SpeakerNames(const FString& Who, FString& OutFa, FString& OutEn)
+	{
+		struct FSpeaker
+		{
+			const TCHAR* Key;
+			const TCHAR* Fa;
+			const TCHAR* En;
+		};
+		static const FSpeaker Speakers[] = {
+			{ TEXT("he"), TEXT("او"), TEXT("He") },
+			{ TEXT("kian"), TEXT("کیان"), TEXT("Kian") },
+			{ TEXT("sister"), TEXT("خواهر"), TEXT("Sister") },
+			{ TEXT("brother"), TEXT("برادر"), TEXT("Brother") },
+			{ TEXT("mom"), TEXT("مامان"), TEXT("Maman") },
+			{ TEXT("guard"), TEXT("مأمور"), TEXT("Guard") },
+			{ TEXT("oldwoman"), TEXT("پیرزن"), TEXT("Old woman") },
+			{ TEXT("lawyer"), TEXT("وکیل"), TEXT("Lawyer") },
+			{ TEXT("driver"), TEXT("راننده"), TEXT("Taxi driver") },
+			{ TEXT("professor"), TEXT("استاد"), TEXT("Professor") },
+			{ TEXT("girl"), TEXT("دختر"), TEXT("Girl") },
+			{ TEXT("boy"), TEXT("پسر"), TEXT("Boy") },
+			{ TEXT("friend"), TEXT("دوستِ خواهر"), TEXT("Her friend") },
+			{ TEXT("stranger"), TEXT("غریبه"), TEXT("Stranger") },
+			{ TEXT("oldman"), TEXT("پیرمرد"), TEXT("Old man") },
+			{ TEXT("student"), TEXT("دانشجو"), TEXT("Student") },
+		};
+		OutFa.Reset();
+		OutEn.Reset();
+		for (const FSpeaker& Speaker : Speakers)
+		{
+			if (Who.Equals(Speaker.Key, ESearchCase::IgnoreCase))
+			{
+				OutFa = Speaker.Fa;
+				OutEn = Speaker.En;
+				return;
+			}
+		}
 	}
 
 	FCHCard MakeOpeningCard(const TArray<FString>& Fa, const TArray<FString>& En, float Hold)
@@ -474,10 +518,18 @@ void UCHStoryDirector::TravelTo(const FString& Location, const FString& Variant)
 		return;
 	}
 
+	if (UI.IsValid())
+	{
+		UI->Dialogue->Hide();
+		UI->Phone->Close();
+		UI->Menu->Hide();
+	}
+
 	PendingVariant = Variant;
 	TravelTarget = Location;
 	bTraveling = true;
 	bPlayerControl = false;
+	WaitNpc.Reset();
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*MapPath));
 }
 
@@ -543,6 +595,14 @@ void UCHStoryDirector::Tick(float DeltaTime)
 	{
 		UpdateFade(DeltaTime);
 		UI->Advance(DeltaTime);
+
+		// one soft click per typed letter (hooked up to the audio manager in the audio step)
+		const bool bDialogueTick = UI->Dialogue->ConsumeTypeTick();
+		const bool bPhoneTick = UI->Phone->ConsumeTypeTick();
+		if (bDialogueTick || bPhoneTick)
+		{
+			OnTypeTick(bPhoneTick);
+		}
 	}
 
 	if (!bTraveling && Scenes.IsValidIndex(SceneIndex))
@@ -564,6 +624,8 @@ void UCHStoryDirector::Tick(float DeltaTime)
 				bBeatStarted = true;
 				BeatTime = 0.f;
 				BeatPhase = 0;
+				PhaseTime = 0.f;
+				IdleTime = 0.f;
 				if (!PassesCondition(*Beat))
 				{
 					++BeatIndex;
@@ -576,6 +638,7 @@ void UCHStoryDirector::Tick(float DeltaTime)
 			else if (bFirst)
 			{
 				BeatTime += DeltaTime;
+				PhaseTime += DeltaTime;
 			}
 			bFirst = false;
 
@@ -591,6 +654,27 @@ void UCHStoryDirector::Tick(float DeltaTime)
 
 	bAdvancePressed = false;
 	NavInput = 0;
+	DirectChoice = INDEX_NONE;
+}
+
+void UCHStoryDirector::OnTypeTick(bool bPhone)
+{
+}
+
+FString UCHStoryDirector::PeekNextType() const
+{
+	if (Scenes.IsValidIndex(SceneIndex))
+	{
+		const FCHScene& Scene = Scenes[SceneIndex];
+		for (int32 Index = BeatIndex + 1; Index < Scene.Beats.Num(); ++Index)
+		{
+			if (Scene.Beats[Index].IsValid() && PassesCondition(*Scene.Beats[Index]))
+			{
+				return JStr(*Scene.Beats[Index], TEXT("type"));
+			}
+		}
+	}
+	return FString();
 }
 
 void UCHStoryDirector::SetFade(float Target, float Time, const FLinearColor& Color)
@@ -721,6 +805,188 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			Builder->StartSegment(JStr(Beat, TEXT("segment")), Scenes[SceneIndex].Beats[BeatIndex]);
 		}
 	}
+	else if (Type == TEXT("text"))
+	{
+		FString SpeakerFa;
+		FString SpeakerEn;
+		SpeakerNames(JStr(Beat, TEXT("who")), SpeakerFa, SpeakerEn);
+		UI->Dialogue->ShowLine(SpeakerFa, SpeakerEn, JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("rate"), 30.0)));
+	}
+	else if (Type == TEXT("hide_text"))
+	{
+		UI->Dialogue->Hide();
+	}
+	else if (Type == TEXT("choice"))
+	{
+		UI->Dialogue->Hide();
+		TArray<FCHOption> Options;
+		for (const TSharedPtr<FJsonObject>& Option : CHJson::Objects(Beat, TEXT("options")))
+		{
+			Options.Emplace(JStr(*Option, TEXT("fa")), JStr(*Option, TEXT("en")));
+		}
+		UI->Menu->Show(Options, VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 96.f), 30.f, 17.f);
+	}
+	else if (Type == TEXT("phone"))
+	{
+		BeginPhoneBeat(Beat);
+	}
+	else if (Type == TEXT("npc"))
+	{
+		WaitNpc = Builder.IsValid() ? Builder->HandleNpcBeat(Beat) : nullptr;
+	}
+	else if (Type == TEXT("place"))
+	{
+		// puts the player on a mark (he is "him" in the fixed-camera scenes)
+		FCHMark Where;
+		APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
+		if (Pawn && Builder.IsValid() && Builder->GetMark(FName(*JStr(Beat, TEXT("mark"))), Where))
+		{
+			const FVector Location = Where.Transform.GetLocation() + FVector(0.f, 0.f, 94.f);
+			const FRotator Rotation(0.f, Where.Transform.Rotator().Yaw + static_cast<float>(JNum(Beat, TEXT("yaw"), 0.0)), 0.f);
+			Pawn->TeleportTo(Location, Rotation, false, true);
+			Controller->SetControlRotation(Rotation);
+		}
+		if (Pawn)
+		{
+			Pawn->SetActorHiddenInGame(JBool(Beat, TEXT("hidden"), false));
+		}
+	}
+	else if (Type == TEXT("cut"))
+	{
+		SetFade(1.f, 0.f, FLinearColor::Black);
+		UI->Dialogue->Hide();
+		UI->Captions->Clear();
+		UI->Menu->Hide();
+	}
+}
+
+void UCHStoryDirector::BeginPhoneBeat(const FJsonObject& Beat)
+{
+	const FString Action = JStr(Beat, TEXT("action"));
+	const FString Fa = JStr(Beat, TEXT("fa"));
+	const FString En = JStr(Beat, TEXT("en"));
+	SCHPhoneOverlay& Phone = *UI->Phone;
+
+	if (Action == TEXT("call"))
+	{
+		Phone.OpenCall(Fa, En);
+	}
+	else if (Action == TEXT("chat"))
+	{
+		Phone.OpenChat(Fa, En, JBool(Beat, TEXT("clear"), true));
+	}
+	else if (Action == TEXT("close"))
+	{
+		Phone.Close();
+	}
+	else if (Action == TEXT("msg"))
+	{
+		Phone.Receive(Fa, En, static_cast<float>(JNum(Beat, TEXT("typing"), 1.1)));
+	}
+	else if (Action == TEXT("draft"))
+	{
+		Phone.TypeDraft(Fa, En, false, static_cast<float>(JNum(Beat, TEXT("pause"), 1.2)));
+	}
+	else if (Action == TEXT("send"))
+	{
+		Phone.TypeDraft(Fa, En, true);
+	}
+	else if (Action == TEXT("note"))
+	{
+		Phone.AddNote(Fa, En);
+	}
+	else if (Action == TEXT("status"))
+	{
+		Phone.SetStatus(Fa, En);
+	}
+	else if (Action == TEXT("noservice"))
+	{
+		Phone.SetNoService(JBool(Beat, TEXT("on"), true));
+	}
+	else if (Action == TEXT("clock"))
+	{
+		Phone.SetClock(En);
+	}
+	else if (Action == TEXT("freeze"))
+	{
+		Phone.SetCallFrozen(JBool(Beat, TEXT("on"), true));
+	}
+	else if (Action == TEXT("alert"))
+	{
+		Phone.ShowAlert(JStr(Beat, TEXT("source_fa")), JStr(Beat, TEXT("source_en"), TEXT("News")), Fa, En);
+	}
+	else if (Action == TEXT("alert_hide"))
+	{
+		Phone.HideAlert();
+	}
+	else if (Action == TEXT("voice"))
+	{
+		Phone.StartVoice(JStr(Beat, TEXT("duration"), TEXT("0:47")), CHJson::Objects(Beat, TEXT("lines")).Num());
+	}
+}
+
+bool UCHStoryDirector::UpdatePhoneBeat(const FJsonObject& Beat, float DeltaTime)
+{
+	SCHPhoneOverlay& Phone = *UI->Phone;
+	if (Phone.IsBusy())
+	{
+		PhaseTime = 0.f;
+		return false;
+	}
+
+	if (JStr(Beat, TEXT("action")) == TEXT("voice"))
+	{
+		// BeatPhase = transcript lines shown so far. Each line waits for the player (or a few seconds).
+		const TArray<TSharedPtr<FJsonObject>> Lines = CHJson::Objects(Beat, TEXT("lines"));
+		const float LineTime = static_cast<float>(JNum(Beat, TEXT("line_time"), 3.4));
+		const bool bNext = BeatPhase == 0 || PhaseTime >= LineTime || (PhaseTime > 0.7f && ConsumeAdvance());
+		if (!bNext)
+		{
+			return false;
+		}
+		if (Lines.IsValidIndex(BeatPhase))
+		{
+			Phone.AddTranscriptLine(JStr(*Lines[BeatPhase], TEXT("fa")), JStr(*Lines[BeatPhase], TEXT("en")));
+			++BeatPhase;
+			PhaseTime = 0.f;
+			return false;
+		}
+		Phone.EndVoice();
+		return true;
+	}
+
+	IdleTime += DeltaTime;
+	return IdleTime >= static_cast<float>(JNum(Beat, TEXT("hold"), 0.0));
+}
+
+bool UCHStoryDirector::UpdateDialogueLine(const FJsonObject& Beat)
+{
+	SCHDialogueOverlay& Dialogue = *UI->Dialogue;
+	const bool bPressed = ConsumeAdvance();
+
+	if (Dialogue.IsTyping())
+	{
+		if (bPressed)
+		{
+			Dialogue.CompleteNow();
+		}
+		return false;
+	}
+
+	// "auto": seconds after the line is complete before moving on without input
+	const float Auto = static_cast<float>(JNum(Beat, TEXT("auto"), -1.0));
+	const float Waited = Dialogue.GetTimeSinceComplete();
+	const bool bAuto = (Auto >= 0.f && Waited >= Auto) || (bDevAuto && Waited >= 1.1f);
+	if ((bPressed && Waited > 0.12f) || bAuto)
+	{
+		const FString Next = PeekNextType();
+		if (Next != TEXT("text"))
+		{
+			Dialogue.Hide();
+		}
+		return true;
+	}
+	return false;
 }
 
 bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
@@ -790,8 +1056,78 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 		}
 		return false;
 	}
+	if (Type == TEXT("text"))
+	{
+		return UpdateDialogueLine(Beat);
+	}
+	if (Type == TEXT("choice"))
+	{
+		// phase 0: choosing. 1: his chosen words are typed out. 2: the list fades away.
+		if (BeatPhase == 0)
+		{
+			if (NavInput != 0)
+			{
+				UI->Menu->Move(NavInput > 0 ? 1 : -1);
+			}
+			int32 Picked = INDEX_NONE;
+			if (UI->Menu->IsReady())
+			{
+				if (DirectChoice != INDEX_NONE && DirectChoice < UI->Menu->Num())
+				{
+					Picked = DirectChoice;
+				}
+				else if (ConsumeAdvance())
+				{
+					Picked = UI->Menu->GetSelected();
+				}
+				else if (bDevAuto && BeatTime > 2.5f)
+				{
+					Picked = FMath::Clamp(DevPick, 0, UI->Menu->Num() - 1);
+				}
+			}
+			const TArray<TSharedPtr<FJsonObject>> Options = CHJson::Objects(Beat, TEXT("options"));
+			if (Options.IsValidIndex(Picked))
+			{
+				const FJsonObject& Option = *Options[Picked];
+				SetFlag(JStr(Beat, TEXT("flag")), JStr(Option, TEXT("value"), FString::FromInt(Picked)));
+				UI->Menu->Hide();
 
-	// instant beats: caption, control, camera, event, flag, and anything unknown
+				const bool bSpeak = JBool(Beat, TEXT("speak"), true) && !JBool(Option, TEXT("silent"), false) && !JStr(Option, TEXT("fa")).IsEmpty();
+				if (bSpeak)
+				{
+					FString SpeakerFa;
+					FString SpeakerEn;
+					SpeakerNames(JStr(Beat, TEXT("who"), TEXT("he")), SpeakerFa, SpeakerEn);
+					UI->Dialogue->ShowLine(SpeakerFa, SpeakerEn, JStr(Option, TEXT("fa")), JStr(Option, TEXT("en")));
+					BeatPhase = 1;
+				}
+				else
+				{
+					BeatPhase = 2;
+				}
+			}
+			return false;
+		}
+		if (BeatPhase == 1)
+		{
+			return UpdateDialogueLine(Beat);
+		}
+		return UI->Menu->IsGone();
+	}
+	if (Type == TEXT("phone"))
+	{
+		return UpdatePhoneBeat(Beat, DeltaTime);
+	}
+	if (Type == TEXT("npc"))
+	{
+		return !WaitNpc.IsValid() || !WaitNpc->IsMoving();
+	}
+	if (Type == TEXT("cut"))
+	{
+		return BeatTime >= static_cast<float>(JNum(Beat, TEXT("hold"), 0.0));
+	}
+
+	// instant beats: caption, control, camera, event, flag, place, hide_text and anything unknown
 	return true;
 }
 
@@ -827,6 +1163,7 @@ void UCHStoryDirector::ParseDevOptions()
 {
 	const TCHAR* CommandLine = FCommandLine::Get();
 	FParse::Value(CommandLine, TEXT("chscene="), DevStartScene);
+	FParse::Value(CommandLine, TEXT("chpick="), DevPick);
 	bDevAuto = FParse::Param(CommandLine, TEXT("chauto"));
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
@@ -879,5 +1216,7 @@ void UCHStoryDirector::DevSkipScene()
 	UI->Cards->Clear();
 	UI->Captions->Clear();
 	UI->Menu->Hide();
+	UI->Dialogue->Hide();
+	UI->Phone->Close();
 	NextScene();
 }

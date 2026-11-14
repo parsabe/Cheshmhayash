@@ -6,6 +6,13 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Math/RandomStream.h"
+#include "UI/CHStyle.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Text/STextBlock.h"
 
 namespace
 {
@@ -14,6 +21,100 @@ namespace
 	const float HY = 180.f;
 	const float H = 265.f;
 	const float T = 20.f;
+
+	TSharedRef<SWidget> CalendarText(const FString& Text, float Size, const FLinearColor& Color, bool bBold = false)
+	{
+		return SNew(STextBlock)
+			.Text(FText::FromString(Text))
+			.Font(CH::FarsiFont(Size, bBold ? CH::EWeight::Bold : CH::EWeight::Regular))
+			.ColorAndOpacity(FSlateColor(Color))
+			.Justification(ETextJustify::Center)
+			.TextShapingMethod(ETextShapingMethod::FullShaping)
+			.TextFlowDirection(ETextFlowDirection::RightToLeft);
+	}
+
+	/** The wall calendar page for Mehr 1401, with the 26th (the visa appointment) circled in red. */
+	TSharedRef<SWidget> MakeCalendarWidget()
+	{
+		const FLinearColor Ink(0.035f, 0.035f, 0.04f, 1.f);
+		const FLinearColor Red(0.50f, 0.03f, 0.025f, 1.f);
+
+		TSharedRef<SUniformGridPanel> Grid = SNew(SUniformGridPanel)
+			.MinDesiredSlotWidth(60.f)
+			.MinDesiredSlotHeight(62.f);
+
+		// the Persian week starts on Saturday and reads right to left
+		const TCHAR* Weekdays[] = { TEXT("ش"), TEXT("ی"), TEXT("د"), TEXT("س"), TEXT("چ"), TEXT("پ"), TEXT("ج") };
+		for (int32 Weekday = 0; Weekday < 7; ++Weekday)
+		{
+			Grid->AddSlot(6 - Weekday, 0)
+				[
+					SNew(SBox).HAlign(HAlign_Center).VAlign(VAlign_Center)
+					[
+						CalendarText(Weekdays[Weekday], 23.f, Weekday == 6 ? Red : FLinearColor(0.25f, 0.25f, 0.27f, 1.f))
+					]
+				];
+		}
+
+		// 1 Mehr 1401 fell on a Friday (the 7th column)
+		for (int32 Day = 1; Day <= 30; ++Day)
+		{
+			const int32 Cell = Day - 1 + 6;
+			const int32 Weekday = Cell % 7;
+			const int32 Row = Cell / 7 + 1;
+
+			TSharedRef<SWidget> Number = CalendarText(CH::PersianDigits(FString::FromInt(Day)), 30.f, Weekday == 6 ? Red : Ink);
+			TSharedPtr<SWidget> CellContent = Number;
+			if (Day == 26)
+			{
+				CellContent = SNew(SOverlay)
+					+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+					[
+						SNew(SBox).WidthOverride(64.f).HeightOverride(58.f)
+						[
+							SNew(SImage).Image(CH::RingBrush(29.f, 4.5f, FLinearColor(0.62f, 0.03f, 0.02f, 1.f)))
+						]
+					]
+					+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+					[
+						Number
+					];
+			}
+			Grid->AddSlot(6 - Weekday, Row)
+				[
+					SNew(SBox).HAlign(HAlign_Center).VAlign(VAlign_Center)
+					[
+						CellContent.ToSharedRef()
+					]
+				];
+		}
+
+		return SNew(SBox)
+			.WidthOverride(460.f)
+			.HeightOverride(620.f)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 18.f, 0.f, 0.f)
+				[
+					CalendarText(TEXT("مهر ۱۴۰۱"), 56.f, Red, true)
+				]
+				+ SVerticalBox::Slot().AutoHeight().Padding(30.f, 2.f, 30.f, 8.f)
+				[
+					SNew(SBox).HeightOverride(3.f)
+					[
+						SNew(SImage).Image(CH::WhiteBrush()).ColorAndOpacity(FSlateColor(Ink))
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+				[
+					Grid
+				]
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f, 0.f, 0.f)
+				[
+					CalendarText(TEXT("۲۶ مهر · وقت سفارت"), 22.f, Red)
+				]
+			];
+	}
 }
 
 void ACHLoc_Room::Build(const FString& InVariant)
@@ -50,7 +151,7 @@ void ACHLoc_Room::Build(const FString& InVariant)
 		Env.Temperature = 6100.f;
 
 		// daylight spilling in from the window, and the warm bounce off the sunlit bed and floor
-		PointLight(FVector(HX - 70.f, 0.f, 178.f), FLinearColor(0.72f, 0.84f, 1.f), 3.2f, 650.f, true, 0.3f);
+		PointLight(FVector(HX - 48.f, 0.f, 150.f), FLinearColor(0.72f, 0.84f, 1.f), 3.0f, 650.f, true, 0.3f);
 		PointLight(FVector(-40.f, -60.f, 70.f), FLinearColor(1.f, 0.74f, 0.48f), 2.6f, 520.f, false, 0.2f);
 	}
 	Env.bFog = true;
@@ -67,16 +168,21 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	Env.Contrast = 1.04f;
 	ApplyEnv(Env);
 
-	// ---- marks
-	Mark(TEXT("PlayerStart"), FVector(-70.f, 45.f, 98.f), FRotator(0.f, 0.f, 0.f));
-	Mark(TEXT("He"), FVector(HX - 105.f, 0.f, 98.f), FRotator(0.f, 0.f, 0.f));
-	Mark(TEXT("SisterDoor"), FVector(-HX + 40.f, 105.f, 98.f), FRotator(0.f, 0.f, 0.f));
-	Mark(TEXT("SisterIn"), FVector(-HX + 120.f, 80.f, 98.f), FRotator(0.f, 0.f, 0.f));
+	// ---- the calendar page: Mehr 1401, the 26th circled in red
+	WorldWidget(MakeCalendarWidget(), FVector(-15.f, HY - 1.75f, 150.f), FRotator(0.f, -90.f, 0.f), 0.1f, false, FVector2D(460.0, 620.0));
+
+	// ---- marks (people stand on the floor)
+	Mark(TEXT("PlayerStart"), FVector(-70.f, 45.f, 0.f));
+	Mark(TEXT("He"), FVector(HX - 96.f, 58.f, 0.f));
+	Mark(TEXT("SisterHall"), FVector(-HX - T - 120.f, 105.f, 0.f));
+	Mark(TEXT("SisterIn"), FVector(-HX + 100.f, 98.f, 0.f));
 
 	MarkLookAt(TEXT("Wide"), FVector(-205.f, -140.f, 178.f), FVector(150.f, 40.f, 95.f), 78.f);
 	MarkLookAt(TEXT("Desk"), FVector(40.f, -70.f, 150.f), FVector(HX - 40.f, 10.f, 88.f), 55.f);
-	MarkLookAt(TEXT("Tea"), FVector(HX - 108.f, 82.f, 101.f), FVector(HX - 46.f, 40.f, 82.f), 32.f);
-	MarkLookAt(TEXT("Calendar"), FVector(-15.f, 55.f, 152.f), FVector(-15.f, HY, 150.f), 42.f);
+	MarkLookAt(TEXT("Tea"), FVector(HX - 112.f, 86.f, 104.f), FVector(HX - 46.f, 40.f, 81.f), 34.f);
+	MarkLookAt(TEXT("TeaClose"), FVector(HX - 96.f, 75.f, 98.f), FVector(HX - 46.f, 40.f, 81.f), 27.f);
+	MarkLookAt(TEXT("Calendar"), FVector(-15.f, 22.f, 152.f), FVector(-15.f, HY, 150.f), 40.f);
+	MarkLookAt(TEXT("CalendarClose"), FVector(-22.f, 108.f, 138.f), FVector(-22.f, HY, 136.f), 34.f);
 	MarkLookAt(TEXT("Door"), FVector(130.f, -50.f, 142.f), FVector(-HX, 105.f, 112.f), 58.f);
 	MarkLookAt(TEXT("Book"), FVector(-58.f, -38.f, 112.f), FVector(-70.f, -HY + 62.f, 48.f), 40.f);
 }
@@ -184,10 +290,14 @@ void ACHLoc_Room::BuildFurniture()
 	Box(FVector(HX - 12.f, 0.f, 50.f), FVector(3.f, 142.f, 40.f), Wood, false);
 
 	// the glass of tea on its saucer
+	// a narrow-waisted Persian tea glass: the tea itself, and a faint shell of glass around and above it
 	const FVector TeaPos(HX - 46.f, 40.f, 76.f);
-	Cyl(TeaPos + FVector(0.f, 0.f, 0.5f), 6.2f, 1.f, Ceramic);
-	Cyl(TeaPos + FVector(0.f, 0.f, 5.2f), 2.9f, 8.4f, Tea);
-	Cyl(TeaPos + FVector(0.f, 0.f, 9.7f), 3.05f, 0.6f, Lit(FLinearColor(0.80f, 0.78f, 0.72f), 0.1f, 0.f));
+	UMaterialInterface* GlassShell = Glow(FLinearColor(0.85f, 0.92f, 1.f), 0.22f, 0.16f);
+	Cyl(TeaPos + FVector(0.f, 0.f, 0.4f), 6.0f, 0.8f, Ceramic);
+	Cyl(TeaPos + FVector(0.f, 0.f, 2.3f), 2.7f, 3.0f, Tea);
+	Cyl(TeaPos + FVector(0.f, 0.f, 4.9f), 2.25f, 2.4f, Tea);
+	Cyl(TeaPos + FVector(0.f, 0.f, 7.5f), 2.95f, 3.0f, Tea);
+	Cyl(TeaPos + FVector(0.f, 0.f, 5.4f), 3.15f, 9.2f, GlassShell)->SetCastShadow(false);
 	Box(TeaPos + FVector(3.f, -9.f, 1.3f), FVector(1.f, 9.f, 0.5f), Metal, false, FRotator(0.f, 25.f, 0.f)); // spoon
 	Box(TeaPos + FVector(-6.f, 7.f, 1.6f), FVector(1.6f, 1.6f, 1.2f), Ceramic, false);                        // sugar cubes
 	Box(TeaPos + FVector(-4.f, 8.5f, 1.6f), FVector(1.6f, 1.6f, 1.2f), Ceramic, false, FRotator(0.f, 30.f, 0.f));
@@ -195,7 +305,7 @@ void ACHLoc_Room::BuildFurniture()
 	// laptop
 	Box(FVector(DeskX - 6.f, -18.f, 77.f), FVector(24.f, 34.f, 1.6f), Plastic, false);
 	Box(FVector(DeskX + 9.f, -18.f, 88.5f), FVector(1.4f, 34.f, 23.f), Plastic, false, FRotator(-14.f, 0.f, 0.f));
-	Box(FVector(DeskX + 8.1f, -18.f, 88.6f), FVector(0.4f, 31.f, 20.f), Emissive(FLinearColor(0.35f, 0.55f, 0.85f), bNight ? 2.2f : 1.2f), false, FRotator(-14.f, 0.f, 0.f));
+	Box(FVector(DeskX + 8.1f, -18.f, 88.6f), FVector(0.4f, 31.f, 20.f), Emissive(FLinearColor(0.20f, 0.36f, 0.62f), bNight ? 1.4f : 0.45f), false, FRotator(-14.f, 0.f, 0.f));
 
 	// books and a pen cup
 	Box(FVector(DeskX + 2.f, -56.f, 78.f), FVector(22.f, 30.f, 4.f), Lit(FLinearColor(0.20f, 0.05f, 0.04f), 0.8f, 0.2f), false, FRotator(0.f, 6.f, 0.f));

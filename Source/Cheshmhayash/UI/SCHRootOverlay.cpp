@@ -4,6 +4,8 @@
 #include "UI/CHStyle.h"
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
+#include "UI/SCHDialogueOverlay.h"
+#include "UI/SCHPhoneOverlay.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
@@ -12,6 +14,7 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 {
 	SetVisibility(EVisibility::HitTestInvisible);
 
+	// Layers, bottom to top. Everything above the fade stays visible on a black screen.
 	ChildSlot
 	[
 		SNew(SOverlay)
@@ -28,6 +31,18 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 		+ SOverlay::Slot()
 		[
 			SAssignNew(Captions, SCHCardLayer)
+		]
+
+		// the phone
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Phone, SCHPhoneOverlay)
+		]
+
+		// dialogue
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Dialogue, SCHDialogueOverlay)
 		]
 
 		// centre cards
@@ -59,18 +74,11 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 
 void SCHRootOverlay::Advance(float DeltaTime)
 {
-	if (Cards.IsValid())
-	{
-		Cards->Advance(DeltaTime);
-	}
-	if (Captions.IsValid())
-	{
-		Captions->Advance(DeltaTime);
-	}
-	if (Menu.IsValid())
-	{
-		Menu->Advance(DeltaTime);
-	}
+	Cards->Advance(DeltaTime);
+	Captions->Advance(DeltaTime);
+	Menu->Advance(DeltaTime);
+	Dialogue->Advance(DeltaTime);
+	Phone->Advance(DeltaTime);
 }
 
 FSlateColor SCHRootOverlay::GetFadeColor() const

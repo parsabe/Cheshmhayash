@@ -24,6 +24,12 @@ namespace CH
 	/** Solid white brush, tint it with ColorAndOpacity. */
 	const FSlateBrush* WhiteBrush();
 
+	/** White box with rounded corners (cached per radius), tint it with ColorAndOpacity. */
+	const FSlateBrush* RoundedBrush(float Radius);
+
+	/** Outline only, no fill (a ring when the radius is half the size). */
+	const FSlateBrush* RingBrush(float Radius, float Thickness, const FLinearColor& Color);
+
 	/** Releases cached font objects (call when the game instance shuts down). */
 	void ShutdownStyle();
 

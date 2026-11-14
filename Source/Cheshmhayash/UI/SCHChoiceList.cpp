@@ -1,6 +1,8 @@
 // Cheshm Hayash - a vertical list of Farsi/English options.
 
 #include "UI/SCHChoiceList.h"
+#include "UI/SCHShapes.h"
+#include "Widgets/SOverlay.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
@@ -70,13 +72,37 @@ void SCHChoiceList::Show(const TArray<FCHOption>& InOptions, EVerticalAlignment 
 			];
 	}
 
+	// choices at the bottom of the screen get the same soft dark band as the dialogue
+	const bool bBand = VAlign == VAlign_Bottom;
+
 	ChildSlot
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign)
-		.Padding(Padding)
 		[
-			Box
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.VAlign(VAlign_Bottom)
+			[
+				SNew(SBox)
+				.HeightOverride(470.f)
+				.Visibility(bBand ? EVisibility::HitTestInvisible : EVisibility::Collapsed)
+				[
+					SNew(SCHGradient)
+					.StartColor(FLinearColor::Transparent)
+					.EndColor(this, &SCHChoiceList::GetBandColor)
+				]
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign)
+			.Padding(Padding)
+			[
+				Box
+			]
 		];
+}
+
+FLinearColor SCHChoiceList::GetBandColor() const
+{
+	return FLinearColor(0.f, 0.f, 0.f, 0.82f * Alpha);
 }
 
 void SCHChoiceList::Hide()

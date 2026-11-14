@@ -132,8 +132,9 @@ void ACHPlayerCharacter::ApplyTint(const FLinearColor& Upper, const FLinearColor
 	const int32 NumSlots = Body->GetNumMaterials();
 	for (int32 Slot = 0; Slot < NumSlots; ++Slot)
 	{
+		// mannequin slot 0 = head, arms and legs; slot 1 = torso
 		UMaterialInstanceDynamic* Material = UMaterialInstanceDynamic::Create(Base, this);
-		Material->SetVectorParameterValue(TEXT("Color"), Slot == 0 ? Upper : Lower);
+		Material->SetVectorParameterValue(TEXT("Color"), Slot == 0 ? Lower : Upper);
 		Material->SetScalarParameterValue(TEXT("Roughness"), 0.85f);
 		Material->SetScalarParameterValue(TEXT("Grime"), 0.f);
 		Body->SetMaterial(Slot, Material);

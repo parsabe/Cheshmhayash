@@ -78,6 +78,14 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	{
 		Director->DevSkipScene();
 	}
+	const FKey NumberKeys[] = { EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four };
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(NumberKeys); ++Index)
+	{
+		if (WasInputKeyJustPressed(NumberKeys[Index]))
+		{
+			Director->InputChoice(Index);
+		}
+	}
 
 	// ---- moving and looking
 	ACHPlayerCharacter* Hero = Cast<ACHPlayerCharacter>(GetPawn());

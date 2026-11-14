@@ -42,6 +42,7 @@ private:
 	FSlateColor GetFaColor(int32 Index) const;
 	FSlateColor GetEnColor(int32 Index) const;
 	FSlateColor GetMarkColor(int32 Index) const;
+	FLinearColor GetBandColor() const;
 
 	TArray<FCHOption> Options;
 	int32 Selected = 0;

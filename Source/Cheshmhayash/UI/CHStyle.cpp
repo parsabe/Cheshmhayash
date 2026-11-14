@@ -3,6 +3,7 @@
 #include "UI/CHStyle.h"
 #include "Cheshmhayash.h"
 #include "Brushes/SlateColorBrush.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 #include "Fonts/CompositeFont.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
@@ -112,8 +113,38 @@ const FSlateBrush* CH::WhiteBrush()
 	return &Brush;
 }
 
+namespace
+{
+	TMap<int32, TSharedPtr<FSlateRoundedBoxBrush>> GRoundedBrushes;
+}
+
+const FSlateBrush* CH::RoundedBrush(float Radius)
+{
+	const int32 Key = FMath::RoundToInt32(Radius * 2.f);
+	TSharedPtr<FSlateRoundedBoxBrush>& Brush = GRoundedBrushes.FindOrAdd(Key);
+	if (!Brush.IsValid())
+	{
+		Brush = MakeShared<FSlateRoundedBoxBrush>(FLinearColor::White, Radius);
+	}
+	return Brush.Get();
+}
+
+const FSlateBrush* CH::RingBrush(float Radius, float Thickness, const FLinearColor& Color)
+{
+	// the outline colour is part of the brush (an image tint only affects the fill)
+	const FColor Packed = Color.ToFColor(true);
+	const int32 Key = -static_cast<int32>(GetTypeHash(Packed) % 1000003u) - FMath::RoundToInt32(Radius * 2.f) * 1000 - FMath::RoundToInt32(Thickness * 10.f) - 1;
+	TSharedPtr<FSlateRoundedBoxBrush>& Brush = GRoundedBrushes.FindOrAdd(Key);
+	if (!Brush.IsValid())
+	{
+		Brush = MakeShared<FSlateRoundedBoxBrush>(FLinearColor::Transparent, Radius, Color, Thickness);
+	}
+	return Brush.Get();
+}
+
 void CH::ShutdownStyle()
 {
+	GRoundedBrushes.Reset();
 	GFarsiFont.Reset();
 	GFarsiFaces.Reset();
 	bFarsiFontInitialized = false;

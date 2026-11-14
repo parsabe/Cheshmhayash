@@ -9,7 +9,10 @@
 #include "CHLevelBuilder.generated.h"
 
 class ACameraActor;
+class ACHNpc;
 class FJsonObject;
+class SWidget;
+class UWidgetComponent;
 class UDirectionalLightComponent;
 class UExponentialHeightFogComponent;
 class UInstancedStaticMeshComponent;
@@ -101,6 +104,14 @@ public:
 	/** Returns (spawning on demand) a camera actor standing at a mark. */
 	ACameraActor* GetCamera(FName MarkName);
 
+	// ---- people
+	/** Spawns a person standing at a floor position. */
+	ACHNpc* SpawnNpc(const FString& Name, const FString& Look, const FVector& FeetLocation, float Yaw, int32 Seed = 0);
+	ACHNpc* FindNpc(const FString& Name) const;
+	void RemoveNpc(const FString& Name);
+	/** Generic "npc" story beat (spawn / walk / face / sink / shake / remove). Returns the npc to wait for, if any. */
+	virtual ACHNpc* HandleNpcBeat(const FJsonObject& Beat);
+
 	const FString& GetVariant() const { return Variant; }
 
 	/** Third person camera distance and offset for this location (interiors keep it close). */
@@ -156,6 +167,17 @@ protected:
 	 * Unlit silhouettes: the colours are the look.
 	 */
 	void BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance = 300000.f);
+
+	// ---- world-space Slate (Farsi shapes correctly here; engine text render components do not)
+	/**
+	 * Draws a Slate widget on a quad in the world. The quad faces along +X of Rotation.
+	 * bGlow: unlit and emissive (screens, lit signs). Otherwise it is lit like paint on a surface.
+	 * DrawSize in pixels; zero = the widget's desired size.
+	 */
+	UWidgetComponent* WorldWidget(const TSharedRef<SWidget>& Widget, const FVector& Location, const FRotator& Rotation,
+		float CmPerPixel, bool bGlow = false, const FVector2D& DrawSize = FVector2D::ZeroVector);
+	UWidgetComponent* WorldText(const FString& Text, bool bFarsi, float FontSize, const FLinearColor& Color, const FVector& Location,
+		const FRotator& Rotation, float CmPerPixel, bool bGlow = false, bool bBold = false);
 
 	// ---- marks ------------------------------------------------------------------------------
 	void Mark(FName Name, const FVector& Location, const FRotator& Rotation = FRotator::ZeroRotator, float FOV = 70.f);
@@ -220,6 +242,15 @@ private:
 
 	UPROPERTY()
 	TMap<FName, TObjectPtr<ACameraActor>> Cameras;
+
+	UPROPERTY()
+	TMap<FString, TObjectPtr<ACHNpc>> Npcs;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> WidgetLitBase;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> WidgetGlowBase;
 
 	TMap<FName, FCHMark> Marks;
 

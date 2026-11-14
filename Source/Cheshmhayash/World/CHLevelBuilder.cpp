@@ -14,13 +14,19 @@
 #include "Components/SkyLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Story/CHJson.h"
+#include "UI/CHStyle.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Text/STextBlock.h"
+#include "World/CHNpc.h"
 
 ACHLevelBuilder::ACHLevelBuilder()
 {
@@ -67,6 +73,158 @@ void ACHLevelBuilder::Build(const FString& InVariant)
 	{
 		GlowBase = LitBase;
 	}
+	WidgetLitBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Materials/M_CH_Widget.M_CH_Widget"), nullptr, LOAD_NoWarn);
+	WidgetGlowBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Materials/M_CH_WidgetGlow.M_CH_WidgetGlow"), nullptr, LOAD_NoWarn);
+}
+
+// ---------------------------------------------------------------------------------------------
+// People
+// ---------------------------------------------------------------------------------------------
+
+ACHNpc* ACHLevelBuilder::SpawnNpc(const FString& Name, const FString& Look, const FVector& FeetLocation, float Yaw, int32 Seed)
+{
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ACHNpc* Npc = GetWorld()->SpawnActor<ACHNpc>(ACHNpc::StaticClass(), FTransform(FRotator(0.f, Yaw, 0.f), FeetLocation), Params);
+	if (Npc)
+	{
+		Npc->NpcName = Name;
+		Npc->SetLook(Look, Seed);
+		if (!Name.IsEmpty())
+		{
+			RemoveNpc(Name);
+			Npcs.Add(Name, Npc);
+		}
+	}
+	return Npc;
+}
+
+ACHNpc* ACHLevelBuilder::FindNpc(const FString& Name) const
+{
+	const TObjectPtr<ACHNpc>* Found = Npcs.Find(Name);
+	return Found ? Found->Get() : nullptr;
+}
+
+void ACHLevelBuilder::RemoveNpc(const FString& Name)
+{
+	TObjectPtr<ACHNpc> Npc;
+	if (Npcs.RemoveAndCopyValue(Name, Npc) && Npc)
+	{
+		Npc->Destroy();
+	}
+}
+
+ACHNpc* ACHLevelBuilder::HandleNpcBeat(const FJsonObject& Beat)
+{
+	const FString Name = CHJson::Str(Beat, TEXT("name"));
+	const FString Action = CHJson::Str(Beat, TEXT("action"), TEXT("spawn"));
+
+	FCHMark Where;
+	const bool bHasMark = GetMark(FName(*CHJson::Str(Beat, TEXT("mark"))), Where);
+
+	if (Action == TEXT("spawn"))
+	{
+		const float Yaw = Where.Transform.Rotator().Yaw + CHJson::Float(Beat, TEXT("yaw"), 0.f);
+		ACHNpc* Npc = SpawnNpc(Name, CHJson::Str(Beat, TEXT("look"), Name), Where.Transform.GetLocation(), Yaw, static_cast<int32>(CHJson::Num(Beat, TEXT("seed"), 0.0)));
+		if (Npc)
+		{
+			Npc->SetSink(CHJson::Float(Beat, TEXT("sink"), 0.f));
+		}
+		return nullptr;
+	}
+
+	ACHNpc* Npc = FindNpc(Name);
+	if (!Npc)
+	{
+		UE_LOG(LogCheshmhayash, Warning, TEXT("npc beat: '%s' is not in this location"), *Name);
+		return nullptr;
+	}
+
+	if (Action == TEXT("walk") && bHasMark)
+	{
+		Npc->WalkTo(Where.Transform.GetLocation(), CHJson::Float(Beat, TEXT("speed"), 120.f));
+		return CHJson::Bool(Beat, TEXT("wait"), true) ? Npc : nullptr;
+	}
+	if (Action == TEXT("face"))
+	{
+		if (bHasMark)
+		{
+			Npc->FaceLocation(Where.Transform.GetLocation());
+		}
+		else
+		{
+			Npc->FaceYaw(CHJson::Float(Beat, TEXT("yaw"), 0.f));
+		}
+	}
+	else if (Action == TEXT("sink"))
+	{
+		Npc->SetSink(CHJson::Float(Beat, TEXT("amount"), 45.f));
+	}
+	else if (Action == TEXT("shake"))
+	{
+		Npc->SetShaking(CHJson::Bool(Beat, TEXT("on"), true));
+	}
+	else if (Action == TEXT("remove"))
+	{
+		RemoveNpc(Name);
+	}
+	return nullptr;
+}
+
+// ---------------------------------------------------------------------------------------------
+// World-space Slate
+// ---------------------------------------------------------------------------------------------
+
+UWidgetComponent* ACHLevelBuilder::WorldWidget(const TSharedRef<SWidget>& Widget, const FVector& Location, const FRotator& Rotation,
+	float CmPerPixel, bool bGlow, const FVector2D& DrawSize)
+{
+	UWidgetComponent* Component = NewObject<UWidgetComponent>(this);
+	Component->SetMobility(EComponentMobility::Movable);
+	Component->SetupAttachment(Root);
+	Component->SetRelativeLocationAndRotation(Location, Rotation);
+	Component->SetRelativeScale3D(FVector(CmPerPixel));
+	Component->SetWidgetSpace(EWidgetSpace::World);
+	Component->SetPivot(FVector2D(0.5, 0.5));
+	Component->SetBackgroundColor(FLinearColor::Transparent);
+	Component->SetBlendMode(bGlow ? EWidgetBlendMode::Transparent : EWidgetBlendMode::Masked);
+	Component->SetTwoSided(false);
+	Component->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	Component->SetCastShadow(false);
+	Component->SetRedrawTime(0.5f);
+	if (DrawSize.IsNearlyZero())
+	{
+		Component->SetDrawAtDesiredSize(true);
+	}
+	else
+	{
+		Component->SetDrawAtDesiredSize(false);
+		Component->SetDrawSize(DrawSize);
+	}
+	if (UMaterialInterface* Base = bGlow ? WidgetGlowBase.Get() : WidgetLitBase.Get())
+	{
+		Component->SetMaterial(0, Base);
+	}
+	Component->SetSlateWidget(Widget);
+	Component->RegisterComponent();
+	return Component;
+}
+
+UWidgetComponent* ACHLevelBuilder::WorldText(const FString& Text, bool bFarsi, float FontSize, const FLinearColor& Color, const FVector& Location,
+	const FRotator& Rotation, float CmPerPixel, bool bGlow, bool bBold)
+{
+	const CH::EWeight Weight = bBold ? CH::EWeight::Bold : CH::EWeight::Regular;
+	TSharedRef<SWidget> Widget = SNew(SBox)
+		.Padding(FMargin(8.f))
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(Text))
+			.Font(bFarsi ? CH::FarsiFont(FontSize, Weight) : CH::LatinFont(FontSize, Weight))
+			.ColorAndOpacity(FSlateColor(Color))
+			.Justification(ETextJustify::Center)
+			.TextShapingMethod(ETextShapingMethod::FullShaping)
+			.TextFlowDirection(bFarsi ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
+		];
+	return WorldWidget(Widget, Location, Rotation, CmPerPixel, bGlow);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -494,9 +652,12 @@ bool ACHLevelBuilder::GetMark(FName Name, FCHMark& Out) const
 
 FTransform ACHLevelBuilder::GetPlayerStart() const
 {
+	// marks for people are on the floor; the player's capsule centre is 92 cm above its feet
 	FCHMark Start;
 	GetMark(TEXT("PlayerStart"), Start);
-	return Start.Transform;
+	FTransform Transform = Start.Transform;
+	Transform.AddToTranslation(FVector(0.f, 0.f, 94.f));
+	return Transform;
 }
 
 ACameraActor* ACHLevelBuilder::GetCamera(FName MarkName)

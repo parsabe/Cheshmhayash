@@ -8,6 +8,8 @@
 
 class SCHCardLayer;
 class SCHChoiceList;
+class SCHDialogueOverlay;
+class SCHPhoneOverlay;
 
 class SCHRootOverlay : public SCompoundWidget
 {
@@ -30,6 +32,8 @@ public:
 	TSharedPtr<SCHCardLayer> Cards;
 	TSharedPtr<SCHCardLayer> Captions;
 	TSharedPtr<SCHChoiceList> Menu;
+	TSharedPtr<SCHDialogueOverlay> Dialogue;
+	TSharedPtr<SCHPhoneOverlay> Phone;
 
 private:
 	FSlateColor GetFadeColor() const;
