@@ -18,6 +18,86 @@
       ]
     },
     {
+      "id": "2.1",
+      "chapter": 2,
+      "location": "Streets",
+      "variant": "campus",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": true },
+        { "type": "camera", "mark": "Establish" },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "caption", "fa": "دانشگاه", "en": "THE UNIVERSITY" },
+        { "type": "silence", "seconds": 4.5 },
+        { "type": "camera", "mark": "Steps", "blend": 4.0 },
+        { "type": "silence", "seconds": 5.5 },
+        {
+          "type": "gameplay",
+          "segment": "yard",
+          "blend": 2.0,
+          "film": false,
+          "controls": false,
+          "hint_fa": "در حیاط بگرد. با آن‌ها حرف بزن.",
+          "hint_en": "Walk the yard. Talk to them."
+        },
+        { "type": "silence", "seconds": 1.0 },
+        { "type": "fade", "to": 1, "time": 2.0 },
+        { "type": "silence", "seconds": 0.8 }
+      ]
+    },
+    {
+      "id": "2.1.professor",
+      "interlude": true,
+      "chapter": 2,
+      "beats": [
+        { "type": "camera", "mark": "ProfessorCam", "blend": 0.9 },
+        { "type": "text", "who": "professor", "fa": "استعفا دادم. نمی‌تونم بهشون اطاعت یاد بدم.", "en": "I resigned. I can't teach them to obey." }
+      ]
+    },
+    {
+      "id": "2.1.girl",
+      "interlude": true,
+      "chapter": 2,
+      "beats": [
+        { "type": "camera", "mark": "GirlCam", "blend": 0.9 },
+        { "type": "text", "who": "girl", "fa": "مو دوباره درمیاد. اون برنمی‌گرده.", "en": "It grows back. She doesn't." }
+      ]
+    },
+    {
+      "id": "2.1.boy",
+      "interlude": true,
+      "chapter": 2,
+      "beats": [
+        { "type": "camera", "mark": "BoyCam", "blend": 0.9 },
+        { "type": "text", "who": "boy", "fa": "آرش چهار روزه جواب نمی‌ده.", "en": "Arash hasn't answered in four days." }
+      ]
+    },
+    {
+      "id": "2.2",
+      "chapter": 2,
+      "location": "Streets",
+      "variant": "garage",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": true },
+        { "type": "camera", "mark": "Establish" },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "caption", "fa": "محاصره · پارکینگ دانشگاه", "en": "THE SIEGE · THE PARKING GARAGE" },
+        { "type": "silence", "seconds": 4.5 },
+        {
+          "type": "gameplay",
+          "segment": "garage",
+          "blend": 1.5,
+          "chances": 1,
+          "film": false,
+          "hint_fa": "دانشجوها را یکی‌یکی بیرون بفرست. از نور چراغ‌قوه دور بمان.",
+          "hint_en": "Send the students out, one by one. Stay out of the flashlights."
+        },
+        { "type": "fade", "to": 1, "time": 1.5 },
+        { "type": "silence", "seconds": 0.8 }
+      ]
+    },
+    {
       "id": "2.3",
       "chapter": 2,
       "location": "Room",

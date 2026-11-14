@@ -304,6 +304,33 @@ void UCHSegmentSubsystem::UpdateDevBot(float DeltaTime, APawn* Pawn)
 		return;
 	}
 
+	// film anything worth filming that is close and in sight
+	if (bFilmAllowed)
+	{
+		for (const TWeakObjectPtr<ACHFilmable>& Filmable : Filmables)
+		{
+			if (!Filmable.IsValid() || Filmable->IsFilmed())
+			{
+				continue;
+			}
+			const FVector Target = Filmable->GetActorLocation();
+			if (!Filmable->bIgnoreSight && FVector::Dist2D(Target, Location) > 1500.f)
+			{
+				continue;
+			}
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(CHBot), false, Pawn);
+			if (!Filmable->bIgnoreSight && GetWorld()->LineTraceTestByChannel(Location + FVector(0.f, 0.f, 60.f), Target, ECC_Visibility, Params))
+			{
+				continue;
+			}
+			const FVector Eye = Controller->PlayerCameraManager ? Controller->PlayerCameraManager->GetCameraLocation() : Location;
+			const FRotator Look = (Target - Eye).Rotation();
+			Controller->SetControlRotation(FMath::RInterpTo(Controller->GetControlRotation(), Look, DeltaTime, 6.f));
+			bBotFilm = true;
+			return;
+		}
+	}
+
 	// no way out: use the nearest thing that can be used
 	if (Exits.Num() == 0)
 	{
@@ -323,33 +350,6 @@ void UCHSegmentSubsystem::UpdateDevBot(float DeltaTime, APawn* Pawn)
 			}
 		}
 		return;
-	}
-
-	// film anything worth filming that is close and in sight
-	if (bFilmAllowed)
-	{
-		for (const TWeakObjectPtr<ACHFilmable>& Filmable : Filmables)
-		{
-			if (!Filmable.IsValid() || Filmable->IsFilmed())
-			{
-				continue;
-			}
-			const FVector Target = Filmable->GetActorLocation();
-			if (FVector::Dist2D(Target, Location) > 1500.f)
-			{
-				continue;
-			}
-			FCollisionQueryParams Params(SCENE_QUERY_STAT(CHBot), false, Pawn);
-			if (GetWorld()->LineTraceTestByChannel(Location + FVector(0.f, 0.f, 60.f), Target, ECC_Visibility, Params))
-			{
-				continue;
-			}
-			const FVector Eye = Controller->PlayerCameraManager ? Controller->PlayerCameraManager->GetCameraLocation() : Location;
-			const FRotator Look = (Target - Eye).Rotation();
-			Controller->SetControlRotation(FMath::RInterpTo(Controller->GetControlRotation(), Look, DeltaTime, 6.f));
-			bBotFilm = true;
-			return;
-		}
 	}
 
 	// use whatever is close enough to use (encounters)

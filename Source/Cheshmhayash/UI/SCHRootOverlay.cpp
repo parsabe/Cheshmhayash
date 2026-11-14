@@ -10,6 +10,7 @@
 #include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHShapes.h"
+#include "UI/SCHSlogans.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
@@ -70,6 +71,12 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			SAssignNew(Dialogue, SCHDialogueOverlay)
 		]
 
+		// the words shouted from the rooftops
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Slogans, SCHSlogans)
+		]
+
 		// his letter
 		+ SOverlay::Slot()
 		[
@@ -119,6 +126,7 @@ void SCHRootOverlay::Advance(float DeltaTime)
 	Hud->Advance(DeltaTime);
 	Montage->Advance(DeltaTime);
 	Letter->Advance(DeltaTime);
+	Slogans->Advance(DeltaTime);
 	FlashAlpha = FMath::Max(0.f, FlashAlpha - DeltaTime * FlashRate);
 	EyeClose = FMath::FInterpConstantTo(EyeClose, EyeTarget, DeltaTime, EyeRate);
 }

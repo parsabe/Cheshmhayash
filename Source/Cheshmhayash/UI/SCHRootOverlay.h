@@ -13,6 +13,7 @@ class SCHHud;
 class SCHLetter;
 class SCHMontage;
 class SCHPhoneOverlay;
+class SCHSlogans;
 
 class SCHRootOverlay : public SCompoundWidget
 {
@@ -48,6 +49,7 @@ public:
 	TSharedPtr<SCHHud> Hud;
 	TSharedPtr<SCHMontage> Montage;
 	TSharedPtr<SCHLetter> Letter;
+	TSharedPtr<SCHSlogans> Slogans;
 
 private:
 	FSlateColor GetFadeColor() const;

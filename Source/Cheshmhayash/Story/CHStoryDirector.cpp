@@ -36,6 +36,7 @@
 #include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHRootOverlay.h"
+#include "UI/SCHSlogans.h"
 #include "UnrealClient.h"
 #include "World/CHLevelBuilder.h"
 #include "World/CHNpc.h"
@@ -543,6 +544,8 @@ void UCHStoryDirector::TravelTo(const FString& Location, const FString& Variant)
 	{
 		UI->Dialogue->Hide();
 		UI->Phone->Close();
+	UI->Slogans->Stop(0.f);
+		UI->Slogans->Stop(0.f);
 		UI->Menu->Hide();
 		UI->Hud->ClearState();
 	}
@@ -919,7 +922,14 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		}
 		if (Pawn)
 		{
-			Pawn->SetActorHiddenInGame(JBool(Beat, TEXT("hidden"), false));
+			const bool bHide = JBool(Beat, TEXT("hidden"), false);
+			Pawn->SetActorHiddenInGame(bHide);
+			// first-person bodies cast a shadow even when hidden: not when he is out of the scene
+			TInlineComponentArray<UPrimitiveComponent*> Parts(Pawn);
+			for (UPrimitiveComponent* Part : Parts)
+			{
+				Part->SetCastShadow(!bHide);
+			}
 		}
 	}
 	else if (Type == TEXT("cut"))
@@ -1003,6 +1013,18 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			Lines.Add({ JStr(*Line, TEXT("fa")), JStr(*Line, TEXT("en")) });
 		}
 		UI->Letter->Show(Lines);
+	}
+	else if (Type == TEXT("slogans"))
+	{
+		// "on": false fades them out
+		if (JBool(Beat, TEXT("on"), true))
+		{
+			UI->Slogans->Start(JStr(Beat, TEXT("fa")), static_cast<int32>(JNum(Beat, TEXT("count"), 80.0)), static_cast<float>(JNum(Beat, TEXT("time"), 16.0)));
+		}
+		else
+		{
+			UI->Slogans->Stop(static_cast<float>(JNum(Beat, TEXT("time"), 2.0)));
+		}
 	}
 	else if (Type == TEXT("show_clip"))
 	{
@@ -1577,5 +1599,6 @@ void UCHStoryDirector::DevSkipScene()
 	UI->Menu->Hide();
 	UI->Dialogue->Hide();
 	UI->Phone->Close();
+	UI->Slogans->Stop(0.f);
 	NextScene();
 }

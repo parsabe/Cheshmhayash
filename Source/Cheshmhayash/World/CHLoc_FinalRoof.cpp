@@ -66,7 +66,9 @@ void ACHLoc_FinalRoof::Build(const FString& InVariant)
 	Env.Contrast = 1.05f;
 	Env.Temperature = 6400.f;
 	ApplyEnv(Env);
-	SetSun(-4.f, 0.f);
+	// "night": the first night he climbs up here (1.7); the city is dark and loud
+	const bool bFirstNight = Variant == TEXT("night");
+	SetSun(bFirstNight ? -16.f : -4.f, 0.f);
 
 	// ---- three roofs to cross; the last one is the edge of the city
 	BuildRoof(-1800.f, -600.f, 1200.f, 1200.f, 1250.f, 2, 11);
@@ -113,6 +115,17 @@ void ACHLoc_FinalRoof::Build(const FString& InVariant)
 
 	// ---- what he does here
 	Mark(TEXT("PlayerStart"), FVector(-1380.f, 0.f, 1250.f), FRotator(0.f, 0.f, 0.f));
+	if (bFirstNight)
+	{
+		if (ACHFilmable* City = SpawnFilmable(TEXT("city"), TEXT("شهرِ تاریک، پر از صدا"), TEXT("The dark city, full of voices"), FVector(40000.f, 2000.f, 1000.f), 5.f, 90000.f))
+		{
+			City->bIgnoreSight = true;
+			City->AimAngle = 32.f;
+			City->SetGlowVisible(false);
+		}
+		MarkLookAt(TEXT("Climb"), FVector(-1100.f, -420.f, 1250.f + 210.f), FVector(600.f, 300.f, 1250.f + 60.f), 62.f);
+		return;
+	}
 	if (ACHInteractable* Sit = SpawnInteractable(TEXT("sit"), TEXT("بنشین"), TEXT("Sit down"), SitSpot + FVector(0.f, 0.f, 60.f), 200.f))
 	{
 		Sit->SetActorHiddenInGame(false);
@@ -293,7 +306,7 @@ void ACHLoc_FinalRoof::OnInteract(const FString& Id, ACHInteractable* What)
 
 void ACHLoc_FinalRoof::OnFilmed(const FString& Id)
 {
-	if (Id == TEXT("sunrise"))
+	if (Id == TEXT("sunrise") || Id == TEXT("city"))
 	{
 		FinishSegment();
 	}

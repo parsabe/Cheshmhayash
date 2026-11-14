@@ -40,11 +40,17 @@ private:
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> LetterPaper;
 
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> CalendarPage;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> CalendarSheet;
+
 	float DoorAngle = 0.f;
 	float DoorTarget = 0.f;
 };
 
-/** The women's prison outside the city (3.1): a long wall, wire, a gate that opens. */
+/** A long wall, wire, a gate. The women's prison outside the city (3.1); "vozara": the detention centre (1.3). */
 UCLASS()
 class ACHLoc_PrisonGate : public ACHCityBuilder
 {
@@ -59,11 +65,15 @@ private:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> DoorPivot;
 
+	void BuildVozara();
+
 	float DoorAngle = 0.f;
 	float DoorTarget = 0.f;
+	float DuskTime = -1.f;
+	float DuskDuration = 14.f;
 };
 
-/** The family's living room. Variants: "dinner" (1.4), "years" (3.3, the news). */
+/** Interiors: the living room "dinner" (1.4) and "years" (3.3), the lawyer's "office" (1.6), the "stairs" (1.8). */
 UCLASS()
 class ACHLoc_Home : public ACHLevelBuilder
 {
@@ -77,6 +87,21 @@ public:
 
 private:
 	TSharedRef<SWidget> MakeNewsScreen() const;
+	void BuildShell(const FLinearColor& WallColor, const FLinearColor& Outside, float OutsideStrength);
+	void BuildLiving();
+	void BuildOffice();
+	void BuildStairs();
+
+	UPROPERTY()
+	TMap<FString, TObjectPtr<UStaticMeshComponent>> Items;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Deed;
+
+	FVector DeedFrom = FVector::ZeroVector;
+	FVector DeedTo = FVector::ZeroVector;
+	float DeedTime = -1.f;
+	float FinishDelay = 0.f;
 
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> TvScreen;
@@ -199,6 +224,11 @@ private:
 	void BuildTest();
 	void BuildNights();
 	void BuildLastNight();
+	void BuildDay();
+	void BuildCampus();
+	void BuildGarage();
+	void SendStudentOut(const FString& Id, ACHInteractable* What);
+	void TickDay(float DeltaSeconds);
 	/** Shots, smoke, the crowd breaks, they come. */
 	void StartShots();
 	void SpawnCrowd(const FBox2D& Area, int32 Count, int32 Seed);
@@ -236,5 +266,13 @@ private:
 	TArray<FVector> ChantBase;
 	TArray<FVector> CrowdGoals;
 	bool bShotsFired = false;
+
+	// day, campus, garage
+	UPROPERTY()
+	TArray<TObjectPtr<ACHNpc>> GarageRunners;
+
+	FVector GarageOut = FVector::ZeroVector;
+	int32 GarageLeft = 0;
+	bool bTaxi = false;
 	float StreetsTime = 0.f;
 };

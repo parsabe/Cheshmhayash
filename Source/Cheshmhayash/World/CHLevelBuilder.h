@@ -121,10 +121,11 @@ public:
 	virtual void OnSegmentExit(const FString& Id);
 	/** He was caught and is back at the checkpoint. */
 	virtual void OnSegmentReset() {}
-	virtual void OnInteract(const FString& Id, ACHInteractable* What) {}
+	/** Default: "talk.<scene>" interactables play that interlude scene. */
+	virtual void OnInteract(const FString& Id, ACHInteractable* What);
 	virtual void OnFilmed(const FString& Id) {}
 	/** A story interlude (an encounter) has finished and gameplay resumes. */
-	virtual void OnInterludeEnded() {}
+	virtual void OnInterludeEnded();
 	/** Ends the running segment and lets the story continue. */
 	void FinishSegment();
 
@@ -148,6 +149,12 @@ public:
 	ACHGuard* SpawnGuard(ECHGuardKind Kind, const FString& Look, const TArray<FVector>& Route, float Yaw = 0.f, int32 Seed = 0);
 	ACHFilmable* SpawnFilmable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Seconds = 3.5f, float Range = 2800.f);
 	ACHInteractable* SpawnInteractable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Radius = 170.f, bool bMarker = true);
+
+	/**
+	 * Someone to talk to: using it plays the interlude scene "<Scene>". When every talk in the
+	 * location has been had, the segment ends. bChained: only usable after the one before it.
+	 */
+	ACHInteractable* SpawnTalk(const FString& Scene, const FString& Fa, const FString& En, const FVector& Location, float Radius = 190.f, bool bChained = false);
 
 	const FString& GetVariant() const { return Variant; }
 
@@ -222,6 +229,12 @@ protected:
 	void MarkLookAt(FName Name, const FVector& Location, const FVector& Target, float FOV = 70.f);
 
 	FString Variant;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ACHInteractable>> Talks;
+
+	int32 TalksLeft = 0;
+	bool bFinishAfterTalks = true;
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Root;

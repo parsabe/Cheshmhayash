@@ -468,7 +468,15 @@ void ACHLoc_Streets::OnInteract(const FString& Id, ACHInteractable* What)
 	{
 		return;
 	}
-	if (Id == TEXT("wounded"))
+	if (Id.StartsWith(TEXT("talk.")))
+	{
+		Super::OnInteract(Id, What);
+	}
+	else if (Id.StartsWith(TEXT("trapped")))
+	{
+		SendStudentOut(Id, What);
+	}
+	else if (Id == TEXT("wounded"))
 	{
 		What->SetEnabled(false);
 		Director->PlayInterlude(TEXT("2.4.wounded"));
@@ -482,6 +490,7 @@ void ACHLoc_Streets::OnInteract(const FString& Id, ACHInteractable* What)
 
 void ACHLoc_Streets::OnInterludeEnded()
 {
+	Super::OnInterludeEnded();
 	UCHStoryDirector* Director = UCHStoryDirector::Get(this);
 	if (!Director)
 	{
@@ -549,12 +558,17 @@ void ACHLoc_Streets::OnStoryEvent(const FString& Event, const TSharedPtr<FJsonOb
 	{
 		StartShots();
 	}
+	else if (Event == TEXT("taxi"))
+	{
+		bTaxi = true;
+	}
 }
 
 void ACHLoc_Streets::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	StreetsTime += DeltaSeconds;
+	TickDay(DeltaSeconds);
 	APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
 
 	// the old man's shutter goes up as he comes near; students slip inside

@@ -7,6 +7,7 @@
 #include "Game/CHInteractable.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Math/RandomStream.h"
 #include "UI/CHStyle.h"
 #include "Widgets/Images/SImage.h"
@@ -214,7 +215,7 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	}
 	else
 	{
-		WorldWidget(MakeCalendarWidget(), FVector(-15.f, HY - 1.75f, 150.f), FRotator(0.f, -90.f, 0.f), 0.1f, false, FVector2D(460.0, 620.0));
+		CalendarSheet = WorldWidget(MakeCalendarWidget(), FVector(-15.f, HY - 1.75f, 150.f), FRotator(0.f, -90.f, 0.f), 0.1f, false, FVector2D(460.0, 620.0));
 	}
 
 	if (bAfter)
@@ -228,6 +229,9 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	Mark(TEXT("PlayerStart"), bAfter ? FVector(-HX + 55.f, 95.f, 0.f) : FVector(-70.f, 45.f, 0.f), FRotator(0.f, bAfter ? -15.f : 0.f, 0.f));
 	MarkLookAt(TEXT("FloorCalendar"), CalendarFloor + FVector(-6.f, -64.f, 112.f), CalendarFloor + FVector(0.f, 6.f, 2.f), 46.f);
 	MarkLookAt(TEXT("Letter"), LetterSpot + FVector(-22.f, 44.f, 92.f), LetterSpot, 40.f);
+	// the night outside (1.7); his shadow on the wall where the calendar hung (1.9)
+	MarkLookAt(TEXT("Window"), FVector(70.f, 10.f, 150.f), FVector(HX + 600.f, -40.f, 185.f), 52.f);
+	MarkLookAt(TEXT("Shadow"), FVector(-40.f, 100.f, 150.f), FVector(HX - 40.f, 25.f, 118.f), 48.f);
 	MarkLookAt(TEXT("BedBook"), BookSpot + FVector(10.f, 95.f, 75.f), BookSpot, 40.f);
 	Mark(TEXT("He"), FVector(HX - 96.f, 58.f, 0.f));
 	Mark(TEXT("SisterHall"), FVector(-HX - T - 120.f, 105.f, 0.f));
@@ -473,7 +477,7 @@ void ACHLoc_Room::BuildFurniture()
 	}
 	else
 	{
-		Box(FVector(-15.f, HY - 0.8f, 150.f), FVector(46.f, 1.6f, 62.f), Paper, false);
+		CalendarPage = Box(FVector(-15.f, HY - 0.8f, 150.f), FVector(46.f, 1.6f, 62.f), Paper, false, FRotator::ZeroRotator, true);
 	}
 	Box(FVector(-15.f, HY - 1.2f, 183.f), FVector(4.f, 2.4f, 4.f), Metal, false);
 
@@ -499,6 +503,18 @@ void ACHLoc_Room::OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObjec
 	else if (Event == TEXT("door_close"))
 	{
 		DoorTarget = 0.f;
+	}
+	else if (Event == TEXT("calendar_down"))
+	{
+		// he takes the calendar off the wall (1.9); the nail stays
+		if (CalendarPage)
+		{
+			CalendarPage->SetVisibility(false);
+		}
+		if (CalendarSheet)
+		{
+			CalendarSheet->SetVisibility(false);
+		}
 	}
 }
 

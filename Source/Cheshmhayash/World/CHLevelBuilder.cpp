@@ -223,6 +223,68 @@ void ACHLevelBuilder::StartSegment(const FString& Segment, const TSharedPtr<FJso
 	}
 }
 
+ACHInteractable* ACHLevelBuilder::SpawnTalk(const FString& Scene, const FString& Fa, const FString& En, const FVector& Location, float Radius, bool bChained)
+{
+	ACHInteractable* Talk = SpawnInteractable(TEXT("talk.") + Scene, Fa, En, Location, Radius);
+	if (Talk)
+	{
+		// a chained talk waits for the one before it
+		if (bChained && Talks.Num() > 0)
+		{
+			Talk->SetEnabled(false);
+		}
+		Talks.Add(Talk);
+		++TalksLeft;
+	}
+	return Talk;
+}
+
+void ACHLevelBuilder::OnInteract(const FString& Id, ACHInteractable* What)
+{
+	if (What && Id.StartsWith(TEXT("talk.")))
+	{
+		What->SetEnabled(false);
+		--TalksLeft;
+		for (TObjectPtr<ACHInteractable>& Talk : Talks)
+		{
+			if (Talk == What)
+			{
+				Talk = nullptr;
+			}
+		}
+		if (UCHStoryDirector* Director = UCHStoryDirector::Get(this))
+		{
+			Director->PlayInterlude(Id.Mid(5));
+		}
+	}
+}
+
+void ACHLevelBuilder::OnInterludeEnded()
+{
+	if (Talks.Num() == 0)
+	{
+		return;
+	}
+	if (TalksLeft <= 0)
+	{
+		if (bFinishAfterTalks)
+		{
+			Talks.Reset();
+			FinishSegment();
+		}
+		return;
+	}
+	// open the next one in the chain
+	for (ACHInteractable* Talk : Talks)
+	{
+		if (Talk)
+		{
+			Talk->SetEnabled(true);
+			break;
+		}
+	}
+}
+
 void ACHLevelBuilder::OnSegmentExit(const FString& Id)
 {
 	FinishSegment();
