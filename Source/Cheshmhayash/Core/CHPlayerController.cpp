@@ -3,6 +3,7 @@
 #include "Core/CHPlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Core/CHPlayerCharacter.h"
+#include "Game/CHSegment.h"
 #include "InputCoreTypes.h"
 #include "Story/CHStoryDirector.h"
 
@@ -87,11 +88,20 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 		}
 	}
 
-	// ---- moving and looking
+	// ---- moving, looking, filming, using things
 	ACHPlayerCharacter* Hero = Cast<ACHPlayerCharacter>(GetPawn());
-	if (!bControl || !Hero)
+	UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
+	if (Segment)
+	{
+		Segment->SetFilmHeld(bControl && IsInputKeyDown(EKeys::RightMouseButton));
+	}
+	if (!bControl || !Hero || (Segment && Segment->IsInputBlocked()))
 	{
 		return;
+	}
+	if (Segment && WasInputKeyJustPressed(EKeys::E))
+	{
+		Segment->Interact();
 	}
 
 	float MouseX = 0.f;

@@ -14,6 +14,8 @@ class ACHNpc;
 class ACHPlayerController;
 class FJsonObject;
 class SCHRootOverlay;
+class UTexture;
+class UTextureRenderTarget2D;
 
 struct FCHScene
 {
@@ -24,7 +26,31 @@ struct FCHScene
 	FString Variant;
 	/** "he" (default) or "sister". */
 	FString Player;
+	/** Developer-only scene: reachable with -chscene, skipped in the story. */
+	bool bDev = false;
 	TArray<TSharedPtr<FJsonObject>> Beats;
+};
+
+/** One filmed moment: what he saw, kept for the director's cut. */
+USTRUCT()
+struct FCHClip
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Id;
+
+	UPROPERTY()
+	FString CaptionFa;
+
+	UPROPERTY()
+	FString CaptionEn;
+
+	UPROPERTY()
+	int32 Chapter = 0;
+
+	UPROPERTY()
+	TObjectPtr<UTextureRenderTarget2D> Image;
 };
 
 UCLASS()
@@ -68,8 +94,23 @@ public:
 
 	// ---- gameplay segments (started by a "gameplay" beat, finished by the location)
 	void FinishSegment();
+	/** Second chances for the running segment (base + earned through choices). */
+	int32 GetSegmentChances() const { return SegmentChances; }
+
+	// ---- screen
+	void Fade(float Target, float Time, const FLinearColor& Color) { SetFade(Target, Time, Color); }
+	void Flash(const FLinearColor& Color, float Seconds);
+	void Toast(const FString& Fa, const FString& En, const FLinearColor& Color, float Seconds = 2.8f, UTexture* Image = nullptr);
+
+	// ---- clips
+	/** Captures what the player's camera sees right now as a filmed clip. */
+	UTexture* CaptureClip(const FString& Id, const FString& CaptionFa, const FString& CaptionEn);
+	const TArray<FCHClip>& GetClips() const { return Clips; }
 
 	TSharedPtr<SCHRootOverlay> GetUI() const { return UI; }
+	bool IsDevBot() const { return bDevBot; }
+	/** -chghost: guards never see the player (to test that a level can be finished). */
+	bool IsDevGhost() const { return bDevGhost; }
 
 private:
 	// story data
@@ -86,6 +127,7 @@ private:
 
 	// beats
 	bool PassesCondition(const FJsonObject& Beat) const;
+	bool PassesCondition(const FString& Condition) const;
 	void BeginBeat(const FJsonObject& Beat);
 	/** Returns true when the beat is finished. */
 	bool UpdateBeat(const FJsonObject& Beat, float DeltaTime);
@@ -104,12 +146,15 @@ private:
 	ACHPlayerController* GetController() const;
 	bool ConsumeAdvance();
 
-	// developer helpers (command line: -chscene=ID -chauto -chshots=3,8,15 -chquit)
+	// developer helpers (command line: -chscene=ID -chauto -chbot -chpick=N -chshots=3,8,15 -chquit)
 	void ParseDevOptions();
 	void DevTick();
 
 	TArray<FCHScene> Scenes;
 	TMap<FString, FString> Flags;
+
+	UPROPERTY()
+	TArray<FCHClip> Clips;
 
 	TSharedPtr<SCHRootOverlay> UI;
 	TWeakObjectPtr<ACHLevelBuilder> Builder;
@@ -129,6 +174,7 @@ private:
 	bool bTraveling = false;
 	bool bPlayerControl = false;
 	bool bSegmentDone = false;
+	int32 SegmentChances = 0;
 
 	bool bAdvancePressed = false;
 	int32 NavInput = 0;
@@ -144,10 +190,17 @@ private:
 	float FadeRate = 0.f;
 	FLinearColor FadeColor = FLinearColor::Black;
 
+	/** The REC dot: on from the first rooftop until his last morning. */
+	bool bRec = false;
+	float RecSeconds = 0.f;
+	bool bControlsShown = false;
+
 	// dev
 	FString DevStartScene;
 	int32 DevPick = 0;
 	bool bDevAuto = false;
+	bool bDevBot = false;
+	bool bDevGhost = false;
 	bool bDevQuit = false;
 	bool bDevKeys = false;
 	TArray<float> DevShotTimes;

@@ -34,6 +34,38 @@ private:
 	bool bTopToBottom = true;
 };
 
+/** An eye: two lids and an iris. Used as the "being seen" meter. */
+class SCHEye : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SCHEye)
+		: _Open(1.f)
+		, _Fill(0.f)
+		, _LineColor(FLinearColor::White)
+		, _IrisColor(FLinearColor::White)
+	{
+	}
+		/** 0 = closed, 1 = wide open. */
+		SLATE_ATTRIBUTE(float, Open)
+		/** How solid the iris is (0..1). */
+		SLATE_ATTRIBUTE(float, Fill)
+		SLATE_ATTRIBUTE(FLinearColor, LineColor)
+		SLATE_ATTRIBUTE(FLinearColor, IrisColor)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs);
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override { return FVector2D(84.0, 40.0); }
+
+private:
+	TAttribute<float> Open;
+	TAttribute<float> Fill;
+	TAttribute<FLinearColor> LineColor;
+	TAttribute<FLinearColor> IrisColor;
+};
+
 /** Vertical bars like a voice-message waveform. Progress (0..1) tints the played part. */
 class SCHWaveform : public SLeafWidget
 {

@@ -1,5 +1,5 @@
 // Cheshm Hayash - the player. "He" in chapters 1 and 2, his sister in chapter 3.
-// Third person; the template mannequin, tinted dark. Silhouette over detail.
+// Third person outdoors, first person in small rooms. The template mannequin, tinted dark.
 
 #pragma once
 
@@ -9,8 +9,8 @@
 
 class UCameraComponent;
 class UMaterialInstanceDynamic;
-class USkeletalMesh;
 class USpringArmComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class ACHPlayerCharacter : public ACharacter
@@ -21,15 +21,22 @@ public:
 	ACHPlayerCharacter();
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
-	/** "he" or "sister". */
+	/** "he" or "sister" (any CHLooks look). */
 	void SetLook(const FString& Look);
 
-	/** Movement speed tiers. */
+	/** Movement speed tiers. Filming forces a slow walk. */
 	void SetPace(bool bSprint, bool bSneak);
+	bool IsSneaking() const { return bSneaking; }
+	bool IsSprinting() const { return bSprinting && GetVelocity().Size2D() > JogSpeed + 20.f; }
 
-	/** Third person camera distance and shoulder offset. */
+	/** Third person camera distance and shoulder offset. Length 0 = first person. */
 	void SetBoom(float Length, const FVector& Offset);
+	bool IsFirstPerson() const { return bFirstPerson; }
+
+	/** The phone camera is up: narrower view. */
+	void SetFilming(bool bInFilming) { bFilming = bInFilming; }
 
 	USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -39,8 +46,6 @@ public:
 	static constexpr float SprintSpeed = 610.f;
 
 private:
-	void ApplyTint(const FLinearColor& Upper, const FLinearColor& Lower);
-
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -48,11 +53,15 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera;
 
 	UPROPERTY()
-	TObjectPtr<USkeletalMesh> MannyMesh;
+	TArray<TObjectPtr<UStaticMeshComponent>> Shapes;
 
 	UPROPERTY()
-	TObjectPtr<USkeletalMesh> QuinnMesh;
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UMaterialInstanceDynamic>> TintMaterials;
+	float BaseFOV = 78.f;
+	float BaseArm = 300.f;
+	bool bFirstPerson = false;
+	bool bFilming = false;
+	bool bSneaking = false;
+	bool bSprinting = false;
 };

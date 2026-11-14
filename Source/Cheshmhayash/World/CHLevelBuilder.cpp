@@ -21,12 +21,39 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Game/CHFilmable.h"
+#include "Game/CHGuard.h"
+#include "Game/CHInteractable.h"
+#include "Game/CHSegment.h"
+#include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 #include "Story/CHJson.h"
+#include "Story/CHStoryDirector.h"
 #include "UI/CHStyle.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "World/CHNpc.h"
+
+namespace
+{
+	float GExposureEV = 0.f;
+}
+
+void CHLight::SetExposure(float ExposureEV)
+{
+	GExposureEV = ExposureEV;
+}
+
+float CHLight::GetExposure()
+{
+	return GExposureEV;
+}
+
+float CHLight::DisplayScale()
+{
+	return 1.2f * FMath::Pow(2.f, GExposureEV);
+}
 
 ACHLevelBuilder::ACHLevelBuilder()
 {
@@ -169,6 +196,89 @@ ACHNpc* ACHLevelBuilder::HandleNpcBeat(const FJsonObject& Beat)
 		RemoveNpc(Name);
 	}
 	return nullptr;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Gameplay
+// ---------------------------------------------------------------------------------------------
+
+void ACHLevelBuilder::StartSegment(const FString& Segment, const TSharedPtr<FJsonObject>& Beat)
+{
+	UCHSegmentSubsystem* Seg = UCHSegmentSubsystem::Get(this);
+	if (!Seg)
+	{
+		return;
+	}
+	FTransform Respawn = GetPlayerStart();
+	if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0))
+	{
+		Respawn = Pawn->GetActorTransform();
+	}
+	const UCHStoryDirector* Director = UCHStoryDirector::Get(this);
+	Seg->Begin(this, Respawn, Director ? Director->GetSegmentChances() : 0);
+	if (Beat.IsValid())
+	{
+		Seg->SetHint(CHJson::Str(*Beat, TEXT("hint_fa")), CHJson::Str(*Beat, TEXT("hint_en")));
+		Seg->bFilmAllowed = CHJson::Bool(*Beat, TEXT("film"), true);
+	}
+}
+
+void ACHLevelBuilder::OnSegmentExit(const FString& Id)
+{
+	FinishSegment();
+}
+
+void ACHLevelBuilder::FinishSegment()
+{
+	if (UCHSegmentSubsystem* Seg = UCHSegmentSubsystem::Get(this))
+	{
+		Seg->End();
+	}
+	if (UCHStoryDirector* Director = UCHStoryDirector::Get(this))
+	{
+		Director->FinishSegment();
+	}
+}
+
+ACHGuard* ACHLevelBuilder::SpawnGuard(ECHGuardKind Kind, const FString& Look, const TArray<FVector>& Route, float Yaw, int32 Seed)
+{
+	if (Route.Num() == 0)
+	{
+		return nullptr;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	const FVector Location = Route[0] + FVector(0.f, 0.f, 94.f);
+	ACHGuard* Guard = GetWorld()->SpawnActor<ACHGuard>(ACHGuard::StaticClass(), FTransform(FRotator(0.f, Yaw, 0.f), Location), Params);
+	if (Guard)
+	{
+		Guard->Setup(Kind, Look, Route, Seed);
+	}
+	return Guard;
+}
+
+ACHFilmable* ACHLevelBuilder::SpawnFilmable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Seconds, float Range)
+{
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ACHFilmable* Filmable = GetWorld()->SpawnActor<ACHFilmable>(ACHFilmable::StaticClass(), FTransform(Location), Params);
+	if (Filmable)
+	{
+		Filmable->Setup(Id, Fa, En, Seconds, Range);
+	}
+	return Filmable;
+}
+
+ACHInteractable* ACHLevelBuilder::SpawnInteractable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Radius, bool bMarker)
+{
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ACHInteractable* Interactable = GetWorld()->SpawnActor<ACHInteractable>(ACHInteractable::StaticClass(), FTransform(Location), Params);
+	if (Interactable)
+	{
+		Interactable->Setup(Id, Fa, En, Radius, bMarker);
+	}
+	return Interactable;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -453,6 +563,8 @@ USpotLightComponent* ACHLevelBuilder::SpotLight(const FVector& Location, const F
 
 void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 {
+	CHLight::SetExposure(Env.ExposureEV);
+
 	// --- sun
 	if (!Sun)
 	{

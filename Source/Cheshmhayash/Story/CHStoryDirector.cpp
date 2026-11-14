@@ -3,8 +3,14 @@
 #include "Story/CHStoryDirector.h"
 #include "Cheshmhayash.h"
 #include "Camera/CameraActor.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "Core/CHPlayerCharacter.h"
 #include "Core/CHPlayerController.h"
+#include "Engine/SceneCapture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Game/CHSegment.h"
+#include "UI/SCHHud.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "Engine/Engine.h"
@@ -370,6 +376,7 @@ bool UCHStoryDirector::LoadStoryFile(const FString& Name)
 		Scene.Location = JStr(Json, TEXT("location"));
 		Scene.Variant = JStr(Json, TEXT("variant"));
 		Scene.Player = JStr(Json, TEXT("player"), TEXT("he"));
+		Scene.bDev = JBool(Json, TEXT("dev"), false);
 
 		const TArray<TSharedPtr<FJsonValue>>* BeatArray = nullptr;
 		if (Json.TryGetArrayField(TEXT("beats"), BeatArray) && BeatArray)
@@ -484,16 +491,21 @@ void UCHStoryDirector::StartScene(int32 Index)
 
 void UCHStoryDirector::NextScene()
 {
-	if (Scenes.IsValidIndex(SceneIndex + 1))
+	for (int32 Index = SceneIndex + 1; Index < Scenes.Num(); ++Index)
 	{
-		StartScene(SceneIndex + 1);
+		if (!Scenes[Index].bDev)
+		{
+			StartScene(Index);
+			return;
+		}
 	}
-	else
-	{
-		// the story is over: back to the title with a clean slate
-		Flags.Reset();
-		StartScene(0);
-	}
+
+	// the story is over: back to the title with a clean slate
+	Flags.Reset();
+	Clips.Reset();
+	bRec = false;
+	RecSeconds = 0.f;
+	StartScene(0);
 }
 
 void UCHStoryDirector::TravelTo(const FString& Location, const FString& Variant)
@@ -523,6 +535,7 @@ void UCHStoryDirector::TravelTo(const FString& Location, const FString& Variant)
 		UI->Dialogue->Hide();
 		UI->Phone->Close();
 		UI->Menu->Hide();
+		UI->Hud->ClearState();
 	}
 
 	PendingVariant = Variant;
@@ -594,6 +607,11 @@ void UCHStoryDirector::Tick(float DeltaTime)
 	if (UI.IsValid())
 	{
 		UpdateFade(DeltaTime);
+		if (bRec)
+		{
+			RecSeconds += DeltaTime;
+		}
+		UI->Hud->SetRec(bRec, RecSeconds, !UI->Cards->IsFinished());
 		UI->Advance(DeltaTime);
 
 		// one soft click per typed letter (hooked up to the audio manager in the audio step)
@@ -716,7 +734,11 @@ bool UCHStoryDirector::ConsumeAdvance()
 bool UCHStoryDirector::PassesCondition(const FJsonObject& Beat) const
 {
 	// "if": "flag=value" or "flag!=value"
-	const FString Condition = JStr(Beat, TEXT("if"));
+	return PassesCondition(JStr(Beat, TEXT("if")));
+}
+
+bool UCHStoryDirector::PassesCondition(const FString& Condition) const
+{
 	if (Condition.IsEmpty())
 	{
 		return true;
@@ -796,6 +818,21 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	{
 		bSegmentDone = false;
 		bPlayerControl = true;
+
+		// second chances: a base number plus one for every kindness the player chose
+		SegmentChances = static_cast<int32>(JNum(Beat, TEXT("chances"), 0.0));
+		for (const FString& Condition : CHJson::Lines(Beat, TEXT("chance_flags")))
+		{
+			if (PassesCondition(Condition))
+			{
+				++SegmentChances;
+			}
+		}
+		if (!bControlsShown && JBool(Beat, TEXT("controls"), true))
+		{
+			bControlsShown = true;
+			UI->Hud->ShowControls(14.f);
+		}
 		if (Controller)
 		{
 			Controller->SetSceneCamera(nullptr, static_cast<float>(JNum(Beat, TEXT("blend"), 0.0)));
@@ -858,6 +895,93 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		UI->Captions->Clear();
 		UI->Menu->Hide();
 	}
+	else if (Type == TEXT("rec"))
+	{
+		bRec = JBool(Beat, TEXT("on"), true);
+	}
+	else if (Type == TEXT("clip"))
+	{
+		// a scripted clip: whatever the current camera sees
+		CaptureClip(JStr(Beat, TEXT("id")), JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")));
+	}
+	else if (Type == TEXT("toast"))
+	{
+		Toast(JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), CH::Col::Paper, static_cast<float>(JNum(Beat, TEXT("seconds"), 2.8)));
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// Screen and clips
+// ---------------------------------------------------------------------------------------------
+
+void UCHStoryDirector::Flash(const FLinearColor& Color, float Seconds)
+{
+	if (UI.IsValid())
+	{
+		UI->Flash(Color, Seconds);
+	}
+}
+
+void UCHStoryDirector::Toast(const FString& Fa, const FString& En, const FLinearColor& Color, float Seconds, UTexture* Image)
+{
+	if (UI.IsValid())
+	{
+		UI->Hud->Toast(Fa, En, Color, Seconds, Image);
+	}
+}
+
+UTexture* UCHStoryDirector::CaptureClip(const FString& Id, const FString& CaptionFa, const FString& CaptionEn)
+{
+	ACHPlayerController* Controller = GetController();
+	UWorld* World = GetWorld();
+	if (!Controller || !Controller->PlayerCameraManager || !World)
+	{
+		return nullptr;
+	}
+	const FMinimalViewInfo& View = Controller->PlayerCameraManager->GetCameraCacheView();
+
+	UTextureRenderTarget2D* Target = NewObject<UTextureRenderTarget2D>(this);
+	// the final colour is already gamma encoded: an sRGB target makes Slate show it as filmed
+	Target->RenderTargetFormat = RTF_RGBA8_SRGB;
+	Target->ClearColor = FLinearColor::Black;
+	Target->InitAutoFormat(1280, 720);
+	Target->UpdateResourceImmediate(true);
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ASceneCapture2D* Capture = World->SpawnActor<ASceneCapture2D>(ASceneCapture2D::StaticClass(), View.Location, View.Rotation, Params);
+	if (!Capture)
+	{
+		return nullptr;
+	}
+	USceneCaptureComponent2D* Component = Capture->GetCaptureComponent2D();
+	Component->bCaptureEveryFrame = false;
+	Component->bCaptureOnMovement = false;
+	Component->FOVAngle = View.FOV;
+	Component->CaptureSource = SCS_FinalColorLDR;
+	Component->TextureTarget = Target;
+
+	// one-off captures have no eye adaptation history: give them the scene's fixed exposure
+	FPostProcessSettings& Settings = Component->PostProcessSettings;
+	Settings.bOverride_AutoExposureMethod = true;
+	Settings.AutoExposureMethod = AEM_Manual;
+	Settings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+	Settings.AutoExposureApplyPhysicalCameraExposure = false;
+	Settings.bOverride_AutoExposureBias = true;
+	Settings.AutoExposureBias = -CHLight::GetExposure() - FMath::Log2(1.2f);
+	Component->PostProcessBlendWeight = 1.f;
+	Component->CaptureScene();
+	Capture->Destroy();
+
+	FCHClip Clip;
+	Clip.Id = Id;
+	Clip.CaptionFa = CaptionFa;
+	Clip.CaptionEn = CaptionEn;
+	Clip.Chapter = Scenes.IsValidIndex(SceneIndex) ? Scenes[SceneIndex].Chapter : 0;
+	Clip.Image = Target;
+	Clips.Add(Clip);
+	UE_LOG(LogCheshmhayash, Log, TEXT("Clip %d filmed: %s (%s)"), Clips.Num(), *Id, *CaptionEn);
+	return Target;
 }
 
 void UCHStoryDirector::BeginPhoneBeat(const FJsonObject& Beat)
@@ -1165,6 +1289,8 @@ void UCHStoryDirector::ParseDevOptions()
 	FParse::Value(CommandLine, TEXT("chscene="), DevStartScene);
 	FParse::Value(CommandLine, TEXT("chpick="), DevPick);
 	bDevAuto = FParse::Param(CommandLine, TEXT("chauto"));
+	bDevBot = FParse::Param(CommandLine, TEXT("chbot"));
+	bDevGhost = FParse::Param(CommandLine, TEXT("chghost"));
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
 

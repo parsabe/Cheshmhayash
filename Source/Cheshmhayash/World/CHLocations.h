@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "World/CHCity.h"
 #include "World/CHLevelBuilder.h"
 #include "CHLocations.generated.h"
 
@@ -36,4 +37,17 @@ private:
 
 	float DoorAngle = 0.f;
 	float DoorTarget = 0.f;
+};
+
+/** The city at night. Variants: "test" (one street to try the stealth), later the nights of Mehr. */
+UCLASS()
+class ACHLoc_Streets : public ACHCityBuilder
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Build(const FString& InVariant) override;
+
+private:
+	void BuildTest();
 };

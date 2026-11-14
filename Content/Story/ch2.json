@@ -1,0 +1,28 @@
+{
+  "scenes": [
+    {
+      "id": "test.street",
+      "dev": true,
+      "chapter": 2,
+      "location": "Streets",
+      "variant": "test",
+      "beats": [
+        { "type": "rec", "on": true },
+        { "type": "camera", "mark": "Establish" },
+        { "type": "caption", "fa": "خیابان · شب", "en": "TEST STREET · NIGHT" },
+        { "type": "fade", "to": 0, "time": 2.0 },
+        { "type": "silence", "seconds": 1.0 },
+        {
+          "type": "gameplay",
+          "segment": "test",
+          "blend": 1.5,
+          "chances": 1,
+          "hint_fa": "به انتهای خیابان برو. از نور دور بمان.",
+          "hint_en": "Reach the end of the street. Stay out of the light."
+        },
+        { "type": "fade", "to": 1, "time": 1.5 },
+        { "type": "card", "fa": ["رسیدی."], "en": ["You made it."], "hold": 2.0 }
+      ]
+    }
+  ]
+}

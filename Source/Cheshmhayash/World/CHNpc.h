@@ -1,6 +1,5 @@
 // Cheshm Hayash - a person in the world who is not the player: family, friends, crowds.
-// The template mannequin, tinted, with simple attached shapes (headscarf, chador, helmet).
-// Silhouettes over detail.
+// Moves by simple scripted walks; looks come from CHLooks.
 
 #pragma once
 
@@ -10,9 +9,7 @@
 
 class UAnimSequence;
 class UMaterialInstanceDynamic;
-class USkeletalMesh;
 class USkeletalMeshComponent;
-class UStaticMesh;
 class UStaticMeshComponent;
 
 UCLASS()
@@ -25,13 +22,8 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	/**
-	 * Mesh, colours and accessories by role: sister, sister_after, brother, he, kian, mother, father,
-	 * woman, man, chador, oldwoman, student_f, student_m, guard, basij, plain, lawyer, driver.
-	 * Seed varies the colours of crowd roles.
-	 */
-	void SetLook(const FString& Look, int32 Seed = 0);
-	void SetColors(const FLinearColor& Upper, const FLinearColor& Lower);
+	/** See CHLooks: sister, brother, mother, woman, man, chador, oldwoman, student_f, guard... */
+	void SetLook(const FString& InLook, int32 Seed = 0);
 
 	/** Walks in a straight line on flat ground. Speed in cm/s. */
 	void WalkTo(const FVector& Target, float Speed = 120.f);
@@ -44,7 +36,7 @@ public:
 	void SetSink(float Centimetres);
 	/** Trembling shoulders. */
 	void SetShaking(bool bInShaking) { bShaking = bInShaking; }
-	/** Plays a death animation and holds the last frame (lying on the ground). */
+	/** Plays the fall animation once and holds the last frame. */
 	void PlayFall();
 	/** Freezes the current pose. */
 	void Freeze();
@@ -56,19 +48,10 @@ public:
 	FString NpcName;
 
 private:
-	UStaticMeshComponent* AddShape(UStaticMesh* Mesh, const FVector& Center, const FVector& Size, const FLinearColor& Color, FName Bone = NAME_None, const FRotator& Rotation = FRotator::ZeroRotator);
-	void ClearShapes();
 	void PlayLoop(UAnimSequence* Sequence, float Rate = 1.f);
-	UMaterialInstanceDynamic* MakeMaterial(const FLinearColor& Color, float Roughness = 0.85f);
 
 	UPROPERTY(VisibleAnywhere, Category = "Npc")
 	TObjectPtr<USkeletalMeshComponent> Body;
-
-	UPROPERTY()
-	TObjectPtr<USkeletalMesh> MannyMesh;
-
-	UPROPERTY()
-	TObjectPtr<USkeletalMesh> QuinnMesh;
 
 	UPROPERTY()
 	TObjectPtr<UAnimSequence> IdleAnim;
@@ -83,22 +66,13 @@ private:
 	TObjectPtr<UAnimSequence> FallAnim;
 
 	UPROPERTY()
-	TObjectPtr<UStaticMesh> SphereMesh;
-
-	UPROPERTY()
-	TObjectPtr<UStaticMesh> ConeMesh;
-
-	UPROPERTY()
-	TObjectPtr<UStaticMesh> CubeMesh;
+	TObjectPtr<UAnimSequence> CurrentAnim;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> Shapes;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
-
-	UPROPERTY()
-	TObjectPtr<UAnimSequence> CurrentAnim;
 
 	FString Look;
 	FVector MoveTarget = FVector::ZeroVector;

@@ -9,6 +9,7 @@
 class SCHCardLayer;
 class SCHChoiceList;
 class SCHDialogueOverlay;
+class SCHHud;
 class SCHPhoneOverlay;
 
 class SCHRootOverlay : public SCompoundWidget
@@ -25,6 +26,9 @@ public:
 	/** Developer notice in the top-left corner (missing map, missing story file...). Empty hides it. */
 	void SetNotice(const FString& InNotice) { Notice = InNotice; }
 
+	/** A short coloured flash over the picture (hit, alarm). */
+	void Flash(const FLinearColor& Color, float Seconds);
+
 	// Screen fade, driven by the story director.
 	FLinearColor FadeColor = FLinearColor::Black;
 	float FadeAlpha = 1.f;
@@ -34,10 +38,15 @@ public:
 	TSharedPtr<SCHChoiceList> Menu;
 	TSharedPtr<SCHDialogueOverlay> Dialogue;
 	TSharedPtr<SCHPhoneOverlay> Phone;
+	TSharedPtr<SCHHud> Hud;
 
 private:
 	FSlateColor GetFadeColor() const;
+	FSlateColor GetFlashColor() const;
 	FText GetNoticeText() const;
 
 	FString Notice;
+	FLinearColor FlashTint = FLinearColor::Transparent;
+	float FlashAlpha = 0.f;
+	float FlashRate = 1.f;
 };

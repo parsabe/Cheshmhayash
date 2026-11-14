@@ -34,6 +34,55 @@ int32 SCHGradient::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	return LayerId;
 }
 
+void SCHEye::Construct(const FArguments& InArgs)
+{
+	Open = InArgs._Open;
+	Fill = InArgs._Fill;
+	LineColor = InArgs._LineColor;
+	IrisColor = InArgs._IrisColor;
+	SetVisibility(EVisibility::HitTestInvisible);
+}
+
+int32 SCHEye::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	const FLinearColor Lines = LineColor.Get();
+	if (Lines.A <= 0.f)
+	{
+		return LayerId;
+	}
+	const FVector2f Size = FVector2f(AllottedGeometry.GetLocalSize());
+	const float OpenAmount = FMath::Clamp(Open.Get(), 0.f, 1.f);
+	const float HalfHeight = Size.Y * 0.5f * FMath::Max(OpenAmount, 0.06f);
+	const float CenterY = Size.Y * 0.5f;
+
+	TArray<FVector2f> Upper;
+	TArray<FVector2f> Lower;
+	const int32 Steps = 24;
+	for (int32 i = 0; i <= Steps; ++i)
+	{
+		const float T = static_cast<float>(i) / Steps;
+		const float Curve = FMath::Sin(T * UE_PI);
+		Upper.Add(FVector2f(T * Size.X, CenterY - HalfHeight * Curve));
+		Lower.Add(FVector2f(T * Size.X, CenterY + HalfHeight * Curve * 0.85f));
+	}
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Upper, ESlateDrawEffect::None, Lines, true, 2.f);
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Lower, ESlateDrawEffect::None, Lines, true, 2.f);
+
+	// the iris shows only while the eye is open
+	const FLinearColor Iris = IrisColor.Get() * FLinearColor(1.f, 1.f, 1.f, FMath::Clamp(Fill.Get(), 0.f, 1.f));
+	const float Radius = FMath::Min(Size.Y * 0.30f, HalfHeight * 0.92f);
+	if (Iris.A > 0.f && Radius > 1.f)
+	{
+		const FVector2f IrisSize(Radius * 2.f, Radius * 2.f);
+		const FVector2f IrisPos(Size.X * 0.5f - Radius, CenterY - Radius);
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 1,
+			AllottedGeometry.ToPaintGeometry(IrisSize, FSlateLayoutTransform(IrisPos)),
+			CH::RoundedBrush(Radius), ESlateDrawEffect::None, Iris);
+	}
+	return LayerId + 1;
+}
+
 void SCHWaveform::Construct(const FArguments& InArgs)
 {
 	Progress = InArgs._Progress;

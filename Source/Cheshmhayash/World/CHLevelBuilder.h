@@ -9,8 +9,12 @@
 #include "CHLevelBuilder.generated.h"
 
 class ACameraActor;
+class ACHFilmable;
+class ACHGuard;
+class ACHInteractable;
 class ACHNpc;
 class FJsonObject;
+enum class ECHGuardKind : uint8;
 class SWidget;
 class UWidgetComponent;
 class UDirectionalLightComponent;
@@ -26,6 +30,20 @@ class USkyLightComponent;
 class USpotLightComponent;
 class UStaticMesh;
 class UStaticMeshComponent;
+
+/**
+ * Emissive values are multiplied by the camera exposure, so a glow that reads well at night burns
+ * white in daylight. CHLight converts "how bright it should look on screen" into an emissive value
+ * for the current location's exposure.
+ */
+namespace CHLight
+{
+	void SetExposure(float ExposureEV);
+	float GetExposure();
+	/** Emissive value that shows as roughly 1.0 on screen at the current exposure. */
+	float DisplayScale();
+	inline float Emissive(float ScreenBrightness) { return ScreenBrightness * DisplayScale(); }
+}
 
 /** Lighting / atmosphere / grading of a location. All values are art-directed, not physical. */
 struct FCHEnv
@@ -94,8 +112,19 @@ public:
 	/** A story beat of type "event" addressed to this location (door opens, tv turns on...). */
 	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) {}
 
-	/** Starts a gameplay segment. The location calls UCHStoryDirector::FinishSegment() when it is over. */
-	virtual void StartSegment(const FString& Segment, const TSharedPtr<FJsonObject>& Beat) {}
+	/**
+	 * Starts a gameplay segment (a "gameplay" beat). The default begins the stealth / filming
+	 * segment with the beat's hint; the segment ends when the player reaches an exit.
+	 */
+	virtual void StartSegment(const FString& Segment, const TSharedPtr<FJsonObject>& Beat);
+	/** The player reached an exit zone. Default: the segment is over. */
+	virtual void OnSegmentExit(const FString& Id);
+	/** He was caught and is back at the checkpoint. */
+	virtual void OnSegmentReset() {}
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) {}
+	virtual void OnFilmed(const FString& Id) {}
+	/** Ends the running segment and lets the story continue. */
+	void FinishSegment();
 
 	/** Named transforms: player start, camera positions, places characters stand. */
 	bool GetMark(FName Name, FCHMark& Out) const;
@@ -111,6 +140,12 @@ public:
 	void RemoveNpc(const FString& Name);
 	/** Generic "npc" story beat (spawn / walk / face / sink / shake / remove). Returns the npc to wait for, if any. */
 	virtual ACHNpc* HandleNpcBeat(const FJsonObject& Beat);
+
+	// ---- gameplay pieces (they register themselves with the segment)
+	/** Route points are on the floor; the guard starts at the first one. */
+	ACHGuard* SpawnGuard(ECHGuardKind Kind, const FString& Look, const TArray<FVector>& Route, float Yaw = 0.f, int32 Seed = 0);
+	ACHFilmable* SpawnFilmable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Seconds = 3.5f, float Range = 2800.f);
+	ACHInteractable* SpawnInteractable(const FString& Id, const FString& Fa, const FString& En, const FVector& Location, float Radius = 170.f, bool bMarker = true);
 
 	const FString& GetVariant() const { return Variant; }
 

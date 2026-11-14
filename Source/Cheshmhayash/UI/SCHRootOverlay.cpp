@@ -5,6 +5,7 @@
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
 #include "UI/SCHDialogueOverlay.h"
+#include "UI/SCHHud.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/SOverlay.h"
@@ -14,10 +15,18 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 {
 	SetVisibility(EVisibility::HitTestInvisible);
 
-	// Layers, bottom to top. Everything above the fade stays visible on a black screen.
+	// Layers, bottom to top.
 	ChildSlot
 	[
 		SNew(SOverlay)
+
+		// flash
+		+ SOverlay::Slot()
+		[
+			SNew(SImage)
+			.Image(CH::WhiteBrush())
+			.ColorAndOpacity(this, &SCHRootOverlay::GetFlashColor)
+		]
 
 		// screen fade
 		+ SOverlay::Slot()
@@ -27,7 +36,13 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			.ColorAndOpacity(this, &SCHRootOverlay::GetFadeColor)
 		]
 
-		// corner captions (dates, places) - do not block the story
+		// HUD: above the fade, so the REC dot keeps blinking in the dark
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Hud, SCHHud)
+		]
+
+		// corner captions (dates, places)
 		+ SOverlay::Slot()
 		[
 			SAssignNew(Captions, SCHCardLayer)
@@ -79,12 +94,28 @@ void SCHRootOverlay::Advance(float DeltaTime)
 	Menu->Advance(DeltaTime);
 	Dialogue->Advance(DeltaTime);
 	Phone->Advance(DeltaTime);
+	Hud->Advance(DeltaTime);
+	FlashAlpha = FMath::Max(0.f, FlashAlpha - DeltaTime * FlashRate);
+}
+
+void SCHRootOverlay::Flash(const FLinearColor& Color, float Seconds)
+{
+	FlashTint = Color;
+	FlashAlpha = 1.f;
+	FlashRate = 1.f / FMath::Max(0.05f, Seconds);
 }
 
 FSlateColor SCHRootOverlay::GetFadeColor() const
 {
 	FLinearColor Color = FadeColor;
 	Color.A = FMath::Clamp(FadeAlpha, 0.f, 1.f);
+	return FSlateColor(Color);
+}
+
+FSlateColor SCHRootOverlay::GetFlashColor() const
+{
+	FLinearColor Color = FlashTint;
+	Color.A = 0.55f * FlashAlpha * FlashAlpha;
 	return FSlateColor(Color);
 }
 

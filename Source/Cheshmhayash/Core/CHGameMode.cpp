@@ -24,6 +24,10 @@ TSubclassOf<ACHLevelBuilder> ACHGameMode::BuilderClassFor(const FString& InLocat
 	{
 		return ACHLoc_Room::StaticClass();
 	}
+	if (InLocation == TEXT("Streets"))
+	{
+		return ACHLoc_Streets::StaticClass();
+	}
 	return ACHLoc_Boot::StaticClass();
 }
 
