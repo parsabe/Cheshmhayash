@@ -2,6 +2,7 @@
   "scenes": [
     {
       "id": "1.0",
+      "music": "music_setar",
       "chapter": 1,
       "location": "Boot",
       "beats": [
@@ -18,6 +19,8 @@
     },
     {
       "id": "1.1",
+      "music": "music_setar",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",
       "variant": "morning",
@@ -79,6 +82,7 @@
     },
     {
       "id": "1.2",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",
       "variant": "morning",
@@ -104,6 +108,7 @@
     },
     {
       "id": "1.2.run",
+      "ambient": "amb_city",
       "chapter": 1,
       "location": "Streets",
       "variant": "day",
@@ -125,6 +130,7 @@
     },
     {
       "id": "1.3",
+      "ambient": "amb_city",
       "chapter": 1,
       "location": "PrisonGate",
       "variant": "vozara",
@@ -186,6 +192,7 @@
     },
     {
       "id": "1.4",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
       "variant": "dinner",
@@ -220,6 +227,7 @@
     },
     {
       "id": "1.5",
+      "ambient": "amb_city",
       "chapter": 1,
       "location": "Streets",
       "variant": "day",
@@ -257,6 +265,7 @@
     },
     {
       "id": "1.6",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
       "variant": "office",
@@ -287,6 +296,7 @@
     },
     {
       "id": "1.7",
+      "ambient": "amb_wind",
       "chapter": 1,
       "location": "Room",
       "variant": "night",
@@ -308,6 +318,7 @@
     },
     {
       "id": "1.7.roof",
+      "ambient": "amb_wind",
       "chapter": 1,
       "location": "FinalRoof",
       "variant": "night",
@@ -333,6 +344,7 @@
     },
     {
       "id": "1.8",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
       "variant": "stairs",
@@ -367,6 +379,8 @@
     },
     {
       "id": "1.9",
+      "music": "music_setar",
+      "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",
       "variant": "night",

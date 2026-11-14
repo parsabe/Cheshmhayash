@@ -605,6 +605,10 @@ void UCHSegmentSubsystem::OnCaught(ACHGuard* Guard)
 	{
 		return;
 	}
+	if (UCHStoryDirector* Director = UCHStoryDirector::Get(this))
+	{
+		Director->PlaySfx(TEXT("sfx_caught"), 0.8f);
+	}
 	UCHStoryDirector* Director = UCHStoryDirector::Get(this);
 
 	if (SecondChances > 0)

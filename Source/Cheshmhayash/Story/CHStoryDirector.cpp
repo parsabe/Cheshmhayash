@@ -10,6 +10,7 @@
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Game/CHSegment.h"
+#include "Story/CHAudio.h"
 #include "UI/SCHHud.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
@@ -283,6 +284,7 @@ UCHStoryDirector* UCHStoryDirector::Get(const UObject* WorldContextObject)
 void UCHStoryDirector::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	Audio = NewObject<UCHAudio>(this);
 	ParseDevOptions();
 	LoadStory();
 }
@@ -379,6 +381,9 @@ bool UCHStoryDirector::LoadStoryFile(const FString& Name)
 		Scene.Location = JStr(Json, TEXT("location"));
 		Scene.Variant = JStr(Json, TEXT("variant"));
 		Scene.Player = JStr(Json, TEXT("player"), TEXT("he"));
+		Scene.Music = JStr(Json, TEXT("music"));
+		Scene.Ambient = JStr(Json, TEXT("ambient"));
+		Scene.bInterlude = JBool(Json, TEXT("interlude"), false);
 		Scene.bDev = JBool(Json, TEXT("dev"), false) || JBool(Json, TEXT("interlude"), false);
 
 		const TArray<TSharedPtr<FJsonValue>>* BeatArray = nullptr;
@@ -487,6 +492,11 @@ void UCHStoryDirector::StartScene(int32 Index)
 
 	const FCHScene& Scene = Scenes[Index];
 	UE_LOG(LogCheshmhayash, Log, TEXT("Scene %s (location '%s' variant '%s')"), *Scene.Id, *Scene.Location, *Scene.Variant);
+	if (Audio && !Scene.bInterlude)
+	{
+		Audio->SetMusic(this, Scene.Music);
+		Audio->SetAmbient(this, Scene.Ambient);
+	}
 
 	const bool bNeedsTravel = !Scene.Location.IsEmpty() && (Scene.Location != CurrentLocation || Scene.Variant != CurrentVariant);
 	if (bNeedsTravel)
@@ -635,6 +645,13 @@ void UCHStoryDirector::Tick(float DeltaTime)
 		}
 	}
 
+	if (Audio)
+	{
+		const UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
+		const bool bStealth = Segment && Segment->IsActive() && !Segment->IsSuspended();
+		Audio->Update(this, bStealth && Segment->IsInVanZone(), bStealth && Segment->AnyChasing());
+	}
+
 	if (!bTraveling && Scenes.IsValidIndex(SceneIndex))
 	{
 		bool bFirst = true;
@@ -696,6 +713,18 @@ void UCHStoryDirector::Tick(float DeltaTime)
 
 void UCHStoryDirector::OnTypeTick(bool bPhone)
 {
+	if (Audio)
+	{
+		Audio->TypeTick(this, bPhone);
+	}
+}
+
+void UCHStoryDirector::PlaySfx(const FString& Name, float Volume)
+{
+	if (Audio)
+	{
+		Audio->PlaySfx(this, Name, Volume);
+	}
 }
 
 FString UCHStoryDirector::PeekNextType() const
@@ -1003,6 +1032,7 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("notify"))
 	{
+		PlaySfx(TEXT("sfx_notify"), 0.6f);
 		UI->Hud->Notify(JStr(Beat, TEXT("title")), JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("seconds"), 8.0)));
 	}
 	else if (Type == TEXT("letter"))
@@ -1013,6 +1043,34 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			Lines.Add({ JStr(*Line, TEXT("fa")), JStr(*Line, TEXT("en")) });
 		}
 		UI->Letter->Show(Lines);
+	}
+	else if (Type == TEXT("audio"))
+	{
+		// "cut": everything stops. "music" / "ambient": change the track ("none" = silence). "sfx": one sound.
+		if (Audio)
+		{
+			const float FadeTime = static_cast<float>(JNum(Beat, TEXT("fade"), 2.5));
+			if (JBool(Beat, TEXT("cut"), false))
+			{
+				Audio->Cut();
+			}
+			if (Beat.HasField(TEXT("music")))
+			{
+				Audio->SetMusic(this, JStr(Beat, TEXT("music")), FadeTime, static_cast<float>(JNum(Beat, TEXT("volume"), 0.7)));
+			}
+			if (Beat.HasField(TEXT("ambient")))
+			{
+				Audio->SetAmbient(this, JStr(Beat, TEXT("ambient")), FadeTime);
+			}
+			if (Beat.HasField(TEXT("sfx")))
+			{
+				Audio->PlaySfx(this, TEXT("sfx_") + JStr(Beat, TEXT("sfx")), static_cast<float>(JNum(Beat, TEXT("volume"), 1.0)));
+			}
+		}
+	}
+	else if (Type == TEXT("sfx"))
+	{
+		PlaySfx(TEXT("sfx_") + JStr(Beat, TEXT("name")), static_cast<float>(JNum(Beat, TEXT("volume"), 1.0)));
 	}
 	else if (Type == TEXT("slogans"))
 	{
@@ -1171,6 +1229,7 @@ UTexture* UCHStoryDirector::CaptureClip(const FString& Id, const FString& Captio
 	Clip.Chapter = Scenes.IsValidIndex(SceneIndex) ? Scenes[SceneIndex].Chapter : 0;
 	Clip.Image = Target;
 	Clips.Add(Clip);
+	PlaySfx(TEXT("sfx_saved"), 0.6f);
 	UE_LOG(LogCheshmhayash, Log, TEXT("Clip %d filmed: %s (%s)"), Clips.Num(), *Id, *CaptionEn);
 	return Target;
 }
@@ -1197,6 +1256,7 @@ void UCHStoryDirector::BeginPhoneBeat(const FJsonObject& Beat)
 	else if (Action == TEXT("msg"))
 	{
 		Phone.Receive(Fa, En, static_cast<float>(JNum(Beat, TEXT("typing"), 1.1)));
+		PlaySfx(TEXT("sfx_notify"), 0.5f);
 	}
 	else if (Action == TEXT("draft"))
 	{
@@ -1229,6 +1289,7 @@ void UCHStoryDirector::BeginPhoneBeat(const FJsonObject& Beat)
 	else if (Action == TEXT("alert"))
 	{
 		Phone.ShowAlert(JStr(Beat, TEXT("source_fa")), JStr(Beat, TEXT("source_en"), TEXT("News")), Fa, En);
+		PlaySfx(TEXT("sfx_notify"), 0.7f);
 	}
 	else if (Action == TEXT("alert_hide"))
 	{

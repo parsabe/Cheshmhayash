@@ -1,0 +1,47 @@
+{
+  "_comment": "Tracks for gen_audio_fal.py. 'name' must match a file made by gen_audio_procedural.py: the fal version replaces it at import. kind: music | sfx. No vocals, no voices, no recordings of real events.",
+  "tracks": [
+    {
+      "name": "music_setar",
+      "kind": "music",
+      "seconds": 45,
+      "prompt": "Solo Persian setar, quiet and intimate, slow melancholic melody in Dastgah Shur, unresolved ending, close microphone, small room, no percussion, no vocals, instrumental"
+    },
+    {
+      "name": "music_setar_resolved",
+      "kind": "music",
+      "seconds": 47,
+      "prompt": "Solo Persian setar, the same slow melancholic melody in Dastgah Shur, tender, this time resolving gently to the tonic, peaceful ending, close microphone, no percussion, no vocals, instrumental"
+    },
+    {
+      "name": "music_daf",
+      "kind": "music",
+      "seconds": 45,
+      "prompt": "Persian daf frame drum in a driving 6/8 rhythm with slowly rising cinematic strings, tense, hopeful, building, protest in the streets at night, no vocals, no chanting, instrumental, loopable"
+    },
+    {
+      "name": "music_chase",
+      "kind": "music",
+      "seconds": 30,
+      "prompt": "Fast urgent Persian percussion, daf and tombak, rapid hands, heart-pounding chase, dry, no melody, no vocals, instrumental, loopable"
+    },
+    {
+      "name": "music_sunrise",
+      "kind": "music",
+      "seconds": 47,
+      "prompt": "Slow Persian ney flute over warm sustained strings, sunrise over mountains, bright, tender, grief and peace, spacious, no percussion, no vocals, instrumental"
+    },
+    {
+      "name": "amb_wind",
+      "kind": "sfx",
+      "seconds": 20,
+      "prompt": "Soft wind over city rooftops before dawn, distant, empty, no voices, no traffic, seamless loop"
+    },
+    {
+      "name": "amb_city",
+      "kind": "sfx",
+      "seconds": 20,
+      "prompt": "Distant city traffic hum on a warm afternoon, far away cars, no horns, no voices, seamless loop"
+    }
+  ]
+}

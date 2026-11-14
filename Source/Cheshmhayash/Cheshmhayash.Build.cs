@@ -7,6 +7,8 @@ public class Cheshmhayash : ModuleRules
 	public Cheshmhayash(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		// each location file keeps its own small constants (room sizes...) in an anonymous namespace
+		bUseUnity = false;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",

@@ -30,7 +30,7 @@
           "skippable": false
         },
         { "type": "silence", "seconds": 2.5 },
-        { "type": "audio", "music": "setar_resolved" },
+        { "type": "audio", "music": "music_setar_resolved", "fade": 4.0, "volume": 0.6 },
         {
           "type": "card",
           "fa": ["چشم‌هایش"],

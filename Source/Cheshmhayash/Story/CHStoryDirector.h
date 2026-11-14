@@ -14,6 +14,7 @@ class ACHNpc;
 class ACHPlayerController;
 class FJsonObject;
 class SCHRootOverlay;
+class UCHAudio;
 class UTexture;
 class UTextureRenderTarget2D;
 
@@ -26,6 +27,11 @@ struct FCHScene
 	FString Variant;
 	/** "he" (default) or "sister". */
 	FString Player;
+	/** Score and ambience for the scene (names of /Game/Audio sounds; empty = none). */
+	FString Music;
+	FString Ambient;
+	/** An encounter played inside another scene: it leaves the sound alone. */
+	bool bInterlude = false;
 	/** Developer-only scene: reachable with -chscene, skipped in the story. */
 	bool bDev = false;
 	TArray<TSharedPtr<FJsonObject>> Beats;
@@ -92,6 +98,8 @@ public:
 
 	/** Runs a short scene (an encounter: text, a choice) inside the running gameplay segment, then returns to it. */
 	void PlayInterlude(const FString& SceneId);
+	/** Plays /Game/Audio/<Name> once. */
+	void PlaySfx(const FString& Name, float Volume = 1.f);
 	bool IsInInterlude() const { return bInInterlude; }
 
 	// ---- choices
@@ -162,6 +170,9 @@ private:
 
 	UPROPERTY()
 	TArray<FCHClip> Clips;
+
+	UPROPERTY()
+	TObjectPtr<UCHAudio> Audio;
 
 	TSharedPtr<SCHRootOverlay> UI;
 	TWeakObjectPtr<ACHLevelBuilder> Builder;

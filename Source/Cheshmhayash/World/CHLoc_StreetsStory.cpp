@@ -400,6 +400,10 @@ void ACHLoc_Streets::StartShots()
 		return;
 	}
 	bShotsFired = true;
+	if (UCHStoryDirector* Director = UCHStoryDirector::Get(this))
+	{
+		Director->PlaySfx(TEXT("sfx_shots"), 1.f);
+	}
 	FRandomStream Rng(99);
 
 	UCHStoryDirector* Director = UCHStoryDirector::Get(this);

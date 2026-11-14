@@ -20,6 +20,7 @@
     },
     {
       "id": "3.1",
+      "ambient": "amb_wind",
       "chapter": 3,
       "location": "PrisonGate",
       "player": "brother",
@@ -59,6 +60,7 @@
     },
     {
       "id": "3.2",
+      "ambient": "amb_room",
       "chapter": 3,
       "location": "Room",
       "variant": "after",
@@ -84,6 +86,7 @@
           "hint_en": "Open his book."
         },
         { "type": "camera", "mark": "Letter", "blend": 1.6 },
+        { "type": "audio", "music": "music_setar_resolved", "fade": 5.0, "volume": 0.5 },
         { "type": "silence", "seconds": 2.2 },
         {
           "type": "letter",
@@ -103,6 +106,7 @@
     },
     {
       "id": "3.3",
+      "ambient": "amb_room",
       "chapter": 3,
       "location": "Home",
       "variant": "years",
@@ -137,6 +141,8 @@
     },
     {
       "id": "3.4",
+      "music": "music_sunrise",
+      "ambient": "amb_wind",
       "chapter": 3,
       "location": "Cemetery",
       "player": "sister_older",
