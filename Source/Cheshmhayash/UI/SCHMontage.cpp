@@ -178,9 +178,10 @@ void SCHMontage::Play(const TArray<FCHMontageClip>& InClips, const FString& InTi
 		Brush->DrawAs = ESlateBrushDrawType::Image;
 		Brushes.Add(Brush);
 	}
-	Index = -1;
+	// no title: straight to the first clip (a single clip shown on its own)
+	Index = TitleFa.IsEmpty() ? 0 : -1;
 	Time = 0.f;
-	bPlaying = true;
+	bPlaying = Clips.Num() > 0 || Index < 0;
 }
 
 void SCHMontage::Skip()

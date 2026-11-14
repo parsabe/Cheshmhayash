@@ -617,7 +617,8 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 		SkyLight = NewObject<USkyLightComponent>(this);
 		SkyLight->SetMobility(EComponentMobility::Movable);
 		SkyLight->SetupAttachment(Root);
-		SkyLight->SetRealTimeCapture(true);
+		// with no sky to capture the engine prints an on-screen warning: closed rooms go without
+		SkyLight->SetRealTimeCapture(Env.bAtmosphere);
 		SkyLight->bLowerHemisphereIsBlack = false;
 		SkyLight->RegisterComponent();
 	}

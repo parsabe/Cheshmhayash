@@ -27,6 +27,7 @@ public:
 	virtual void Build(const FString& InVariant) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) override;
 
 private:
 	void BuildShell();
@@ -35,8 +36,97 @@ private:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> DoorPivot;
 
+	/** The letter folded into the grammar book; it falls out when she opens it (after). */
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> LetterPaper;
+
 	float DoorAngle = 0.f;
 	float DoorTarget = 0.f;
+};
+
+/** The women's prison outside the city (3.1): a long wall, wire, a gate that opens. */
+UCLASS()
+class ACHLoc_PrisonGate : public ACHCityBuilder
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Build(const FString& InVariant) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+
+private:
+	UPROPERTY()
+	TObjectPtr<USceneComponent> DoorPivot;
+
+	float DoorAngle = 0.f;
+	float DoorTarget = 0.f;
+};
+
+/** The family's living room. Variants: "dinner" (1.4), "years" (3.3, the news). */
+UCLASS()
+class ACHLoc_Home : public ACHLevelBuilder
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Build(const FString& InVariant) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) override;
+
+private:
+	TSharedRef<SWidget> MakeNewsScreen() const;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> TvScreen;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Steam;
+
+	TArray<FVector> SteamBase;
+	TArray<float> SteamAge;
+	int32 ItemsLeft = 0;
+	float HomeTime = 0.f;
+};
+
+/** The cemetery at sunrise (3.4): rows of graves, many from 1401; his stone. */
+UCLASS()
+class ACHLoc_Cemetery : public ACHCityBuilder
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Build(const FString& InVariant) override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat) override;
+	virtual void OnInteract(const FString& Id, ACHInteractable* What) override;
+
+private:
+	void SetSun(float Elevation);
+	void ScatterPetals(int32 Count, float Spread, int32 Seed);
+	void ApplyWet();
+	TSharedRef<SWidget> MakeTombstone() const;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Stone;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> StoneMaterial;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Phone;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ACHInteractable>> Steps;
+
+	float SunElevation = -2.f;
+	float SunFrom = -2.f;
+	float SunTo = -2.f;
+	float SunTime = 0.f;
+	float SunDuration = 1.f;
+	float WetAmount = 0.f;
+	bool bWetting = false;
 };
 
 /**

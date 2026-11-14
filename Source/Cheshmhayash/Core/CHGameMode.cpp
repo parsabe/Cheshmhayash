@@ -32,6 +32,18 @@ TSubclassOf<ACHLevelBuilder> ACHGameMode::BuilderClassFor(const FString& InLocat
 	{
 		return ACHLoc_FinalRoof::StaticClass();
 	}
+	if (InLocation == TEXT("PrisonGate"))
+	{
+		return ACHLoc_PrisonGate::StaticClass();
+	}
+	if (InLocation == TEXT("Home"))
+	{
+		return ACHLoc_Home::StaticClass();
+	}
+	if (InLocation == TEXT("Cemetery"))
+	{
+		return ACHLoc_Cemetery::StaticClass();
+	}
 	return ACHLoc_Boot::StaticClass();
 }
 

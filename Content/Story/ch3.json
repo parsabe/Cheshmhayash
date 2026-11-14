@@ -1,0 +1,177 @@
+{
+  "scenes": [
+    {
+      "id": "3.0",
+      "chapter": 3,
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "silence", "seconds": 1.5 },
+        {
+          "type": "chapter",
+          "fa_sub": "فصل سه · آبان ۱۴۰۱",
+          "fa_title": "چشم‌هایش",
+          "en_title": "His Eyes",
+          "en_sub": "CHAPTER THREE  ·  ABAN 1401"
+        },
+        { "type": "silence", "seconds": 0.8 }
+      ]
+    },
+    {
+      "id": "3.1",
+      "chapter": 3,
+      "location": "PrisonGate",
+      "player": "brother",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "action": "spawn", "name": "brother", "look": "brother", "mark": "BrotherSpot" },
+        { "type": "npc", "action": "spawn", "name": "sister", "look": "sister_after", "mark": "Inside" },
+        { "type": "camera", "mark": "Wide" },
+        { "type": "fade", "to": 0, "time": 3.5, "wait": false },
+        { "type": "caption", "fa": "آبان ۱۴۰۱ · بیرون زندان", "en": "ABAN 1401 · OUTSIDE THE PRISON" },
+        { "type": "silence", "seconds": 5.5 },
+        { "type": "camera", "mark": "Gate", "blend": 3.0 },
+        { "type": "silence", "seconds": 3.0 },
+        { "type": "event", "name": "gate_open" },
+        { "type": "silence", "seconds": 1.8 },
+        { "type": "npc", "action": "walk", "name": "sister", "mark": "Door", "speed": 70 },
+        { "type": "npc", "action": "walk", "name": "sister", "mark": "Meet", "speed": 70 },
+        { "type": "npc", "action": "face", "name": "sister", "mark": "BrotherSpot" },
+        { "type": "npc", "action": "face", "name": "brother", "mark": "Meet" },
+        { "type": "camera", "mark": "TwoShot", "blend": 2.0 },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "camera", "mark": "SisterFace" },
+        { "type": "silence", "seconds": 1.0 },
+        { "type": "text", "who": "sister", "fa": "کجاست؟", "en": "Where is he?", "rate": 18 },
+        { "type": "text", "who": "sister", "fa": "از دستم ناراحته که نذاشتم تا مترو باهام بیاد؟", "en": "Is he angry I didn't let him walk me?", "rate": 20 },
+        { "type": "text", "who": "sister", "fa": "بهش بگو ببخشید.", "en": "Tell him I'm sorry.", "rate": 18 },
+        { "type": "hide_text" },
+        { "type": "camera", "mark": "BrotherFace" },
+        { "type": "silence", "seconds": 2.0 },
+        { "type": "fade", "to": 1, "time": 9.0, "color": "white", "wait": false },
+        { "type": "text", "who": "brother", "fa": "", "en": "", "auto": 6.5 },
+        { "type": "hide_text" },
+        { "type": "silence", "seconds": 3.0 }
+      ]
+    },
+    {
+      "id": "3.2",
+      "chapter": 3,
+      "location": "Room",
+      "variant": "after",
+      "player": "sister_after",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0, "color": "white" },
+        { "type": "rec", "on": false },
+        { "type": "camera", "mark": "Wide" },
+        { "type": "fade", "to": 0, "time": 4.5, "color": "white", "wait": false },
+        { "type": "caption", "fa": "اتاقش", "en": "HIS ROOM" },
+        { "type": "silence", "seconds": 5.0 },
+        { "type": "camera", "mark": "Tea", "blend": 3.5 },
+        { "type": "silence", "seconds": 4.0 },
+        { "type": "camera", "mark": "FloorCalendar", "blend": 3.5 },
+        { "type": "silence", "seconds": 5.0 },
+        {
+          "type": "gameplay",
+          "segment": "book",
+          "blend": 2.0,
+          "controls": false,
+          "film": false,
+          "hint_fa": "کتابش را باز کن.",
+          "hint_en": "Open his book."
+        },
+        { "type": "camera", "mark": "Letter", "blend": 1.6 },
+        { "type": "silence", "seconds": 2.2 },
+        {
+          "type": "letter",
+          "lines": [
+            { "fa": "اگه داری اینو می‌خونی، یعنی خونه‌ای. می‌دونستم مجبور می‌شن پست بدن.", "en": "If you're reading this, you're home. I knew they'd have to give you back." },
+            { "fa": "ببخش که تا مترو باهات نیومدم. تا همیشه بابتش متأسف می‌مونم.", "en": "I'm sorry I didn't walk you to the metro. I'll be sorry about that forever." },
+            { "fa": "ازت ناراحت نیستم. هیچ‌وقت نبودم. حق داشتی روسری‌ت رو درست نکنی.", "en": "I'm not angry. I was never angry. You were right not to fix your scarf." },
+            { "fa": "نذار دوباره کوچیکت کنن. نه به خاطر من، نه به خاطر مامان، نه به خاطر هیچ‌کس.", "en": "Don't let them make you small again. Not for me, not for Mom, not for anyone." },
+            { "fa": "چایی رو تا داغه بخور. من هیچ‌وقت نخوردم.", "en": "Drink the tea while it's hot. I never did." },
+            { "fa": "— برادرت", "en": "— your brother" }
+          ]
+        },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "fade", "to": 1, "time": 3.5 },
+        { "type": "silence", "seconds": 2.0 }
+      ]
+    },
+    {
+      "id": "3.3",
+      "chapter": 3,
+      "location": "Home",
+      "variant": "years",
+      "player": "brother",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "action": "spawn", "name": "brother", "look": "brother", "mark": "SofaLeft", "sink": 46 },
+        { "type": "npc", "action": "spawn", "name": "sister", "look": "sister_older", "mark": "SofaRight", "sink": 48 },
+        { "type": "camera", "mark": "Wide" },
+        { "type": "fade", "to": 0, "time": 3.5, "wait": false },
+        { "type": "caption", "fa": "سال‌ها بعد", "en": "YEARS LATER" },
+        { "type": "silence", "seconds": 5.0 },
+        { "type": "camera", "mark": "Tea", "blend": 3.0 },
+        { "type": "silence", "seconds": 3.5 },
+        { "type": "camera", "mark": "TV", "blend": 3.0 },
+        { "type": "silence", "seconds": 6.0 },
+        { "type": "camera", "mark": "Faces", "blend": 2.5 },
+        { "type": "silence", "seconds": 4.0 },
+        { "type": "event", "name": "she_cries" },
+        { "type": "silence", "seconds": 3.0 },
+        { "type": "event", "name": "arm_around" },
+        { "type": "silence", "seconds": 2.0 },
+        { "type": "text", "who": "sister", "fa": "کاش اون هم این رو می‌دید.", "en": "He should have seen this.", "rate": 16 },
+        { "type": "text", "who": "brother", "fa": "اون زودتر از همه، خورشید رو دید.", "en": "He saw the sun first.", "rate": 14 },
+        { "type": "hide_text" },
+        { "type": "silence", "seconds": 4.0 },
+        { "type": "fade", "to": 1, "time": 3.5 },
+        { "type": "silence", "seconds": 2.0 }
+      ]
+    },
+    {
+      "id": "3.4",
+      "chapter": 3,
+      "location": "Cemetery",
+      "player": "sister_older",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "camera", "mark": "Dawn" },
+        { "type": "event", "name": "sunrise", "to": 10, "time": 55 },
+        { "type": "fade", "to": 0, "time": 4.5, "wait": false },
+        { "type": "caption", "fa": "صبح زود", "en": "EARLY MORNING" },
+        { "type": "silence", "seconds": 6.5 },
+        {
+          "type": "gameplay",
+          "segment": "grave",
+          "blend": 2.5,
+          "controls": false,
+          "film": false,
+          "hint_fa": "پیشش برو.",
+          "hint_en": "Go to him."
+        },
+        { "type": "place", "mark": "Kneel" },
+        { "type": "camera", "mark": "Stone", "blend": 2.5 },
+        { "type": "silence", "seconds": 3.0 },
+        { "type": "show_clip", "id": "sunrise" },
+        { "type": "camera", "mark": "Side" },
+        { "type": "silence", "seconds": 2.0 },
+        { "type": "text", "who": "sister", "fa": "حالا استراحت کن. از اینجا به بعدش با ما.", "en": "Rest now. We'll take it from here.", "rate": 13 },
+        { "type": "hide_text" },
+        { "type": "camera", "mark": "Name", "blend": 5.0 },
+        { "type": "silence", "seconds": 6.0 },
+        { "type": "camera", "mark": "Low", "blend": 6.0 },
+        { "type": "silence", "seconds": 8.0 },
+        { "type": "fade", "to": 1, "time": 4.5 },
+        { "type": "silence", "seconds": 2.0 }
+      ]
+    }
+  ]
+}

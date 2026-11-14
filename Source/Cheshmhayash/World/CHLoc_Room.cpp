@@ -2,7 +2,9 @@
 // grammar book, the wall calendar, a setar in the corner.
 
 #include "World/CHLocations.h"
+#include "Components/DirectionalLightComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Game/CHInteractable.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Math/RandomStream.h"
@@ -21,6 +23,12 @@ namespace
 	const float HY = 180.f;
 	const float H = 265.f;
 	const float T = 20.f;
+
+	// after: the calendar he took off the wall lies on the floor; the letter falls from the book
+	const FVector CalendarFloor(-30.f, 104.f, 0.f);
+	const float CalendarYaw = 14.f;
+	const FVector BookSpot(-70.f, -HY + 62.f, 48.2f);
+	const FVector LetterSpot(-46.f, -58.f, 2.3f);
 
 	TSharedRef<SWidget> CalendarText(const FString& Text, float Size, const FLinearColor& Color, bool bBold = false)
 	{
@@ -122,11 +130,12 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	Super::Build(InVariant);
 
 	const bool bNight = Variant == TEXT("night");
+	const bool bAfter = Variant == TEXT("after");
 
-	// a small room: seen through his own eyes
+	// a small room: seen through his own eyes (and, after, through hers)
 	PlayerBoomLength = 0.f;
 	// glows below are set relative to this room's exposure
-	CHLight::SetExposure(bNight ? -0.5f : 0.1f);
+	CHLight::SetExposure(bNight ? -0.5f : (bAfter ? 0.3f : 0.1f));
 
 	BuildShell();
 	BuildFurniture();
@@ -140,6 +149,19 @@ void ACHLoc_Room::Build(const FString& InVariant)
 		Env.SkyLightIntensity = 0.6f;
 		Env.ExposureEV = -0.5f;
 		Env.Temperature = 5600.f;
+	}
+	else if (bAfter)
+	{
+		// a pale, cold morning; nothing in the room has moved
+		Env.SunRotation = FRotator(-33.f, 190.f, 0.f);
+		Env.SunIntensity = 4.5f;
+		Env.SunColor = FLinearColor(0.92f, 0.95f, 1.f);
+		Env.SunVolumetric = 1.2f;
+		Env.SkyLightIntensity = 1.9f;
+		Env.ExposureEV = 0.3f;
+		Env.Temperature = 5900.f;
+		PointLight(FVector(HX - 48.f, 0.f, 150.f), FLinearColor(0.80f, 0.87f, 1.f), 3.4f, 700.f, true, 0.3f);
+		PointLight(FVector(-60.f, 0.f, 200.f), FLinearColor(0.85f, 0.88f, 0.95f), 1.2f, 600.f, false, 0.f);
 	}
 	else
 	{
@@ -168,13 +190,45 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	Env.Bloom = 0.6f;
 	Env.Saturation = 0.92f;
 	Env.Contrast = 1.04f;
+	if (bAfter)
+	{
+		Env.FogColor = FLinearColor(0.05f, 0.055f, 0.06f);
+		Env.Grain = 0.22f;
+		Env.Fringe = 0.15f;
+		Env.Saturation = 0.66f;
+		Env.Contrast = 0.97f;
+	}
 	ApplyEnv(Env);
+	if (bAfter && Sun)
+	{
+		Sun->SetLightSourceAngle(5.f);
+	}
 
 	// ---- the calendar page: Mehr 1401, the 26th circled in red
-	WorldWidget(MakeCalendarWidget(), FVector(-15.f, HY - 1.75f, 150.f), FRotator(0.f, -90.f, 0.f), 0.1f, false, FVector2D(460.0, 620.0));
+	if (bAfter)
+	{
+		// face up on the floor, where it fell when he took it down
+		const FVector PageUp = FRotator(0.f, 90.f + CalendarYaw, 0.f).Vector();
+		WorldWidget(MakeCalendarWidget(), CalendarFloor + FVector(0.f, 0.f, 2.5f), FRotationMatrix::MakeFromXZ(FVector::UpVector, PageUp).Rotator(), 0.1f, false, FVector2D(460.0, 620.0));
+		SpawnInteractable(TEXT("book"), TEXT("کتابش را باز کن"), TEXT("Open his book"), BookSpot + FVector(0.f, 0.f, 22.f), 165.f);
+	}
+	else
+	{
+		WorldWidget(MakeCalendarWidget(), FVector(-15.f, HY - 1.75f, 150.f), FRotator(0.f, -90.f, 0.f), 0.1f, false, FVector2D(460.0, 620.0));
+	}
+
+	if (bAfter)
+	{
+		// she came in; the door stays open behind her
+		DoorAngle = DoorTarget = 82.f;
+		DoorPivot->SetRelativeRotation(FRotator(0.f, DoorAngle, 0.f));
+	}
 
 	// ---- marks (people stand on the floor)
-	Mark(TEXT("PlayerStart"), FVector(-70.f, 45.f, 0.f));
+	Mark(TEXT("PlayerStart"), bAfter ? FVector(-HX + 55.f, 95.f, 0.f) : FVector(-70.f, 45.f, 0.f), FRotator(0.f, bAfter ? -15.f : 0.f, 0.f));
+	MarkLookAt(TEXT("FloorCalendar"), CalendarFloor + FVector(-6.f, -64.f, 112.f), CalendarFloor + FVector(0.f, 6.f, 2.f), 46.f);
+	MarkLookAt(TEXT("Letter"), LetterSpot + FVector(-22.f, 44.f, 92.f), LetterSpot, 40.f);
+	MarkLookAt(TEXT("BedBook"), BookSpot + FVector(10.f, 95.f, 75.f), BookSpot, 40.f);
 	Mark(TEXT("He"), FVector(HX - 96.f, 58.f, 0.f));
 	Mark(TEXT("SisterHall"), FVector(-HX - T - 120.f, 105.f, 0.f));
 	Mark(TEXT("SisterIn"), FVector(-HX + 100.f, 98.f, 0.f));
@@ -266,6 +320,7 @@ void ACHLoc_Room::BuildShell()
 void ACHLoc_Room::BuildFurniture()
 {
 	const bool bNight = Variant == TEXT("night");
+	const bool bAfter = Variant == TEXT("after");
 
 	UMaterialInterface* Wood = Lit(FLinearColor(0.20f, 0.11f, 0.055f), 0.5f, 0.3f);
 	UMaterialInterface* DarkWood = Lit(FLinearColor(0.06f, 0.035f, 0.02f), 0.5f, 0.3f);
@@ -307,7 +362,7 @@ void ACHLoc_Room::BuildFurniture()
 	// laptop
 	Box(FVector(DeskX - 6.f, -18.f, 77.f), FVector(24.f, 34.f, 1.6f), Plastic, false);
 	Box(FVector(DeskX + 9.f, -18.f, 88.5f), FVector(1.4f, 34.f, 23.f), Plastic, false, FRotator(-14.f, 0.f, 0.f));
-	Box(FVector(DeskX + 8.1f, -18.f, 88.6f), FVector(0.4f, 31.f, 20.f), Emissive(FLinearColor(0.20f, 0.36f, 0.62f), bNight ? 1.4f : 0.45f), false, FRotator(-14.f, 0.f, 0.f));
+	Box(FVector(DeskX + 8.1f, -18.f, 88.6f), FVector(0.4f, 31.f, 20.f), bAfter ? Plastic : Emissive(FLinearColor(0.20f, 0.36f, 0.62f), bNight ? 1.4f : 0.45f), false, FRotator(-14.f, 0.f, 0.f));
 
 	// books and a pen cup
 	Box(FVector(DeskX + 2.f, -56.f, 78.f), FVector(22.f, 30.f, 4.f), Lit(FLinearColor(0.20f, 0.05f, 0.04f), 0.8f, 0.2f), false, FRotator(0.f, 6.f, 0.f));
@@ -345,12 +400,25 @@ void ACHLoc_Room::BuildFurniture()
 	Box(FVector(22.f, BedY, 49.f), FVector(36.f, 62.f, 9.f), Paper, false, FRotator(0.f, 4.f, 0.f));
 	Box(FVector(44.f, BedY, 58.f), FVector(5.f, 102.f, 84.f), DarkWood);
 
-	// the German grammar book, open on the bed
-	const FVector BookPos(-70.f, BedY + 10.f, 48.2f);
+	// the German grammar book on the bed
+	const FVector BookPos = BookSpot;
 	const FRotator BookRot(0.f, 22.f, 0.f);
-	Box(BookPos, FVector(22.f, 32.f, 0.8f), Lit(FLinearColor(0.30f, 0.03f, 0.03f), 0.7f, 0.1f), false, BookRot);
-	Box(BookPos + BookRot.RotateVector(FVector(0.f, -7.6f, 1.0f)), FVector(20.f, 14.6f, 1.4f), Paper, false, FRotator(0.f, 22.f, 5.f));
-	Box(BookPos + BookRot.RotateVector(FVector(0.f, 7.6f, 1.0f)), FVector(20.f, 14.6f, 1.4f), Paper, false, FRotator(0.f, 22.f, -5.f));
+	UMaterialInterface* Cover = Lit(FLinearColor(0.30f, 0.03f, 0.03f), 0.7f, 0.1f);
+	if (bAfter)
+	{
+		// closed, with a letter folded inside; a corner of the paper shows
+		Box(BookPos + FVector(0.f, 0.f, 1.2f), FVector(22.f, 16.f, 3.2f), Cover, false, BookRot);
+		Box(BookPos + BookRot.RotateVector(FVector(3.f, 8.5f, 1.4f)), FVector(10.f, 3.f, 0.3f), Paper, false, BookRot + FRotator(0.f, 7.f, 0.f));
+		LetterPaper = Box(LetterSpot, FVector(15.f, 21.f, 0.3f), Paper, false, FRotator(0.f, -24.f, 0.f), true);
+		LetterPaper->SetVisibility(false);
+	}
+	else
+	{
+		// open, where he was studying
+		Box(BookPos, FVector(22.f, 32.f, 0.8f), Cover, false, BookRot);
+		Box(BookPos + BookRot.RotateVector(FVector(0.f, -7.6f, 1.0f)), FVector(20.f, 14.6f, 1.4f), Paper, false, FRotator(0.f, 22.f, 5.f));
+		Box(BookPos + BookRot.RotateVector(FVector(0.f, 7.6f, 1.0f)), FVector(20.f, 14.6f, 1.4f), Paper, false, FRotator(0.f, 22.f, -5.f));
+	}
 
 	// picture above the bed
 	Box(FVector(-80.f, -HY + 1.5f, 165.f), FVector(70.f, 3.f, 50.f), DarkWood, false);
@@ -399,7 +467,14 @@ void ACHLoc_Room::BuildFurniture()
 	}
 
 	// ---- wall calendar (the page; the month grid and the red circle are drawn on top of it)
-	Box(FVector(-15.f, HY - 0.8f, 150.f), FVector(46.f, 1.6f, 62.f), Paper, false);
+	if (bAfter)
+	{
+		Box(CalendarFloor + FVector(0.f, 0.f, 2.1f), FVector(46.f, 62.f, 0.4f), Paper, false, FRotator(0.f, CalendarYaw, 0.f));
+	}
+	else
+	{
+		Box(FVector(-15.f, HY - 0.8f, 150.f), FVector(46.f, 1.6f, 62.f), Paper, false);
+	}
 	Box(FVector(-15.f, HY - 1.2f, 183.f), FVector(4.f, 2.4f, 4.f), Metal, false);
 
 	// ---- the setar, leaning in the corner by the bed
@@ -424,6 +499,23 @@ void ACHLoc_Room::OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObjec
 	else if (Event == TEXT("door_close"))
 	{
 		DoorTarget = 0.f;
+	}
+}
+
+void ACHLoc_Room::OnInteract(const FString& Id, ACHInteractable* What)
+{
+	if (What)
+	{
+		What->SetEnabled(false);
+	}
+	if (Id == TEXT("book"))
+	{
+		// she opens it; the letter slips out onto the floor
+		if (LetterPaper)
+		{
+			LetterPaper->SetVisibility(true);
+		}
+		FinishSegment();
 	}
 }
 

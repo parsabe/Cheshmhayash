@@ -10,6 +10,7 @@ class SCHCardLayer;
 class SCHChoiceList;
 class SCHDialogueOverlay;
 class SCHHud;
+class SCHLetter;
 class SCHMontage;
 class SCHPhoneOverlay;
 
@@ -46,6 +47,7 @@ public:
 	TSharedPtr<SCHPhoneOverlay> Phone;
 	TSharedPtr<SCHHud> Hud;
 	TSharedPtr<SCHMontage> Montage;
+	TSharedPtr<SCHLetter> Letter;
 
 private:
 	FSlateColor GetFadeColor() const;

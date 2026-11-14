@@ -21,7 +21,7 @@ namespace
 	const float BubbleWrap = 268.f;
 
 	const FLinearColor EdgeColor(0.10f, 0.10f, 0.115f, 1.f);
-	const FLinearColor BodyColor(0.006f, 0.006f, 0.008f, 1.f);
+	const FLinearColor PhoneBodyColor(0.006f, 0.006f, 0.008f, 1.f);
 	const FLinearColor ScreenColor(0.020f, 0.024f, 0.032f, 1.f);
 	const FLinearColor TheirBubble(0.085f, 0.09f, 0.105f, 1.f);
 	const FLinearColor MyBubble(0.030f, 0.150f, 0.125f, 1.f);
@@ -81,7 +81,7 @@ void SCHPhoneOverlay::Construct(const FArguments& InArgs)
 			+ SOverlay::Slot()
 			.Padding(3.f)
 			[
-				Tinted(CH::RoundedBrush(50.f), BodyColor)
+				Tinted(CH::RoundedBrush(50.f), PhoneBodyColor)
 			]
 			+ SOverlay::Slot()
 			.Padding(13.f)

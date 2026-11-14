@@ -32,6 +32,7 @@
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
 #include "UI/SCHDialogueOverlay.h"
+#include "UI/SCHLetter.h"
 #include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHRootOverlay.h"
@@ -790,6 +791,22 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			: MakePlainCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), Hold,
 				static_cast<float>(JNum(Beat, TEXT("fa_size"), 40.0)), static_cast<float>(JNum(Beat, TEXT("en_size"), 22.0)));
 		Card.bSkippable = JBool(Beat, TEXT("skippable"), true);
+		// "type_rate": the lines are written letter by letter, one after another
+		const float TypeRate = static_cast<float>(JNum(Beat, TEXT("type_rate"), 0.0));
+		if (TypeRate > 0.f)
+		{
+			float Delay = static_cast<float>(JNum(Beat, TEXT("delay"), 0.8));
+			for (FCHCardLine& Line : Card.Lines)
+			{
+				Line.TypeRate = TypeRate;
+				Line.Delay = Delay;
+				Delay += Line.Text.Len() / TypeRate + 0.9f;
+			}
+		}
+		if (JBool(Beat, TEXT("ember"), false) && Card.Lines.Num() > 0)
+		{
+			Card.Lines[0].Color = CH::Col::Paper;
+		}
 		UI->Cards->Play(Card);
 	}
 	else if (Type == TEXT("chapter"))
@@ -977,6 +994,38 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	else if (Type == TEXT("notify"))
 	{
 		UI->Hud->Notify(JStr(Beat, TEXT("title")), JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("seconds"), 8.0)));
+	}
+	else if (Type == TEXT("letter"))
+	{
+		TArray<FCHLetterLine> Lines;
+		for (const TSharedPtr<FJsonObject>& Line : CHJson::Objects(Beat, TEXT("lines")))
+		{
+			Lines.Add({ JStr(*Line, TEXT("fa")), JStr(*Line, TEXT("en")) });
+		}
+		UI->Letter->Show(Lines);
+	}
+	else if (Type == TEXT("show_clip"))
+	{
+		// one clip he filmed, shown on its own (his phone, placed on the stone)
+		const FString Id = JStr(Beat, TEXT("id"));
+		TArray<FCHMontageClip> One;
+		for (int32 Index = Clips.Num() - 1; Index >= 0; --Index)
+		{
+			if (Clips[Index].Id == Id)
+			{
+				FCHMontageClip Item;
+				Item.Image = Clips[Index].Image;
+				Item.Fa = Clips[Index].CaptionFa;
+				Item.En = Clips[Index].CaptionEn;
+				Item.Stamp = TEXT("24 MEHR 1401  06:04");
+				One.Add(Item);
+				break;
+			}
+		}
+		if (One.Num() > 0)
+		{
+			UI->Montage->Play(One, FString(), FString());
+		}
 	}
 }
 
@@ -1377,6 +1426,28 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 			UI->Montage->Skip();
 		}
 		return UI->Montage->IsFinished();
+	}
+	if (Type == TEXT("show_clip"))
+	{
+		return UI->Montage->IsFinished();
+	}
+	if (Type == TEXT("letter"))
+	{
+		if (BeatPhase == 0)
+		{
+			const bool bNext = (ConsumeAdvance() && PhaseTime > 0.8f) || (bDevAuto && PhaseTime > 2.4f);
+			if (bNext)
+			{
+				PhaseTime = 0.f;
+				if (!UI->Letter->RevealNext())
+				{
+					UI->Letter->Hide();
+					BeatPhase = 1;
+				}
+			}
+			return false;
+		}
+		return UI->Letter->IsGone();
 	}
 	if (Type == TEXT("eye"))
 	{

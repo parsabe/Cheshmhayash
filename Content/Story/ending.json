@@ -1,0 +1,86 @@
+{
+  "scenes": [
+    {
+      "id": "end",
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "silence", "seconds": 2.5 },
+        {
+          "type": "card",
+          "fa": ["ستم پایدار نمی‌ماند"],
+          "en": ["Oppression does not last."],
+          "hold": 6.0,
+          "fa_size": 46,
+          "en_size": 24,
+          "skippable": false
+        },
+        { "type": "audio", "cut": true },
+        { "type": "silence", "seconds": 5.0 },
+        {
+          "type": "card",
+          "fa": ["به یاد حسام"],
+          "en": ["In loving memory of Hesam"],
+          "type_rate": 2.6,
+          "delay": 1.2,
+          "hold": 7.0,
+          "fa_size": 54,
+          "en_size": 26,
+          "skippable": false
+        },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "audio", "music": "setar_resolved" },
+        {
+          "type": "card",
+          "fa": ["چشم‌هایش"],
+          "en": ["CHESHM HAYASH  ·  HIS EYES"],
+          "hold": 4.0,
+          "fa_size": 40,
+          "en_size": 18
+        },
+        {
+          "type": "card",
+          "fa": ["بازی از پارسا بشارت"],
+          "en": ["Game by Parsa Besharat", "Parsabe.com"],
+          "hold": 4.0,
+          "fa_size": 30,
+          "en_size": 20
+        },
+        {
+          "type": "card",
+          "fa": ["داستان: به یاد حسام"],
+          "en": ["Story: in loving memory of Hesam"],
+          "hold": 4.0,
+          "fa_size": 30,
+          "en_size": 20
+        },
+        {
+          "type": "card",
+          "fa": ["ساخته‌شده با آنریل انجین", "کد نوشته‌شده با عامل‌های هوش مصنوعی"],
+          "en": ["Built with Unreal Engine", "Code written with AI agents"],
+          "hold": 4.0,
+          "fa_size": 30,
+          "en_size": 20
+        },
+        {
+          "type": "card",
+          "fa": ["فونت: وزیرمتن"],
+          "en": ["Font: Vazirmatn (SIL Open Font License)"],
+          "hold": 3.5,
+          "fa_size": 30,
+          "en_size": 20
+        },
+        {
+          "type": "card",
+          "fa": ["زن · زندگی · آزادی"],
+          "en": ["Woman · Life · Freedom"],
+          "hold": 6.0,
+          "fa_size": 40,
+          "en_size": 22
+        },
+        { "type": "silence", "seconds": 3.0 }
+      ]
+    }
+  ]
+}

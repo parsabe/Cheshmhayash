@@ -55,6 +55,24 @@ private:
 	TAttribute<float> Close;
 };
 
+/** Engraved on his stone: a sun rising over mountains. */
+class SCHSunEngraving : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SCHSunEngraving) : _Color(FLinearColor::Black) {}
+		SLATE_ARGUMENT(FLinearColor, Color)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs) { Color = InArgs._Color; SetVisibility(EVisibility::HitTestInvisible); }
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override { return FVector2D(260.0, 120.0); }
+
+private:
+	FLinearColor Color;
+};
+
 /** An eye: two lids and an iris. Used as the "being seen" meter. */
 class SCHEye : public SLeafWidget
 {

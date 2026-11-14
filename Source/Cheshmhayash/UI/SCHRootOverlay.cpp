@@ -6,6 +6,7 @@
 #include "UI/SCHChoiceList.h"
 #include "UI/SCHDialogueOverlay.h"
 #include "UI/SCHHud.h"
+#include "UI/SCHLetter.h"
 #include "UI/SCHMontage.h"
 #include "UI/SCHPhoneOverlay.h"
 #include "UI/SCHShapes.h"
@@ -69,6 +70,12 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			SAssignNew(Dialogue, SCHDialogueOverlay)
 		]
 
+		// his letter
+		+ SOverlay::Slot()
+		[
+			SAssignNew(Letter, SCHLetter)
+		]
+
 		// the director's cut
 		+ SOverlay::Slot()
 		[
@@ -111,6 +118,7 @@ void SCHRootOverlay::Advance(float DeltaTime)
 	Phone->Advance(DeltaTime);
 	Hud->Advance(DeltaTime);
 	Montage->Advance(DeltaTime);
+	Letter->Advance(DeltaTime);
 	FlashAlpha = FMath::Max(0.f, FlashAlpha - DeltaTime * FlashRate);
 	EyeClose = FMath::FInterpConstantTo(EyeClose, EyeTarget, DeltaTime, EyeRate);
 }

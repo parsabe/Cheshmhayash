@@ -69,6 +69,44 @@ int32 SCHEyeShade::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	return LayerId;
 }
 
+int32 SCHSunEngraving::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	const FVector2f Size = FVector2f(AllottedGeometry.GetLocalSize());
+	const FVector2f Sun(Size.X * 0.56f, Size.Y * 0.72f);
+	const float Radius = Size.Y * 0.30f;
+	const float Thick = FMath::Max(2.f, Size.Y * 0.03f);
+
+	// the half sun on the horizon
+	TArray<FVector2f> Arc;
+	for (int32 Step = 0; Step <= 20; ++Step)
+	{
+		const float Angle = UE_PI * Step / 20.f;
+		Arc.Add(Sun + FVector2f(-FMath::Cos(Angle) * Radius, -FMath::Sin(Angle) * Radius));
+	}
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Arc, ESlateDrawEffect::None, Color, true, Thick);
+
+	// rays
+	for (int32 Ray = 0; Ray < 7; ++Ray)
+	{
+		const float Angle = UE_PI * (0.1f + 0.8f * Ray / 6.f);
+		const FVector2f Dir(-FMath::Cos(Angle), -FMath::Sin(Angle));
+		TArray<FVector2f> Line = { Sun + Dir * (Radius * 1.25f), Sun + Dir * (Radius * 1.7f) };
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Line, ESlateDrawEffect::None, Color, true, Thick * 0.8f);
+	}
+
+	// the mountains, Damavand the tallest, the sun rising beside it
+	TArray<FVector2f> Ridge = {
+		FVector2f(0.f, Size.Y * 0.92f), FVector2f(Size.X * 0.14f, Size.Y * 0.60f), FVector2f(Size.X * 0.24f, Size.Y * 0.74f),
+		FVector2f(Size.X * 0.36f, Size.Y * 0.30f), FVector2f(Size.X * 0.46f, Size.Y * 0.62f), FVector2f(Size.X * 0.53f, Size.Y * 0.72f),
+		FVector2f(Size.X * 0.70f, Size.Y * 0.78f), FVector2f(Size.X * 0.84f, Size.Y * 0.62f), FVector2f(Size.X, Size.Y * 0.88f) };
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Ridge, ESlateDrawEffect::None, Color, true, Thick);
+	// snow line on the peak
+	TArray<FVector2f> Snow = { FVector2f(Size.X * 0.31f, Size.Y * 0.42f), FVector2f(Size.X * 0.36f, Size.Y * 0.38f), FVector2f(Size.X * 0.41f, Size.Y * 0.44f) };
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), Snow, ESlateDrawEffect::None, Color, true, Thick * 0.7f);
+	return LayerId;
+}
+
 void SCHEye::Construct(const FArguments& InArgs)
 {
 	Open = InArgs._Open;
