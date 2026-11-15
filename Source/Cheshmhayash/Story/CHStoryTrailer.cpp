@@ -386,12 +386,12 @@ bool UCHStoryDirector::BeginTrailerBeat(const FString& Type, const FJsonObject& 
 		MolotovFleeDistance = static_cast<float>(JNum(Beat, TEXT("flee_dx"), 900.0));
 		MolotovTime = 0.f;
 		TrailerArc.Reset();
-		UMaterialInstanceDynamic* Dot = GlowMaterial(this, FLinearColor(1.f, 0.85f, 0.55f), CHLight::Emissive(6.f), 0.9f);
-		for (int32 Index = 1; Index <= 16; ++Index)
+		UMaterialInstanceDynamic* Dot = GlowMaterial(this, FLinearColor(1.f, 0.85f, 0.55f), CHLight::Emissive(14.f), 1.f);
+		for (int32 Index = 2; Index <= 16; ++Index)
 		{
 			const float T = Index / 16.f;
 			const FVector At = FMath::Lerp(MolotovFrom, MolotovTo, T) + FVector(0.f, 0.f, 4.f * MolotovHeight * T * (1.f - T));
-			if (AActor* Mark = SpawnTrailerMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"), At, FVector(Index == 16 ? 0.5f : 0.07f), Dot))
+			if (AActor* Mark = SpawnTrailerMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"), At, FVector(Index == 16 ? 0.9f : 0.18f), Dot))
 			{
 				TrailerArc.Add(Mark);
 			}
