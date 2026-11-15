@@ -1,6 +1,6 @@
 <#
-Publishes to GitHub: the `game` branch, the `website` branch, the `jam-submission` tag,
-and switches on GitHub Pages for the website.
+Publishes to GitHub: `master` (the README, the default branch), the `game` branch, the `website`
+branch and the `jam-submission` tag; makes `master` the default branch and switches on GitHub Pages.
 
     powershell -ExecutionPolicy Bypass -File Scripts\publish.ps1
     powershell -ExecutionPolicy Bypass -File Scripts\publish.ps1 -Message "Trailer: 40 s cut"
@@ -11,9 +11,9 @@ and switches on GitHub Pages for the website.
   -SiteOnly  only commit and push the website
   -Site      the website folder (default: ..\Cheshmhayash-website next to the game folder)
 
-Never pushes `master` (it still holds the old history with build files GitHub rejects) and never
-moves the `jam-submission` tag. Pages: uses the GitHub CLI (`gh`) if it is installed and logged in,
-otherwise it opens the Pages settings page and tells you the three clicks.
+Never pushes `backup/full-history` (the old history with build files GitHub rejects) and never moves
+the `jam-submission` tag. Default branch and Pages: uses the GitHub CLI (`gh`) if it is installed and
+logged in, otherwise it opens the settings pages and tells you the clicks.
 #>
 param(
     [string]$Message = "",
@@ -69,11 +69,29 @@ CommitIfNeeded $Site "The website folder"
 if ($SiteOnly) {
     Run $Site @("push", "origin", "website")
 } else {
-    Run $Root @("push", "origin", "game", "website", "jam-submission")
+    # master must be the small README branch, never the old history with the build files
+    $bad = & git -C $Root rev-list master -- Binaries Intermediate Saved DerivedDataCache
+    if ($bad) { throw "master contains Unreal build files in its history; not pushing it. (The README branch should have one commit.)" }
+    Run $Root @("push", "origin", "master", "game", "website", "jam-submission")
 }
 
-# ---- 4. GitHub Pages from the `website` branch --------------------------------------------------
+# ---- 4a. master as the default branch -------------------------------------------------------------
 $gh = Get-Command gh -ErrorAction SilentlyContinue
+if (-not $SiteOnly) {
+    $defaultSet = $false
+    if ($gh) {
+        & gh api -X PATCH "repos/$Owner/$Repo" -f default_branch=master *> $null
+        if ($LASTEXITCODE -eq 0) { $defaultSet = $true; Write-Host "Default branch: master." }
+    }
+    if (-not $defaultSet) {
+        Write-Host ""
+        Write-Host "Make master the default branch once (the page is opening in your browser):" -ForegroundColor Cyan
+        Write-Host "  General > Default branch > the switch icon > master > Update"
+        Start-Process "https://github.com/$Owner/$Repo/settings"
+    }
+}
+
+# ---- 4b. GitHub Pages from the `website` branch -------------------------------------------------
 $pagesOn = $false
 if ($gh) {
     & gh api "repos/$Owner/$Repo/pages" *> $null
