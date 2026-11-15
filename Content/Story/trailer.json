@@ -2,6 +2,15 @@
   "_comment": "Trailer mode (console: TrailerMode, or -chtrailer). Twelve short shots, each opening and closing on black so Scripts/make_trailer.ps1 can find the cuts. 't_' beats exist only here.",
   "scenes": [
     {
+      "id": "trailer.00.wait",
+      "dev": true,
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "silence", "seconds": 6.0 }
+      ]
+    },
+    {
       "id": "trailer.01.chase",
       "dev": true,
       "chapter": 2,
@@ -302,7 +311,7 @@
         { "type": "fade", "to": 1, "time": 0 },
         { "type": "silence", "seconds": 0.6 },
         { "type": "t_title", "hold": 4.0 },
-        { "type": "silence", "seconds": 1.5 }
+        { "type": "silence", "seconds": 120.0 }
       ]
     }
   ]

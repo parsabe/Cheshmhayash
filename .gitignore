@@ -27,3 +27,8 @@ __pycache__/
 # packaged builds
 Packaged/
 
+
+# rendered trailers and raw recordings
+Trailer/*_CheshmHayash_Trailer.mp4
+Trailer/recording*
+
