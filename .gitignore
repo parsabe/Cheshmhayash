@@ -29,7 +29,7 @@ Packaged/
 
 
 # rendered trailers and raw recordings
-Trailer/*_CheshmHayash_Trailer.mp4
+Trailer/*_CheshmHayash_Trailer*.mp4
 Trailer/recording*
 
 
