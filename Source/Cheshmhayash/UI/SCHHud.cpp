@@ -404,26 +404,32 @@ void SCHHud::Construct(const FArguments& InArgs)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Bottom)
-		.Padding(TAttribute<FMargin>(this, &SCHHud::GetPhonePadding))
+		.Padding(0.f, 0.f, 0.f, -210.f)
 		[
 			SNew(SBox)
-			.WidthOverride(250.f)
-			.HeightOverride(400.f)
+			.WidthOverride(220.f)
+			.HeightOverride(380.f)
+			.Visibility_Lambda([this]() { return FilmAlpha > 0.01f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+			.RenderTransform_Lambda([this]()
+			{
+				const float Up = FMath::InterpEaseInOut(0.f, 1.f, FilmAlpha, 2.f);
+				return FSlateRenderTransform(FVector2D(0.f, 240.f * (1.f - Up)));
+			})
 			[
 				SNew(SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SImage).Image(CH::RoundedBrush(30.f)).ColorAndOpacity(FLinearColor(0.012f, 0.012f, 0.014f, 1.f))
+					SNew(SImage).Image(CH::RoundedBrush(30.f)).ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.012f, 0.012f, 0.014f, FilmAlpha)); })
 				]
 				+ SOverlay::Slot().Padding(7.f)
 				[
-					SNew(SImage).Image(CH::RoundedBrush(24.f)).ColorAndOpacity(FLinearColor(0.02f, 0.022f, 0.028f, 1.f))
+					SNew(SImage).Image(CH::RoundedBrush(24.f)).ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.02f, 0.022f, 0.028f, FilmAlpha)); })
 				]
 				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 20.f, 0.f, 0.f)
 				[
 					SNew(SBox).WidthOverride(8.f).HeightOverride(8.f)
 					[
-						SNew(SImage).Image(CH::RoundedBrush(4.f)).ColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 1.f))
+						SNew(SImage).Image(CH::RoundedBrush(4.f)).ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.f, 0.f, 0.f, FilmAlpha)); })
 					]
 				]
 				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 44.f, 0.f, 0.f)
