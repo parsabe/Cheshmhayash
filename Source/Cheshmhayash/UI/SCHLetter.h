@@ -1,4 +1,4 @@
-// Cheshm Hayash - his letter, read line by line. Paper, his words in Farsi, the English beneath.
+// Cheshm Hayash - his letter, all of it at once. Paper, his words in Farsi, the English beneath.
 
 #pragma once
 
@@ -25,6 +25,8 @@ public:
 	/** Shows the next line. Returns false when every line is already showing. */
 	bool RevealNext();
 	bool IsAllShown() const { return Shown >= Lines.Num(); }
+	/** How long the open letter stays before it folds away by itself. */
+	float GetReadSeconds() const;
 	void Hide();
 	bool IsOpen() const { return bOpen; }
 	bool IsGone() const { return !bOpen && Alpha <= 0.f; }
@@ -38,6 +40,7 @@ private:
 	TArray<FCHLetterLine> Lines;
 	TArray<float> LineAlpha;
 	int32 Shown = 0;
+	float LineTime = 0.f;
 	float Alpha = 0.f;
 	bool bOpen = false;
 };

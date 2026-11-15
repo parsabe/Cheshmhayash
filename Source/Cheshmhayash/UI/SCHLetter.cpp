@@ -77,7 +77,19 @@ void SCHLetter::Show(const TArray<FCHLetterLine>& InLines)
 				]
 			];
 	}
-	RevealNext();
+	// the whole letter is there at once; the lines only settle in one after another
+	Shown = Lines.Num();
+	LineTime = 0.f;
+}
+
+float SCHLetter::GetReadSeconds() const
+{
+	int32 Chars = 0;
+	for (const FCHLetterLine& Line : Lines)
+	{
+		Chars += FMath::Max(Line.Fa.Len(), Line.En.Len());
+	}
+	return 4.f + 0.07f * Chars;
 }
 
 bool SCHLetter::RevealNext()
@@ -102,7 +114,10 @@ void SCHLetter::Advance(float DeltaTime)
 	{
 		if (Index < Shown)
 		{
-			LineAlpha[Index] = FMath::Min(1.f, LineAlpha[Index] + DeltaTime / 1.6f);
+			// a gentle cascade: each line starts a moment after the one above
+			const float Start = Index * 0.35f;
+			LineTime += Index == 0 ? DeltaTime : 0.f;
+			LineAlpha[Index] = FMath::Clamp((LineTime - Start) / 1.4f, 0.f, 1.f);
 		}
 	}
 }

@@ -6,20 +6,24 @@
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
         { "type": "rec", "on": false },
-        { "type": "silence", "seconds": 2.5 },
+        { "type": "silence", "seconds": 1.5 },
+        { "type": "video", "file": "ender.mp4", "memorial_at": 234 },
+        { "type": "silence", "seconds": 2.0 },
+        { "type": "audio", "music": "music_final", "fade": 4.0, "volume": 0.7 },
         {
           "type": "card",
+          "below": true,
           "fa": ["ستم پایدار نمی‌ماند"],
           "en": ["Oppression does not last."],
           "de": ["Unterdrückung währt nicht ewig."],
           "hold": 5.0,
-          "fa_size": 46,
-          "en_size": 24,
+          "fa_size": 40,
+          "en_size": 28,
           "skippable": false
         },
         {
           "type": "card",
-          "style": "opening",
+          "below": true,
           "fa": [
             "باز مونده شد که با یک چشم خونین",
             "مادرش بلند کرد جسم بی روحش با کلی سبد لاله ی جوان",
@@ -41,15 +45,11 @@
             "Aus ihrer Brust stieß sie einen Seufzer aus,",
             "Einen Seufzer, der den Tyrannen vollständig vom Antlitz der Zeit tilgte."
           ],
-          "hold": 6.5,
+          "hold": 9.0,
+          "fa_size": 30,
+          "en_size": 24,
           "skippable": false
         },
-        { "type": "audio", "cut": true },
-        { "type": "silence", "seconds": 3.5 },
-        { "type": "memorial", "on": true },
-        { "type": "silence", "seconds": 21.0 },
-        { "type": "audio", "music": "music_final", "fade": 4.0, "volume": 0.7 },
-        { "type": "silence", "seconds": 2.5 },
         {
           "type": "card",
           "below": true,
@@ -58,37 +58,47 @@
           "de": ["CHESHM HAYASH  ·  SEINE AUGEN"],
           "hold": 4.0,
           "fa_size": 40,
-          "en_size": 20
+          "en_size": 26
         },
         {
           "type": "card",
           "below": true,
-          "fa": ["ساخته‌شده با آنریل انجین", "کد نوشته‌شده با عامل‌های هوش مصنوعی (Claude Code)"],
-          "en": ["Built with Unreal Engine", "AI agents (Claude Code)"],
-          "de": ["Erstellt mit Unreal Engine", "KI-Agenten (Claude Code)"],
+          "fa": ["بازی از پارسا بشارت", "Parsabe.com"],
+          "en": ["A game by Parsa Besharat", "Parsabe.com"],
+          "de": ["Ein Spiel von Parsa Besharat", "Parsabe.com"],
           "hold": 4.0,
-          "fa_size": 28,
-          "en_size": 22
+          "fa_size": 30,
+          "en_size": 24
         },
         {
           "type": "card",
           "below": true,
-          "fa": ["موسیقی و صدا: fal"],
-          "en": ["Music and sound: fal"],
-          "de": ["Musik und Ton: fal"],
-          "hold": 3.5,
-          "fa_size": 28,
-          "en_size": 22
+          "fa": ["ویدیوی پایانی و ترانه‌ی «باغ ۱۴۰۴»", "YasTunes"],
+          "en": ["Closing video and the song “Baaq 1404”", "YasTunes"],
+          "de": ["Abschlussvideo und das Lied „Baaq 1404“", "YasTunes"],
+          "hold": 4.5,
+          "fa_size": 30,
+          "en_size": 24
         },
         {
           "type": "card",
           "below": true,
-          "fa": ["فونت: وزیرمتن"],
-          "en": ["Font: Vazirmatn (SIL Open Font License)"],
-          "de": ["Schriftart: Vazirmatn (SIL Open Font License)"],
+          "fa": ["موسیقی و صدای بازی: fal"],
+          "en": ["Game music and sound: fal"],
+          "de": ["Spielmusik und Ton: fal"],
           "hold": 3.5,
-          "fa_size": 28,
-          "en_size": 22
+          "fa_size": 30,
+          "en_size": 24
+        },
+        {
+          "type": "card",
+          "below": true,
+          "fa": ["ساخته‌شده با آنریل انجین", "با کمک عامل‌های هوش مصنوعی (Claude Code)"],
+          "en": ["Made with Unreal Engine", "With AI agents (Claude Code)"],
+          "de": ["Erstellt mit Unreal Engine", "Mit KI-Agenten (Claude Code)"],
+          "hold": 4.0,
+          "fa_size": 30,
+          "en_size": 24
         },
         {
           "type": "card",
@@ -98,7 +108,7 @@
           "de": ["Frau · Leben · Freiheit"],
           "hold": 5.5,
           "fa_size": 40,
-          "en_size": 24
+          "en_size": 28
         },
         { "type": "audio", "music": "none", "fade": 5.0 },
         { "type": "silence", "seconds": 6.0 },

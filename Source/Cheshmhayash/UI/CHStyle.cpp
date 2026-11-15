@@ -150,6 +150,41 @@ void CH::ShutdownStyle()
 	bFarsiFontInitialized = false;
 }
 
+namespace
+{
+	float GBackdrop = 0.f;
+}
+
+void CH::SetBackdrop(float Brightness)
+{
+	GBackdrop = FMath::Clamp(Brightness, 0.f, 1.f);
+}
+
+float CH::GetBackdrop()
+{
+	return GBackdrop;
+}
+
+FLinearColor CH::Readable(const FLinearColor& Color)
+{
+	const float Dark = FMath::SmoothStep(0.35f, 0.75f, GBackdrop);
+	if (Dark <= 0.f)
+	{
+		return Color;
+	}
+	// keep a trace of the hue (speaker colours stay recognisable), but deep enough to read on white
+	const FLinearColor Ink(Color.R * 0.18f + 0.02f, Color.G * 0.18f + 0.02f, Color.B * 0.18f + 0.025f, Color.A);
+	FLinearColor Out = FMath::Lerp(Color, Ink, Dark);
+	Out.A = Color.A;
+	return Out;
+}
+
+FLinearColor CH::ReadableShadow(float Alpha)
+{
+	const float Dark = FMath::SmoothStep(0.35f, 0.75f, GBackdrop);
+	return FMath::Lerp(FLinearColor(0.f, 0.f, 0.f, 0.75f * Alpha), FLinearColor(1.f, 0.98f, 0.95f, 0.55f * Alpha), Dark);
+}
+
 FString CH::PersianDigits(const FString& In)
 {
 	FString Out = In;

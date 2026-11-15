@@ -33,6 +33,17 @@ namespace CH
 	/** Releases cached font objects (call when the game instance shuts down). */
 	void ShutdownStyle();
 
+	/**
+	 * Text that stays readable on whatever is behind it. The root overlay measures how bright the
+	 * picture is (white fades, bright daylight); light text turns dark on a bright background and
+	 * its shadow turns light.
+	 */
+	void SetBackdrop(float Brightness);
+	float GetBackdrop();
+	FLinearColor Readable(const FLinearColor& Color);
+	/** The shadow / halo that separates text from the background. */
+	FLinearColor ReadableShadow(float Alpha);
+
 	/** Converts latin digits to Persian digits (0-9 -> ۰-۹). */
 	FString PersianDigits(const FString& In);
 

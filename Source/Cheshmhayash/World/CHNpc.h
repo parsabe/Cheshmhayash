@@ -46,6 +46,8 @@ public:
 	void SetShaking(bool bInShaking) { bShaking = bInShaking; }
 	/** Plays the fall animation once; with bRagdoll, physics lays the body down afterwards. */
 	void PlayFall(bool bRagdoll = false);
+	/** Lies still on his back, arms by his sides (a body; no physics). Applied a moment later, once the idle pose is in. */
+	void LieDown();
 	void StartRagdoll();
 	/** Freezes the current pose. */
 	void Freeze();
@@ -93,6 +95,7 @@ private:
 
 	FString Look;
 	FString Pose;
+	float LieTimer = -1.f;
 	FVector MoveTarget = FVector::ZeroVector;
 	float MoveSpeed = 0.f;
 	float TargetYaw = 0.f;

@@ -7,6 +7,8 @@
 #include "World/CHLevelBuilder.h"
 #include "CHLocations.generated.h"
 
+class UPointLightComponent;
+
 /** Black void behind the opening cards, the title and the ending cards. */
 UCLASS()
 class ACHLoc_Boot : public ACHLevelBuilder
@@ -87,6 +89,8 @@ public:
 
 private:
 	TSharedRef<SWidget> MakeNewsScreen() const;
+	/** The television's picture (his sunrise clip). */
+	mutable TSharedPtr<FSlateBrush> NewsBrush;
 	void BuildShell(const FLinearColor& WallColor, const FLinearColor& Outside, float OutsideStrength);
 	void BuildLiving();
 	void BuildOffice();
@@ -227,6 +231,9 @@ private:
 	void BuildDay();
 	void BuildCampus();
 	void BuildGarage();
+	void BuildMassacre();
+	void OnMassacreEvent(const FString& Event);
+	void TickMassacre(float DeltaSeconds);
 	void SendStudentOut(const FString& Id, ACHInteractable* What);
 	void TickDay(float DeltaSeconds);
 	/** Shots, smoke, the crowd breaks, they come. */
@@ -266,6 +273,32 @@ private:
 	TArray<FVector> ChantBase;
 	TArray<FVector> CrowdGoals;
 	bool bShotsFired = false;
+
+	// the morning: the truck, the gun
+	UPROPERTY()
+	TObjectPtr<USceneComponent> TruckPivot;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Muzzle;
+
+	UPROPERTY()
+	TObjectPtr<UPointLightComponent> MuzzleLight;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Tracers;
+
+	TArray<FVector> TracerFrom;
+	TArray<FVector> TracerTo;
+	TArray<float> TracerAge;
+	float TruckX = 0.f;
+	float TruckTargetX = 0.f;
+	bool bFiring = false;
+	float FireTime = 0.f;
+	float BurstTimer = 0.f;
+	float TracerTimer = 0.f;
+	float VictimTimer = 0.f;
+	float FallTime = -1.f;
+	FTransform FallFrom;
 
 	// day, campus, garage
 	UPROPERTY()

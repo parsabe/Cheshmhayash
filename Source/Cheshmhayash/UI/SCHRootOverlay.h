@@ -37,6 +37,8 @@ public:
 	float FadeAlpha = 1.f;
 
 	/** His right eye: 0 open, 1 the right half of the picture is dark. Animates towards EyeTarget. */
+	/** How bright the picture behind the text is (0 dark .. 1 white), from the director. */
+	float SceneBrightness = 0.f;
 	float EyeClose = 0.f;
 	float EyeTarget = 0.f;
 	float EyeRate = 0.5f;
@@ -44,6 +46,8 @@ public:
 	TSharedPtr<SCHCardLayer> Cards;
 	TSharedPtr<SCHCardLayer> Captions;
 	TSharedPtr<SCHChoiceList> Menu;
+	/** A full-screen movie plays here (above the fade, below captions and cards). */
+	TSharedPtr<class SBox> VideoLayer;
 	/** The pause menu, over a darkened picture. */
 	TSharedPtr<SCHChoiceList> PauseMenu;
 	float PauseDim = 0.f;

@@ -553,6 +553,7 @@ void ACHLoc_Streets::OnSegmentReset()
 
 void ACHLoc_Streets::OnStoryEvent(const FString& Event, const TSharedPtr<FJsonObject>& Beat)
 {
+	OnMassacreEvent(Event);
 	if (Event == TEXT("wounded_helped"))
 	{
 		RemoveNpc(TEXT("wounded"));
@@ -572,6 +573,7 @@ void ACHLoc_Streets::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	StreetsTime += DeltaSeconds;
 	TickDay(DeltaSeconds);
+	TickMassacre(DeltaSeconds);
 	APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
 
 	// the old man's shutter goes up as he comes near; students slip inside

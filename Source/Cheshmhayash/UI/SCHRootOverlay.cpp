@@ -12,6 +12,7 @@
 #include "UI/SCHShapes.h"
 #include "UI/SCHSlogans.h"
 #include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -45,6 +46,13 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			SNew(SImage)
 			.Image(CH::WhiteBrush())
 			.ColorAndOpacity(this, &SCHRootOverlay::GetFadeColor)
+		]
+
+		// a movie (the closing video)
+		+ SOverlay::Slot()
+		[
+			SAssignNew(VideoLayer, SBox)
+			.Visibility(EVisibility::HitTestInvisible)
 		]
 
 		// HUD: above the fade, so the REC dot keeps blinking in the dark
@@ -131,6 +139,9 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 
 void SCHRootOverlay::Advance(float DeltaTime)
 {
+	// what is behind the text: the fade colour where the screen is faded, the scene elsewhere
+	const float FadeLum = FadeColor.GetLuminance();
+	CH::SetBackdrop(FMath::Lerp(SceneBrightness, FadeLum, FMath::Clamp(FadeAlpha, 0.f, 1.f)));
 	Cards->Advance(DeltaTime);
 	Captions->Advance(DeltaTime);
 	Menu->Advance(DeltaTime);

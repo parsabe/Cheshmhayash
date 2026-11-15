@@ -128,7 +128,7 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 				break;
 			}
 		}
-		if (WasInputKeyJustPressed(EKeys::LeftMouseButton) || WasInputKeyJustPressed(EKeys::RightMouseButton))
+		if (Director->WantsCursor() && (WasInputKeyJustPressed(EKeys::LeftMouseButton) || WasInputKeyJustPressed(EKeys::RightMouseButton)))
 		{
 			Director->InputAnyKey();
 		}
@@ -148,7 +148,8 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	{
 		Director->InputAdvance();
 	}
-	if (!bControl && WasInputKeyJustPressed(EKeys::LeftMouseButton))
+	// the mouse only clicks menus and choices (a cursor is up); in cutscenes it does nothing
+	if (!bControl && Director->WantsCursor() && WasInputKeyJustPressed(EKeys::LeftMouseButton))
 	{
 		Director->InputClick();
 	}
@@ -165,9 +166,15 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 		}
 	}
 
-	// ---- mouse camera look: active in all 3D views (both first-person pawn and scene cameras) whenever no menu cursor is up
+	// ---- mouse look: only while he is in control. In cutscenes the mouse does nothing: the camera is the director's.
 	const bool bWantCursor = Director->WantsCursor();
-	if (!bWantCursor && !IsPaused())
+	const bool bSceneCamera = ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn();
+	if (bSceneCamera && !bControl && !SceneLookOffset.IsZero())
+	{
+		SceneLookOffset = FRotator::ZeroRotator;
+		ActiveSceneCamera->SetActorRotation(SceneCameraBaseRot + ShakeOffset);
+	}
+	if (!bWantCursor && !IsPaused() && bControl)
 	{
 		float MouseX = 0.f;
 		float MouseY = 0.f;

@@ -151,14 +151,33 @@ Biggest street yet; singing; text slogans fill the crowd. For a few minutes, win
 Then: shots, smoke, chase. GAMEPLAY: longest run — alleys, walls, rooftops — until just before dawn.
 Rooftop at the city's edge facing east toward the mountains. He sits, films the orange sky:
 - نگاه کن… داره میاد بالا / Look… it's coming up.
-DEATH (no gore): sound cuts; LEFT half of screen goes dark (his left eye, as in the opening poem) (one eye closing); phone falls on its side, image tilts; REC keeps blinking.
-LAST SHOT: he lies facing east, wounded side in shadow. Sun rises over Damavand; light crosses rooftops, reaches his face, stays. Long hold — wind, one bird. Then Ch1 setar melody, very soft.
-If `window_seat == A`: on the fallen phone, from Kian: "Window seat booked. Next time, right?" — unread.
+He does not die on the roof. He watches the sun come up, then goes down to the people.
+
+### 2.7 — That morning — the avenue
+The whole street is out again; he is in the crowd, fist raised, chanting with them.
+- Crowd: We are not afraid! We are all together!
+- He: Nobody stays home today.
+A truck arrives with a heavy machine gun (دوشکا, a DShK) on its bed. They open fire into the people.
+NO GORE: people fall, people run; never any blood or wounds.
+His own eyes (first person): a bullet takes his LEFT eye — the LEFT half of the screen goes dark (as in the opening poem); sound cuts; the view drops and tips over onto the asphalt; REC keeps blinking.
+He lies on his back in the empty street.
+If `window_seat == A`: a notification from Kian: "Window seat booked. Next time, right?" — unread.
+White. The last thing he sees, with one eye: his family, standing in a warm light (Mom crying, Dad, Brother, Sister).
+He talks to himself:
+- Mom… Dad… Brother… Sis.
+- I'm going to miss you so much.
+- Mom, I promised I'd come home tonight. I'm sorry.
+- Dad, you never said it. But I knew.
+- Brother… don't tell Mom I cried.
+- Sis, they'll let you go. I won't see it… but you will.
+- I'm so sad. Not for me… for you, who will wake up tomorrow without me.
+- My tea is still on the desk… gone cold.
+- The sun… it's coming up.
 CUT TO: DIRECTOR'S CUT montage — every clip the player filmed, in order, Shahrivar → that morning. Last clip: sunrise, frozen.
 
 ---
 
-## CHAPTER 3 — After — «چشم‌هایش» "His Eyes"
+## CHAPTER 3 — After — «آنچه ماند» "What Remains"
 No REC dot. He is not filming anymore.
 
 ### 3.1 — Aban 1401 — the prison gate
@@ -171,7 +190,7 @@ Brother opens his mouth. No text appears. Screen slowly to white.
 
 ### 3.2 — His room & The چهلم (40th-Day Memorial, `3.2b`)
 Nothing moved. Cold glass of tea. Calendar on the floor, red circle on 26 Mehr — two days after.
-She opens the grammar book; the letter falls. GAMEPLAY: player reads it line by line:
+She opens the grammar book; the letter falls. The whole letter is shown at once, held long enough to read, then folds away by itself:
 - If you're reading this, you're home. I knew they'd have to give you back.
 - I'm sorry I didn't walk you to the metro. I'll be sorry about that forever.
 - I'm not angry. I was never angry. You were right not to fix your scarf.
@@ -180,9 +199,9 @@ She opens the grammar book; the letter falls. GAMEPLAY: player reads it line by 
 - — your brother
 `3.2b`: Forty days later (`چهلم`). The apartment is full of family, friends, and students in black; his framed photo with a black ribbon sits beside a red flower. Mina tells her that people everywhere are seeing through his eyes.
 
-### 3.3 — Years later — the news
+### 3.3 — Esfand 1404 — the television
 Small living room. Brother and sister, older, drinking tea — hot.
-TV black-bordered: «رهبر درگذشت.» / The Leader has died. (No name, no face, no portrait.)
+On the TV, live: his own video of the sunrise, «نگاه کن… داره میاد بالا» / "Look… it's coming up." The world is seeing through his eyes. (No headline about anyone, no names, no faces.)
 They don't cheer. She smiles, tired, sad — then cries. He puts his arm around her.
 - Sister: He should have seen this.
 - Brother: He saw the sun first.
@@ -203,17 +222,10 @@ TOMBSTONE (name hidden under rose petals):
 ---
 
 ## ENDING
-No voice. Text only, on black, each line fading in slowly.
-
-Card 1 (fades in, holds ~6 s, fades out):
-ستم پایدار نمی‌ماند
-Oppression does not last.
-
-Black. 5 seconds of complete silence (no music, no wind).
-
-Card 2 (fades in letter by letter, slower than any text before):
-به یاد حسام
-In loving memory of Hesam
-
-Hold. His name stays on screen alone for a few seconds — the first and only time it appears.
-Then the Ch1 setar melody returns softly. Credits.
+After the cemetery: the closing video (ender.mp4, the song «باغ ۱۴۰۴» by YasTunes) plays full screen with its own sound.
+At 3:54 into it, the name appears over the sunrise, letter by letter: به یاد حسام / In loving memory of Hesam — the first time it appears.
+The name stays on screen through everything that follows:
+- ستم پایدار نمی‌ماند / Oppression does not last.
+- the closing verse (his mother, the tulips, the sigh)
+- credits: A game by Parsa Besharat (Parsabe.com) · Closing video and the song «باغ ۱۴۰۴» — YasTunes · Game music and sound: fal · Made with Unreal Engine, with AI agents (Claude Code) · زن · زندگی · آزادی
+The music ends; the name is the last thing to fade.

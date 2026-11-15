@@ -157,12 +157,12 @@ FSlateColor SCHCardLayer::GetLineColor(int32 Index) const
 	}
 	FLinearColor Color = Card.Lines[Index].Color;
 	Color.A *= LineAlpha(Index);
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }
 
 FLinearColor SCHCardLayer::GetLineShadow(int32 Index) const
 {
-	return FLinearColor(0.f, 0.f, 0.f, 0.6f * LineAlpha(Index));
+	return CH::ReadableShadow(LineAlpha(Index));
 }
 
 FText SCHCardLayer::GetLineText(int32 Index) const

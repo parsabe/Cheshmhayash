@@ -8,8 +8,8 @@
 void ACHLoc_Streets::Build(const FString& InVariant)
 {
 	Super::Build(InVariant);
-	const bool bDay = Variant == TEXT("day") || Variant == TEXT("campus");
-	InitCity(!bDay, bDay ? -0.7f : -1.4f);
+	const bool bDay = Variant == TEXT("day") || Variant == TEXT("campus") || Variant == TEXT("massacre");
+	InitCity(!bDay, Variant == TEXT("massacre") ? -0.4f : (bDay ? -0.7f : -1.4f));
 
 	PlayerBoomLength = 330.f;
 	PlayerBoomOffset = FVector(0.f, 55.f, 75.f);
@@ -33,6 +33,10 @@ void ACHLoc_Streets::Build(const FString& InVariant)
 	else if (Variant == TEXT("garage"))
 	{
 		BuildGarage();
+	}
+	else if (Variant == TEXT("massacre"))
+	{
+		BuildMassacre();
 	}
 	else
 	{

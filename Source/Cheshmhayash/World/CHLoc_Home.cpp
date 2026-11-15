@@ -6,6 +6,7 @@
 
 #include "World/CHLocations.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Game/CHInteractable.h"
@@ -16,6 +17,7 @@
 #include "Story/CHSave.h"
 #include "Story/CHStoryDirector.h"
 #include "UI/CHStyle.h"
+#include "UI/SCHShapes.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
@@ -253,9 +255,28 @@ void ACHLoc_Home::BuildLiving()
 
 TSharedRef<SWidget> ACHLoc_Home::MakeNewsScreen() const
 {
-	// a black-bordered news screen; no name, no face, no portrait
+	// Esfand 1404: on the television, his own video - the sunrise he filmed that morning.
+	// The world is seeing through his eyes. No headline, no faces, no names.
 	const bool bFa = CHSettings::IsPersian();
-	const FString NewsLine = bFa ? TEXT("رهبر درگذشت.") : CHSettings::Latin(TEXT("The Leader has died."), TEXT("Der Führer ist gestorben."));
+	UTexture* Clip = nullptr;
+	if (const UCHStoryDirector* Director = UCHStoryDirector::Get(this))
+	{
+		for (int32 Index = Director->GetClips().Num() - 1; Index >= 0 && !Clip; --Index)
+		{
+			if (Director->GetClips()[Index].Id == TEXT("sunrise"))
+			{
+				Clip = Director->GetClips()[Index].Image;
+			}
+		}
+	}
+	if (Clip)
+	{
+		NewsBrush = MakeShared<FSlateBrush>();
+		NewsBrush->SetResourceObject(Clip);
+		NewsBrush->ImageSize = FVector2D(560.0, 315.0);
+	}
+	const FString Live = bFa ? TEXT("پخش زنده · اسفند ۱۴۰۴") : CHSettings::Latin(TEXT("LIVE  ·  ESFAND 1404"), TEXT("LIVE  ·  ESFAND 1404"));
+	const FString Caption = bFa ? TEXT("«نگاه کن… داره میاد بالا»") : CHSettings::Latin(TEXT("\"Look… it's coming up.\""), TEXT("\"Sieh nur… sie geht auf.\""));
 	return SNew(SBox)
 		.WidthOverride(620.f)
 		.HeightOverride(360.f)
@@ -265,21 +286,46 @@ TSharedRef<SWidget> ACHLoc_Home::MakeNewsScreen() const
 			[
 				SNew(SImage).Image(CH::WhiteBrush()).ColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 1.f)))
 			]
+			// the picture: his clip, or (if it was never filmed) the orange of that sky
 			+ SOverlay::Slot()
-			.Padding(30.f)
+			.Padding(14.f)
+			[
+				Clip
+				? StaticCastSharedRef<SWidget>(SNew(SImage).Image(NewsBrush.Get()))
+				: StaticCastSharedRef<SWidget>(SNew(SCHGradient)
+					.StartColor(FLinearColor(0.95f, 0.55f, 0.25f, 1.f))
+					.EndColor(FLinearColor(0.12f, 0.08f, 0.10f, 1.f))
+					.TopToBottom(true))
+			]
+			// a quiet lower third
+			+ SOverlay::Slot()
+			.VAlign(VAlign_Bottom)
+			.Padding(14.f)
 			[
 				SNew(SBorder)
 				.BorderImage(CH::WhiteBrush())
-				.BorderBackgroundColor(FSlateColor(FLinearColor(0.10f, 0.11f, 0.13f, 1.f)))
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
+				.BorderBackgroundColor(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.72f)))
+				.Padding(FMargin(16.f, 8.f))
 				[
-					SNew(STextBlock)
-					.Text(FText::FromString(NewsLine))
-					.Font(bFa ? CH::FarsiFont(58.f, CH::EWeight::Bold) : CH::LatinFont(34.f, CH::EWeight::Bold))
-					.ColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.95f, 0.93f, 1.f)))
-					.TextShapingMethod(bFa ? ETextShapingMethod::FullShaping : ETextShapingMethod::Auto)
-					.TextFlowDirection(bFa ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().AutoHeight()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(Live))
+						.Font(bFa ? CH::FarsiFont(20.f, CH::EWeight::Bold) : CH::LatinFont(14.f, CH::EWeight::Bold, 200))
+						.ColorAndOpacity(FSlateColor(FLinearColor(0.85f, 0.22f, 0.16f, 1.f)))
+						.TextShapingMethod(bFa ? ETextShapingMethod::FullShaping : ETextShapingMethod::Auto)
+						.TextFlowDirection(bFa ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
+					]
+					+ SVerticalBox::Slot().AutoHeight()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(Caption))
+						.Font(bFa ? CH::FarsiFont(26.f) : CH::LatinFont(20.f))
+						.ColorAndOpacity(FSlateColor(FLinearColor(0.96f, 0.95f, 0.92f, 1.f)))
+						.TextShapingMethod(bFa ? ETextShapingMethod::FullShaping : ETextShapingMethod::Auto)
+						.TextFlowDirection(bFa ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
+					]
 				]
 			]
 		];

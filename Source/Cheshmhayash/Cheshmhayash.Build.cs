@@ -23,7 +23,10 @@ public class Cheshmhayash : ModuleRules
 			"Slate",
 			"SlateCore",
 			"Json",
-			"ProceduralMeshComponent"
+			"ProceduralMeshComponent",
+			"MediaAssets",
+			"Media",
+			"AudioMixer"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

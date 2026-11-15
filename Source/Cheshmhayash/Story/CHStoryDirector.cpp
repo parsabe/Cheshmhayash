@@ -11,6 +11,8 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Game/CHSegment.h"
 #include "Story/CHAudio.h"
+#include "Story/CHVideo.h"
+#include "Widgets/Layout/SBox.h"
 #include "UI/SCHHud.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
@@ -506,6 +508,7 @@ void UCHStoryDirector::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	Audio = NewObject<UCHAudio>(this);
+	Video = NewObject<UCHVideo>(this);
 	ParseDevOptions();
 	LoadStory();
 }
@@ -711,6 +714,7 @@ void UCHStoryDirector::StartScene(int32 Index)
 	{
 		UI->EyeTarget = 0.f;
 		UI->EyeClose = 0.f;
+		UI->SceneBrightness = 0.f;
 	}
 
 	const FCHScene& Scene = Scenes[Index];
@@ -869,6 +873,10 @@ void UCHStoryDirector::Tick(float DeltaTime)
 		}
 		UI->Hud->SetRec(bRec, RecSeconds, !UI->Cards->IsFinished());
 		UI->Advance(DeltaTime);
+		if (Video)
+		{
+			Video->Update(DeltaTime);
+		}
 
 		// one soft click per typed letter (hooked up to the audio manager in the audio step)
 		const bool bDialogueTick = UI->Dialogue->ConsumeTypeTick();
@@ -1040,7 +1048,16 @@ bool UCHStoryDirector::WantsCursor() const
 	{
 		return false;
 	}
-	return bPauseMenu || UI->PauseMenu->IsShown() || UI->Menu->IsShown();
+	if (bPauseMenu || UI->PauseMenu->IsShown() || UI->Menu->IsShown())
+	{
+		return true;
+	}
+	// the main menu's "click or press any key"
+	if (Scenes.IsValidIndex(SceneIndex) && Scenes[SceneIndex].Beats.IsValidIndex(BeatIndex))
+	{
+		return JStr(*Scenes[SceneIndex].Beats[BeatIndex], TEXT("type")) == TEXT("mainmenu");
+	}
+	return false;
 }
 
 int32 UCHStoryDirector::PollMenu(SCHChoiceList& Menu)
@@ -1118,6 +1135,42 @@ bool UCHStoryDirector::PassesCondition(const FString& Condition) const
 	return !GetFlag(Condition.TrimStartAndEnd()).IsEmpty();
 }
 
+void UCHStoryDirector::ShowMemorial()
+{
+	if (!UI.IsValid())
+	{
+		return;
+	}
+	FCHCard Card;
+	Card.HAlign = HAlign_Center;
+	Card.VAlign = VAlign_Top;
+	Card.Padding = FMargin(80.f, 170.f, 80.f, 0.f);
+	Card.bSkippable = false;
+	Card.Hold = -1.f;
+	Card.FadeOut = 4.0f;
+
+	const float Rate = 2.6f;
+	if (CHSettings::IsPersian())
+	{
+		const FString Fa = TEXT("به یاد حسام");
+		FCHCardLine FaLine(Fa, true, 58.f, CH::EWeight::Regular, CH::Col::Paper);
+		FaLine.Delay = 1.0f;
+		FaLine.TypeRate = Rate;
+		Card.Lines.Add(FaLine);
+	}
+	else
+	{
+		const FString En = CHSettings::IsGerman()
+			? TEXT("In liebevoller Erinnerung an Hesam")
+			: TEXT("In loving memory of Hesam");
+		FCHCardLine EnLine(En, false, 40.f, CH::EWeight::Regular, CH::Col::Paper);
+		EnLine.Delay = 1.0f;
+		EnLine.TypeRate = Rate;
+		Card.Lines.Add(EnLine);
+	}
+	UI->Captions->Play(Card);
+}
+
 void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 {
 	const FString Type = JStr(Beat, TEXT("type"));
@@ -1184,34 +1237,25 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		}
 		else
 		{
-			FCHCard Card;
-			Card.HAlign = HAlign_Center;
-			Card.VAlign = VAlign_Top;
-			Card.Padding = FMargin(80.f, 170.f, 80.f, 0.f);
-			Card.bSkippable = false;
-			Card.Hold = -1.f;
-			Card.FadeOut = 4.0f;
-
-			const float Rate = 2.6f;
-			if (CHSettings::IsPersian())
-			{
-				const FString Fa = TEXT("به یاد حسام");
-				FCHCardLine FaLine(Fa, true, 58.f, CH::EWeight::Regular, CH::Col::Paper);
-				FaLine.Delay = 1.0f;
-				FaLine.TypeRate = Rate;
-				Card.Lines.Add(FaLine);
-			}
-			else
-			{
-				const FString En = CHSettings::IsGerman()
-					? TEXT("In liebevoller Erinnerung an Hesam")
-					: TEXT("In loving memory of Hesam");
-				FCHCardLine EnLine(En, false, 40.f, CH::EWeight::Regular, CH::Col::Paper);
-				EnLine.Delay = 1.0f;
-				EnLine.TypeRate = Rate;
-				Card.Lines.Add(EnLine);
-			}
-			UI->Captions->Play(Card);
+			ShowMemorial();
+		}
+	}
+	else if (Type == TEXT("backdrop"))
+	{
+		// a bright shot (snow, white sky): the text turns dark to stay readable
+		UI->SceneBrightness = static_cast<float>(JNum(Beat, TEXT("bright"), 0.0));
+	}
+	else if (Type == TEXT("video"))
+	{
+		// the closing video; the name appears over it at "memorial_at" seconds and stays
+		BeatPhase = 0;
+		if (Audio)
+		{
+			Audio->Cut(1.5f);
+		}
+		if (Video && Video->Play(GetWorld(), JStr(Beat, TEXT("file"))) && UI.IsValid())
+		{
+			UI->VideoLayer->SetContent(Video->MakeWidget());
 		}
 	}
 	else if (Type == TEXT("title"))
@@ -1990,19 +2034,37 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 	{
 		return UI->Montage->IsFinished();
 	}
+	if (Type == TEXT("video"))
+	{
+		const float MemorialAt = static_cast<float>(JNum(Beat, TEXT("memorial_at"), -1.0));
+		const bool bDevDone = bDevAuto && BeatTime > 6.f;
+		if (BeatPhase == 0 && MemorialAt >= 0.f && Video && (Video->GetTime() >= MemorialAt || bDevDone || Video->IsFinished()))
+		{
+			ShowMemorial();
+			BeatPhase = 1;
+		}
+		if (bDevDone && Video && !Video->IsFinished())
+		{
+			Video->Stop();
+			return true;
+		}
+		return !Video || Video->IsFinished();
+	}
 	if (Type == TEXT("letter"))
 	{
 		if (BeatPhase == 0)
 		{
-			const bool bNext = (ConsumeAdvance() && PhaseTime > 0.8f) || (bDevAuto && PhaseTime > 2.4f);
-			if (bNext)
+			// the whole letter is on the page; it folds away by itself once there was time to read it
+			// (Enter / Space may close it sooner, never before a few seconds)
+			const bool bDone = PhaseTime > UI->Letter->GetReadSeconds() || (ConsumeAdvance() && PhaseTime > 6.f) || (bDevAuto && PhaseTime > 8.f);
+			if (bDone)
 			{
-				PhaseTime = 0.f;
-				if (!UI->Letter->RevealNext())
-				{
-					UI->Letter->Hide();
-					BeatPhase = 1;
-				}
+				UI->Letter->Hide();
+	if (Video)
+	{
+		Video->Stop();
+	}
+				BeatPhase = 1;
 			}
 			return false;
 		}

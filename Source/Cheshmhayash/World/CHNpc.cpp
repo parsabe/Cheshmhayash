@@ -291,6 +291,18 @@ void ACHNpc::PlayFall(bool bRagdoll)
 	RagdollTimer = bRagdoll ? (FallAnim ? FallAnim->GetPlayLength() * 0.85f : 0.01f) : -1.f;
 }
 
+void ACHNpc::LieDown()
+{
+	bMoving = false;
+	bTurning = false;
+	bShaking = false;
+	Pose.Empty();
+	PoseElevation = 0.f;
+	RagdollTimer = -1.f;
+	PlayLoop(IdleAnim);
+	LieTimer = 0.3f;
+}
+
 void ACHNpc::StartRagdoll()
 {
 	RagdollTimer = -1.f;
@@ -433,6 +445,14 @@ void ACHNpc::ApplyProceduralPose(float DeltaSeconds)
 		RotateBoneCS(Body, TEXT("upperarm_r"), FQuat::FindBetweenNormals(Down, FVector(-0.05f, 0.55f, -0.83f).GetSafeNormal()));
 		RotateBoneCS(Body, TEXT("lowerarm_r"), FQuat::FindBetweenNormals(Down, FVector(0.10f, 0.95f, -0.15f * PourTilt).GetSafeNormal()));
 	}
+	else if (Pose == TEXT("fist"))
+	{
+		// chanting: the right fist raised and pumping with the rhythm, the head lifted
+		const float Beat = 0.5f + 0.5f * FMath::Sin(PoseTime * 4.2f + GetActorLocation().X * 0.01f);
+		RotateBoneCS(Body, TEXT("upperarm_r"), FQuat::FindBetweenNormals(Down, FVector(-0.25f, 0.15f, 0.95f).GetSafeNormal()));
+		RotateBoneCS(Body, TEXT("lowerarm_r"), FQuat::FindBetweenNormals(Down, FVector(-0.05f, 0.10f + 0.25f * Beat, 1.f).GetSafeNormal()));
+		RotateBoneCS(Body, TEXT("head"), FQuat::FindBetweenNormals(Up, FVector(0.f, -0.18f, 0.98f).GetSafeNormal()));
+	}
 	else if (Pose == TEXT("talk"))
 	{
 		// Subtle hand gestures while talking
@@ -452,6 +472,20 @@ void ACHNpc::Tick(float DeltaSeconds)
 	if (bFrozen)
 	{
 		return;
+	}
+
+	if (LieTimer >= 0.f)
+	{
+		LieTimer -= DeltaSeconds;
+		if (LieTimer < 0.f && Body && AnimBody)
+		{
+			// the standing pose, tipped backwards onto the ground (the feet stay where he stood)
+			Body->CopyPoseFromSkeletalComponent(AnimBody);
+			const FQuat Lying = FQuat(FRotator(90.f, 0.f, 0.f)) * FQuat(FRotator(0.f, -90.f, 0.f));
+			Body->SetRelativeLocationAndRotation(FVector(0.f, 0.f, 13.f), Lying);
+			Freeze();
+			return;
+		}
 	}
 
 	if (RagdollTimer >= 0.f)

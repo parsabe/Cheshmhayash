@@ -243,28 +243,28 @@ FSlateColor SCHDialogueOverlay::GetSpeakerColor() const
 {
 	FLinearColor Color = Tint;
 	Color.A = Alpha * 0.95f;
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }
 
 FSlateColor SCHDialogueOverlay::GetSpeakerEnColor() const
 {
 	FLinearColor Color = Tint;
 	Color.A = Alpha * 0.95f;
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }
 
 FSlateColor SCHDialogueOverlay::GetFaColor() const
 {
 	FLinearColor Color = Tint;
 	Color.A = Alpha;
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }
 
 FSlateColor SCHDialogueOverlay::GetEnColor() const
 {
 	FLinearColor Color = Tint;
 	Color.A = Alpha;
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }
 
 FSlateColor SCHDialogueOverlay::GetCursorColor() const
@@ -277,17 +277,18 @@ FSlateColor SCHDialogueOverlay::GetCursorColor() const
 
 FLinearColor SCHDialogueOverlay::GetBandColor() const
 {
-	return FLinearColor(0.f, 0.f, 0.f, 0.78f * Alpha);
+	// the dark band fades away on a bright background (dark text needs no dark band)
+	return FLinearColor(0.f, 0.f, 0.f, 0.78f * Alpha * (1.f - FMath::SmoothStep(0.35f, 0.75f, CH::GetBackdrop())));
 }
 
 FLinearColor SCHDialogueOverlay::GetShadowColor() const
 {
-	return FLinearColor(0.f, 0.f, 0.f, 0.7f * Alpha);
+	return CH::ReadableShadow(Alpha);
 }
 
 FSlateColor SCHDialogueOverlay::GetHintColor() const
 {
 	FLinearColor Color = FLinearColor(0.75f, 0.75f, 0.75f, 1.f);
 	Color.A = bHint ? Alpha * (0.45f + 0.2f * FMath::Cos(Blink * 3.f)) : 0.f;
-	return FSlateColor(Color);
+	return FSlateColor(CH::Readable(Color));
 }

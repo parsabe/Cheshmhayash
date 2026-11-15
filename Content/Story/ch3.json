@@ -12,10 +12,10 @@
         {
           "type": "chapter",
           "fa_sub": "فصل سه · آبان ۱۴۰۱",
-          "fa_title": "چشم‌هایش",
-          "en_title": "His Eyes",
+          "fa_title": "آنچه ماند",
+          "en_title": "What Remains",
           "en_sub": "CHAPTER THREE  ·  ABAN 1401",
-          "de_title": "Seine Augen",
+          "de_title": "Was bleibt",
           "de_sub": "KAPITEL DREI  ·  ABAN 1401"
         },
         { "type": "silence", "seconds": 0.8 }
@@ -188,7 +188,7 @@
         { "type": "npc", "action": "spawn", "name": "sister", "look": "sister_older", "mark": "SofaRight", "pose": "sit_sofa" },
         { "type": "camera", "mark": "Wide" },
         { "type": "fade", "to": 0, "time": 3.5, "wait": false },
-        { "type": "caption", "fa": "سال‌ها بعد", "en": "YEARS LATER", "de": "JAHRE SPÄTER" },
+        { "type": "caption", "fa": "اسفند ۱۴۰۴", "en": "ESFAND 1404", "de": "ESFAND 1404" },
         { "type": "silence", "seconds": 5.0 },
         { "type": "camera", "mark": "Tea", "blend": 3.0 },
         { "type": "silence", "seconds": 3.5 },

@@ -725,6 +725,26 @@ def sfx_shots():
     save("sfx_shots", track, 0.85)
 
 
+def sfx_dshk():
+    """A heavy machine gun on a truck, one burst of about a second: slow, enormous thuds that echo
+    off the buildings. Ten rounds a second."""
+    rng = random.Random(67)
+    track = silence(2.4)
+    rounds = 11
+    for index in range(rounds):
+        at = index * 0.1 + rng.uniform(-0.004, 0.004)
+        boom = dum(rng, 48.0, 0.32)
+        crack = envelope(noise(0.035, rng), 0.0002, 2.5)
+        slap = envelope(one_pole(noise(0.5, rng), 0.03), 0.004, 2.2)
+        mix(track, boom, at, 1.0)
+        mix(track, crack, at, 0.8)
+        mix(track, slap, at + 0.06, 0.55)
+    # the street answers
+    echo = one_pole(track[:], 0.05)
+    mix(track, echo, 0.18, 0.35)
+    save("sfx_dshk", track, 0.95)
+
+
 def sfx_notify():
     """A phone vibrating on a wooden desk (low muffled buzz, not harsh square wave)."""
     track = silence(0.9)

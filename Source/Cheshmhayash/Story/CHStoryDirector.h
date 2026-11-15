@@ -16,6 +16,7 @@ class FJsonObject;
 class SCHChoiceList;
 class SCHRootOverlay;
 class UCHAudio;
+class UCHVideo;
 class UTexture;
 class UTextureRenderTarget2D;
 
@@ -220,6 +221,12 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCHAudio> Audio;
+
+	UPROPERTY()
+	TObjectPtr<UCHVideo> Video;
+
+	/** In loving memory: the name, which stays until the very end. */
+	void ShowMemorial();
 
 	TSharedPtr<SCHRootOverlay> UI;
 	TWeakObjectPtr<ACHLevelBuilder> Builder;

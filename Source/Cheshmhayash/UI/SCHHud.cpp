@@ -20,7 +20,15 @@ namespace
 	{
 		return TAttribute<FLinearColor>::CreateLambda([Color]()
 		{
-			return FLinearColor(0.f, 0.f, 0.f, 0.6f * Color.Get().GetSpecifiedColor().A);
+			return CH::ReadableShadow(Color.Get().GetSpecifiedColor().A);
+		});
+	}
+
+	TAttribute<FSlateColor> Readable(const TAttribute<FSlateColor>& Color)
+	{
+		return TAttribute<FSlateColor>::CreateLambda([Color]()
+		{
+			return FSlateColor(CH::Readable(Color.Get().GetSpecifiedColor()));
 		});
 	}
 
@@ -30,7 +38,7 @@ namespace
 			.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 			.Text(Text)
 			.Font(CH::FarsiFont(Size, Weight))
-			.ColorAndOpacity(Color)
+			.ColorAndOpacity(Readable(Color))
 			.ShadowOffset(FVector2D(1.f, 1.f))
 			.ShadowColorAndOpacity(ShadowFor(Color))
 			.TextShapingMethod(ETextShapingMethod::FullShaping)
@@ -43,7 +51,7 @@ namespace
 			.Visibility_Lambda([bAlwaysVisible]() { return (bAlwaysVisible || !CHSettings::IsPersian()) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 			.Text(Text)
 			.Font(CH::LatinFont(Size, Weight, Spacing))
-			.ColorAndOpacity(Color)
+			.ColorAndOpacity(Readable(Color))
 			.ShadowOffset(FVector2D(1.f, 1.f))
 			.ShadowColorAndOpacity(ShadowFor(Color));
 	}

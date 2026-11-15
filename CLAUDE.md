@@ -30,7 +30,7 @@ You are also the art director. Everything the player sees is created from code o
 - **No voices at all.** All dialogue is text: Farsi line on top, English line below, typed out letter by letter with a soft typing sound.
 - Opening card explains: "There are no voices in this game. The people who lived this story cannot speak freely. Their words are written here instead." (Farsi + English, see STORY.md)
 - **No gore.** The death is shown only as: sound cut, RIGHT half of screen goes dark (his right eye), phone falls, REC dot keeps blinking. Then the sunrise shot.
-- The Supreme Leader is **never named and never shown**. The news line is only «رهبر درگذشت.» / "The Leader has died." on a black-bordered TV.
+- The Supreme Leader is **never named and never shown**, and the game never announces his death (developer, 15 Nov). The TV in 3.3 (Esfand 1404) shows his own sunrise video instead.
 - Mahsa Amini appears only as a news alert on the phone, never as a character.
 - No real-world copyrighted music, no real protest recordings, no assets from other games/films.
 
