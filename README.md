@@ -4,7 +4,7 @@
 
 **His Eyes**: a narrative stealth game about Tehran, 1401.
 
-[![Cheshm Hayash: watch the trailer](https://img.youtube.com/vi/drZl6DR5eMI/maxresdefault.jpg)](https://youtu.be/drZl6DR5eMI)
+[![Cheshm Hayash: watch the trailer](https://raw.githubusercontent.com/parsabe/Cheshmhayash/master/thumbnail.jpg)](https://youtu.be/drZl6DR5eMI)
 
 **[▶ Watch the trailer](https://youtu.be/drZl6DR5eMI)** ·
 **[Website](https://parsabe.github.io/Cheshmhayash/)** ·

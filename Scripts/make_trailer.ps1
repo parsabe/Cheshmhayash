@@ -6,23 +6,27 @@ Cuts the jam trailer out of a screen recording of trailer mode.
   -Recording  your capture of trailer mode (any resolution / fps; 1920x1080 60 fps is best)
   -Length     40 (default) or 55 seconds
   -Music      the score (default: Trailer\template_40.mp3 for 40 s, Trailer\template.mp3 for 55 s)
-  -NoPan      start with a short fade from black instead of the opening pan
+  -NoPan      open with a short fade from black instead of the Pan transition
   -Team       your team name for the file name (default: TeamName)
   -GameVolume how loud the game's own sound stays under the music (default 0.14)
 
 What it does:
   1. finds the 12 shots in the recording by the black between them (ffmpeg blackdetect);
-     it uses the LAST 12, so anything before the trailer (a console, a menu) is ignored
-  2. takes from each shot exactly as long as its part of the music, so every cut lands on a hit:
-       40 s: chase 4 | van 3.5 | phone 3 | gate 3.5 | chants 3 | molotov 3 | Mom 3 | crowd 3 |
-             the shot 3 | sunrise 4 | cemetery 4 | title 3
+     it uses the LAST 12, so anything before the trailer (a console, a menu) is ignored.
+     In the recording they come in trailer-mode order:
+       chase, van, phone, gate, chants, molotov, Mom, crowd, the shot, sunrise, cemetery, title
+  2. puts them in the cut's order and takes from each exactly as long as its part of the music:
+       40 s: van 3.5 | phone 4.5 | gate 4.5 | chants 3 | molotov 3 | Mom 3 | crowd 3 | the shot 3 |
+             sunrise 3.5 | people running 3 | the grave 3 | title 3
+             (the running crowd is the last thing before the grave)
        55 s: chase 5 | van 5 | phone 5 | gate 5 | chants 3.75 | molotov 3.75 | Mom 3.75 | crowd 3.75 |
              the shot 5 | sunrise 6 | cemetery 6 | title 3
-     the video opens on a pan: a fast camera pan across the first shot that settles in 2 s
-  3. joins them with short fades (a dip to black into the silence and into the title)
+  3. opens on a Pan transition: black whips off to the left as the first shot pans in from the right,
+     eased, with horizontal motion blur; the rest are short dissolves (a dip to black into the
+     silence and into the title)
   4. lays the music over it, keeps a quiet layer of the game's ambient sound underneath
-  5. writes <Team>_CheshmHayash_Trailer.mp4 (the 55 s cut: ..._Trailer_55s.mp4): H.264 1080p, -preset veryfast
-     -crf 20, AAC audio
+  5. writes <Team>_CheshmHayash_Trailer.mp4 (the 55 s cut: ..._Trailer_55s.mp4): H.264 1080p,
+     -preset veryfast -crf 20, AAC audio
 All Farsi text comes from the game itself (no ffmpeg drawtext).
 #>
 param(
@@ -51,22 +55,25 @@ foreach ($tool in 'ffmpeg', 'ffprobe') {
 if (-not (Test-Path $Recording)) { throw "Recording not found: $Recording" }
 if (-not (Test-Path $Music)) { throw "Music not found: $Music  (run Scripts\gen_trailer_music_procedural.py --length $Length)" }
 
-# ---- the shot lengths, matched to the music's sections (seconds) -------------------------------
+# ---- the cut: which recorded shot goes where, and for how long (matched to the music) -----------
+# recorded shots: 0 chase, 1 van, 2 phone, 3 gate, 4 chants, 5 molotov, 6 Mom, 7 crowd,
+#                 8 the shot, 9 sunrise, 10 cemetery, 11 title
 if ($Length -eq 40) {
-    $Durations = @(4.0, 3.5, 3.0, 3.5, 3.0, 3.0, 3.0, 3.0, 3.0, 4.0, 4.0, 3.0)
+    $Order = @(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11)
+    $Durations = @(3.5, 4.5, 4.5, 3.0, 3.0, 3.0, 3.0, 3.0, 3.5, 3.0, 3.0, 3.0)
+    $DipInto = @(7, 11)          # cut positions that dip to black: the shot (silence), the title
 } else {
+    $Order = @(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
     $Durations = @(5.0, 5.0, 5.0, 5.0, 3.75, 3.75, 3.75, 3.75, 5.0, 6.0, 6.0, 3.0)
+    $DipInto = @(8, 11)
 }
+# recorded shots taken from their END: the sun clears the mountains late in the sunrise shot,
+# and the grave shot ends on the tombstone
+$FromEnd = @(9, 10)
 $Total = ($Durations | Measure-Object -Sum).Sum
-# the opening pan: the first shot is framed 130% and the frame sweeps across it, fast then settling
-$PanZoom = 1.3
-$PanTime = 2.0
 $Fade = 0.25          # dissolve between shots
 $Skip = 0.35          # skip the fade-in at the start of every shot
-# these shots are taken from their END (the sun only clears the mountains late in the sunrise shot)
-$FromEnd = @(9)
-# transitions into these shots dip to black (the silence at 35 s, the title)
-$DipInto = @(8, 11)
+$PanTime = 0.6        # the opening Pan transition
 
 $inv = [Globalization.CultureInfo]::InvariantCulture
 function F([double]$v) { return $v.ToString("0.000", $inv) }
@@ -98,23 +105,26 @@ $segments = $segments[($segments.Count - $Durations.Count)..($segments.Count - 1
 $filters = New-Object System.Collections.Generic.List[string]
 $last = $Durations.Count - 1
 for ($i = 0; $i -le $last; $i++) {
+    $shot = $Order[$i]
     $len = $Durations[$i] + $(if ($i -lt $last) { $Fade } else { 0 })
-    $seg = $segments[$i]
+    $seg = $segments[$shot]
     $start = $seg.Start + $Skip
-    if ($FromEnd -contains $i) { $start = [math]::Max($start, $seg.End - $len - 0.2) }
+    if ($FromEnd -contains $shot) { $start = [math]::Max($start, $seg.End - $len - 0.2) }
     if ($start + $len -gt $seg.End) {
-        Write-Warning ("Shot {0} is only {1:0.00} s long; it needs {2:0.00} s. Its last frame will be held." -f ($i + 1), ($seg.End - $start), $len)
+        Write-Warning ("Shot {0} is only {1:0.00} s long; it needs {2:0.00} s. Its last frame will be held." -f ($shot + 1), ($seg.End - $start), $len)
     }
     $filters.Add(("[0:v]trim=start={0}:duration={1},setpts=PTS-STARTPTS,fps=60,scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p,tpad=stop_mode=clone:stop_duration={1}[v{2}]" -f (F $start), (F $len), $i))
-    $pan = ""
     if ($i -eq 0 -and -not $NoPan) {
-        # the opening pan: sweep from the right edge of a 130% frame to the left, fast then settling,
-        # with a little horizontal motion blur on the first frames
-        $pw = [int]([math]::Round(1920 * $PanZoom / 2) * 2)
-        $ph = [int]([math]::Round(1080 * $PanZoom / 2) * 2)
-        $pan = (",scale={0}:{1},crop=1920:1080:x='(iw-ow)*pow(max(0,1-t/{2}),3)':y='(ih-oh)/2',avgblur=sizeX=26:sizeY=1:enable='lt(t,0.22)'" -f $pw, $ph, (F $PanTime))
+        # the Pan transition: black and the first shot side by side, and the frame whips across from
+        # the black to the shot (ease-in-out), blurred sideways while it moves fast
+        $d = F $PanTime
+        $ease = "if(gte(t,$d),1,if(lt(t/$d,0.5),4*pow(t/$d,3),1-pow(2-2*t/$d,3)/2))"
+        $filters.Add(("color=c=black:s=1920x1080:r=60:d={0},format=yuv420p[blk]" -f (F $len)))
+        $filters.Add(("[v0]trim=duration={0},setpts=PTS-STARTPTS[v0t]" -f (F $len)))
+        $filters.Add(("[blk][v0t]hstack=inputs=2,crop=1920:1080:x='1920*{0}':y=0,avgblur=sizeX=22:sizeY=1:enable='between(t,{1},{2})',avgblur=sizeX=22:sizeY=1:enable='between(t,{3},{4})'[w0]" -f $ease, (F ($PanTime * 0.12)), (F ($PanTime * 0.88)), (F ($PanTime * 0.25)), (F ($PanTime * 0.75))))
+    } else {
+        $filters.Add(("[v{0}]trim=duration={1},setpts=PTS-STARTPTS[w{0}]" -f $i, (F $len)))
     }
-    $filters.Add(("[v{0}]trim=duration={1},setpts=PTS-STARTPTS{2}[w{0}]" -f $i, (F $len), $pan))
     if ($hasAudio) {
         $filters.Add(("[0:a]atrim=start={0}:duration={1},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={1}[a{2}]" -f (F $start), (F $len), $i))
     }

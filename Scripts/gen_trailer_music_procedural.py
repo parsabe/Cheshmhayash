@@ -5,8 +5,9 @@
   --length 40 (default): Trailer/template_procedural_40.mp3, and Trailer/template_40.mp3 if none exists
   --length 55:           Trailer/template_procedural.mp3, and Trailer/template.mp3 if none exists
 
-The 40-second cut has the same six sections, shorter: 0-4 chase, 4-14 drones, 14-26 build,
-26-29 silence, 29-37 sunrise theme, 37-40 title. The 55-second layout:
+The 40-second cut has the same six sections, shorter: 0-3.5 opening hit (the van), 3.5-12.5 drones
+(phone, gate), 12.5-24.5 build (chants, molotov, Mom, crowd), 24.5-27.5 silence (the shot),
+27.5-37 sunrise theme (sunrise, people running, the grave), 37-40 title. The 55-second layout:
 
 The structure follows the trailer's shot order exactly (see Scripts/make_trailer.ps1):
    0-5   sudden start: a heavy drum hit, pulsing tension            (the chase)
@@ -59,7 +60,7 @@ def setar_pluck(freq, seconds, rng):
 # They match the shot lengths in Scripts/make_trailer.ps1 for each trailer length.
 SECTIONS = {
     55: (5.0, 20.0, 35.0, 40.0, 52.0, 55.0),
-    40: (4.0, 14.0, 26.0, 29.0, 37.0, 40.0),
+    40: (3.5, 12.5, 24.5, 27.5, 37.0, 40.0),
 }
 
 
