@@ -40,37 +40,35 @@ namespace
 void ACHLoc_FinalRoof::Build(const FString& InVariant)
 {
 	Super::Build(InVariant);
-	InitCity(true, -0.4f);
+	InitCity(true, -1.6f);
 
 	PlayerBoomLength = 300.f;
 	PlayerBoomOffset = FVector(0.f, 50.f, 70.f);
 
-	// ---- the sky before dawn (bright and clear so the rooftops and Alborz mountains are fully visible)
+	// ---- the sky before dawn: dark blue, the city asleep, the mountains a silhouette
 	FCHEnv Env;
 	Env.bSunLightsWorld = true;
 	Env.bSunShadows = true;
-	Env.SunVolumetric = 1.6f;
-	Env.SkyLightIntensity = 2.8f;
-	Env.SkyLightColor = FLinearColor(0.75f, 0.80f, 0.95f);
+	Env.SunVolumetric = 1.8f;
+	Env.SkyLightIntensity = 1.3f;
 	Env.bFog = true;
-	Env.FogDensity = 0.005f;
-	Env.FogHeightFalloff = 0.04f;
-	Env.FogColor = FLinearColor(0.12f, 0.14f, 0.22f);
+	Env.FogDensity = 0.012f;
+	Env.FogHeightFalloff = 0.045f;
+	Env.FogColor = FLinearColor(0.03f, 0.04f, 0.07f);
 	Env.bVolumetricFog = true;
-	Env.VolumetricExtinction = 0.25f;
-	Env.ExposureEV = -0.5f;
-	Env.Grain = 0.18f;
-	Env.Vignette = 0.28f;
-	Env.Fringe = 0.18f;
+	Env.VolumetricExtinction = 0.4f;
+	Env.ExposureEV = -1.6f;
+	Env.Grain = 0.3f;
+	Env.Vignette = 0.45f;
+	Env.Fringe = 0.3f;
 	Env.Bloom = 0.9f;
-	Env.Saturation = 1.05f;
-	Env.Contrast = 1.04f;
+	Env.Saturation = 1.f;
+	Env.Contrast = 1.05f;
 	Env.Temperature = 6400.f;
 	ApplyEnv(Env);
-	// "night": the first night he climbs up here (1.7); warm dawn light in 2.6
+	// "night": the first night he climbs up here (1.7), deep night; otherwise the last minutes before dawn
 	const bool bFirstNight = Variant == TEXT("night");
-	SetSun(bFirstNight ? 12.f : 16.f, 0.f);
-
+	SetSun(bFirstNight ? -16.f : -4.f, 0.f);
 	// Continuous solid floor slab at RoofC across the entire rooftop and beyond so nobody can ever fall or be blocked
 	if (UStaticMeshComponent* RoofFloor = BoxAt(-6000.f, -6000.f, RoofC - 28.f, 16000.f, 12000.f, 28.f, MRoof, true))
 	{
@@ -83,10 +81,10 @@ void ACHLoc_FinalRoof::Build(const FString& InVariant)
 	BuildRoof(-450.f, -700.f, 1330.f, 1200.f, RoofC, 1 | 2 | 4 | 8, 12);
 	BuildRoof(880.f, -550.f, 1120.f, 1200.f, RoofC, 1 | 2 | 4 | 8, 13);
 
-	// Warm rooftop lights along his path so everything is clearly lit
+	// a few dim lamps on the roofs along his path
 	for (float LX = -1300.f; LX <= 1800.f; LX += 620.f)
 	{
-		PointLight(FVector(LX, 60.f, RoofC + 260.f), FLinearColor(1.f, 0.78f, 0.52f), 14.f, 1400.f, false, 0.4f);
+		PointLight(FVector(LX, 60.f, RoofC + 260.f), FLinearColor(1.f, 0.72f, 0.45f), 2.5f, 900.f, false, 0.4f);
 	}
 
 	// the stair head he came up through, its door open
@@ -251,40 +249,42 @@ void ACHLoc_FinalRoof::SetSun(float Elevation, float Warmth)
 	{
 		return;
 	}
-	const float SafeElev = FMath::Max(Elevation, 12.f);
+	// 0 before dawn .. 1 when the sun stands clear of the horizon
 	const float Up = FMath::Clamp((Elevation + 4.f) / 20.f, 0.f, 1.f);
 	const float Smooth = FMath::SmoothStep(0.f, 1.f, Up);
 
-	Sun->SetWorldRotation(FRotator(-SafeElev, SunAzimuth + 180.f, 0.f));
-	Sun->SetIntensity(FMath::Lerp(10.f, 16.f, Smooth));
-	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.65f, 0.42f), FLinearColor(1.f, 0.85f, 0.64f), Smooth));
+	Sun->SetWorldRotation(FRotator(-Elevation, SunAzimuth + 180.f, 0.f));
+	Sun->SetIntensity(FMath::Lerp(8.f, 14.f, Smooth));
+	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.38f, 0.14f), FLinearColor(1.f, 0.80f, 0.56f), Smooth));
 	if (SkyLight)
 	{
-		SkyLight->SetIntensity(FMath::Lerp(2.8f, 2.4f, Smooth));
+		SkyLight->SetIntensity(FMath::Lerp(1.4f, 1.1f, Smooth));
 	}
 
-	const float EV = FMath::Lerp(-0.5f, 0.2f, Smooth);
+	// from the blue before dawn to the brightest, warmest moment of the game
+	const float EV = FMath::Lerp(-1.6f, 1.5f, Smooth);
 	CHLight::SetExposure(EV);
 	if (PostProcess)
 	{
 		FPostProcessSettings& S = PostProcess->Settings;
 		S.AutoExposureMinBrightness = EV;
 		S.AutoExposureMaxBrightness = EV;
-		S.AutoExposureBias = 1.2f;
-		S.BloomIntensity = FMath::Lerp(0.8f, 1.4f, Smooth);
-		S.WhiteTemp = FMath::Lerp(6300.f, 7400.f, Smooth);
-		const float Saturation = FMath::Lerp(1.02f, 1.18f, Smooth);
+		S.AutoExposureBias = 0.f;
+		S.BloomIntensity = FMath::Lerp(0.8f, 1.5f, Smooth);
+		S.WhiteTemp = FMath::Lerp(6300.f, 7600.f, Smooth);
+		const float Saturation = FMath::Lerp(0.98f, 1.2f, Smooth);
 		S.ColorSaturation = FVector4(Saturation, Saturation, Saturation, 1.0);
-		const float Contrast = FMath::Lerp(1.04f, 1.10f, Smooth);
+		const float Contrast = FMath::Lerp(1.05f, 1.14f, Smooth);
 		S.ColorContrast = FVector4(Contrast, Contrast, Contrast, 1.0);
-		S.FilmGrainIntensity = FMath::Lerp(0.18f, 0.10f, Smooth);
-		S.VignetteIntensity = FMath::Lerp(0.28f, 0.22f, Smooth);
+		S.FilmGrainIntensity = FMath::Lerp(0.3f, 0.12f, Smooth);
+		S.VignetteIntensity = FMath::Lerp(0.5f, 0.38f, Smooth);
 	}
 	if (Fog)
 	{
-		Fog->SetFogDensity(FMath::Lerp(0.005f, 0.003f, Smooth));
-		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.12f, 0.14f, 0.22f), FLinearColor(0.24f, 0.16f, 0.10f), Smooth));
-		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.35f, 0.20f, 0.12f), FLinearColor(0.75f, 0.42f, 0.18f), Smooth));
+		// the haze thins as the sun comes up, so the sky keeps its colour
+		Fog->SetFogDensity(FMath::Lerp(0.012f, 0.0045f, Smooth));
+		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.03f, 0.04f, 0.07f), FLinearColor(0.09f, 0.055f, 0.035f), Smooth));
+		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.2f, 0.08f, 0.03f), FLinearColor(0.7f, 0.33f, 0.12f), Smooth));
 	}
 }
 

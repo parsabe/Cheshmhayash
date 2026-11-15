@@ -27,11 +27,11 @@
       "music": "music_menu",
       "ambient": "amb_wind",
       "location": "FinalRoof",
+      "variant": "night",
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
         { "type": "place", "mark": "Body", "hidden": true },
-        { "type": "camera", "mark": "PhoneView" },
-        { "type": "event", "name": "sunrise", "to": 14, "time": 260 },
+        { "type": "camera", "mark": "MountainWide" },
         { "type": "fade", "to": 0, "time": 2.5, "wait": false },
         { "type": "mainmenu" }
       ]

@@ -55,7 +55,16 @@ void ACHLoc_Streets::BuildDay()
 	UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
 	FRandomStream Rng(2201);
 
-	ApplyEnv(DayEnv(true));
+	// the taxi ride (1.5) is at night; the run to Vozara (1.2) is the afternoon she was taken
+	const bool bNightRide = Variant == TEXT("taxi");
+	if (bNightRide)
+	{
+		NightEnv(-1.3f, 0.03f);
+	}
+	else
+	{
+		ApplyEnv(DayEnv(true));
+	}
 	BuildAlborz(55.f, FLinearColor(0.34f, 0.37f, 0.44f), FLinearColor(0.85f, 0.86f, 0.88f), 900000.f, true);
 
 	Ground(-3500.f, -4500.f, 13500.f, 4500.f);
@@ -92,7 +101,7 @@ void ACHLoc_Streets::BuildDay()
 	for (float LampX = 300.f; LampX < 11000.f; LampX += 1400.f)
 	{
 		const bool bNorth = (FMath::RoundToInt32(LampX / 1400.f) % 2) == 0;
-		Lamp(FVector(LampX, bNorth ? DayEdge - 70.f : -DayEdge + 70.f, 14.f), bNorth ? -90.f : 90.f, false);
+		Lamp(FVector(LampX, bNorth ? DayEdge - 70.f : -DayEdge + 70.f, 14.f), bNorth ? -90.f : 90.f, bNightRide);
 	}
 	for (float WireX = 900.f; WireX < 10800.f; WireX += 2300.f)
 	{
@@ -156,7 +165,15 @@ void ACHLoc_Streets::BuildCampus()
 {
 	FRandomStream Rng(2101);
 
-	ApplyEnv(DayEnv(false));
+	// the sit-in goes on into the night: the yard lit by a few lamps and the faculty windows
+	NightEnv(-1.3f, 0.03f);
+	Lamp(FVector(-1700.f, -1500.f, 3.f), 90.f, true, false);
+	Lamp(FVector(1700.f, -1500.f, 3.f), 90.f, true, false);
+	Lamp(FVector(-2400.f, 600.f, 3.f), 0.f, true, false);
+	Lamp(FVector(2400.f, 600.f, 3.f), 180.f, true, true);
+	PointLight(FVector(0.f, 900.f, 420.f), FLinearColor(1.f, 0.62f, 0.32f), 30.f, 2800.f, true, 0.6f);
+	PointLight(FVector(-1200.f, -400.f, 380.f), FLinearColor(1.f, 0.66f, 0.36f), 14.f, 1800.f, false, 0.4f);
+	PointLight(FVector(1200.f, -400.f, 380.f), FLinearColor(1.f, 0.66f, 0.36f), 14.f, 1800.f, false, 0.4f);
 	BuildAlborz(80.f, FLinearColor(0.34f, 0.37f, 0.44f), FLinearColor(0.85f, 0.86f, 0.88f), 900000.f, true);
 
 	UMaterialInterface* Paving = Lit(FLinearColor(0.42f, 0.40f, 0.36f), 0.9f, 0.5f);

@@ -314,31 +314,30 @@ void ACHLoc_Cemetery::SetSun(float Elevation)
 	{
 		return;
 	}
-	const float SafeElev = FMath::Max(Elevation, 14.f);
 	const float Up = FMath::Clamp((Elevation + 1.f) / 11.f, 0.f, 1.f);
 	const float Smooth = FMath::SmoothStep(0.f, 1.f, Up);
-	Sun->SetWorldRotation(FRotator(-SafeElev, SunAzimuth + 180.f, 0.f));
-	Sun->SetIntensity(FMath::Lerp(10.f, 14.f, Smooth));
-	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.65f, 0.42f), FLinearColor(1.f, 0.85f, 0.64f), Smooth));
+	Sun->SetWorldRotation(FRotator(-Elevation, SunAzimuth + 180.f, 0.f));
+	Sun->SetIntensity(FMath::Lerp(8.f, 12.f, Smooth));
+	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.42f, 0.16f), FLinearColor(1.f, 0.80f, 0.58f), Smooth));
 	if (SkyLight)
 	{
-		SkyLight->SetIntensity(FMath::Lerp(2.8f, 2.2f, Smooth));
+		SkyLight->SetIntensity(FMath::Lerp(3.f, 1.2f, Smooth));
 	}
-	const float EV = FMath::Lerp(-0.4f, 0.2f, Smooth);
+	const float EV = FMath::Lerp(-2.4f, 1.0f, Smooth);
 	CHLight::SetExposure(EV);
 	if (PostProcess)
 	{
 		FPostProcessSettings& S = PostProcess->Settings;
 		S.AutoExposureMinBrightness = EV;
 		S.AutoExposureMaxBrightness = EV;
-		S.AutoExposureBias = 1.15f;
+		S.AutoExposureBias = 0.f;
 		S.WhiteTemp = FMath::Lerp(6400.f, 7200.f, Smooth);
 		S.BloomIntensity = FMath::Lerp(0.8f, 1.2f, Smooth);
 	}
 	if (Fog)
 	{
-		Fog->SetFogDensity(FMath::Lerp(0.005f, 0.003f, Smooth));
-		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.14f, 0.14f, 0.20f), FLinearColor(0.22f, 0.16f, 0.12f), Smooth));
+		Fog->SetFogDensity(FMath::Lerp(0.014f, 0.006f, Smooth));
+		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.05f, 0.05f, 0.07f), FLinearColor(0.09f, 0.06f, 0.045f), Smooth));
 		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.35f, 0.20f, 0.12f), FLinearColor(0.65f, 0.35f, 0.15f), Smooth));
 	}
 }

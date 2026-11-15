@@ -1,4 +1,4 @@
-// Cheshm Hayash - the next protest, the morning after the rooftop (2.7). The whole street is out,
+// Cheshm Hayash - the next protest, the night after the rooftop (2.7). The whole street is out,
 // he with them. A truck comes with a heavy machine gun (a DShK) on its bed and they fire into the
 // people. No blood is ever shown: people fall, people run. A bullet takes his left eye; he falls.
 // Then, far from the street, only his family, in a warm light: the last thing he sees.
@@ -40,28 +40,9 @@ void ACHLoc_Streets::BuildMassacre()
 {
 	FRandomStream Rng(2507);
 
-	// the morning after: a low sun at the far end of the avenue, smoke still hanging from the night
-	FCHEnv Env;
-	Env.SunRotation = FRotator(-9.f, 180.f, 0.f);
-	Env.SunIntensity = 7.f;
-	Env.SunColor = FLinearColor(1.f, 0.72f, 0.45f);
-	Env.SunVolumetric = 2.f;
-	Env.SkyLightIntensity = 1.6f;
-	Env.FogDensity = 0.03f;
-	Env.FogHeightFalloff = 0.05f;
-	Env.FogColor = FLinearColor(0.32f, 0.26f, 0.22f);
-	Env.bVolumetricFog = true;
-	Env.VolumetricExtinction = 0.6f;
-	Env.ExposureEV = -0.4f;
-	Env.Grain = 0.3f;
-	Env.Vignette = 0.5f;
-	Env.Fringe = 0.3f;
-	Env.Bloom = 0.8f;
-	Env.Saturation = 0.85f;
-	Env.Contrast = 1.06f;
-	Env.Temperature = 6900.f;
-	ApplyEnv(Env);
-	BuildAlborz(-15.f, FLinearColor(0.30f, 0.27f, 0.28f), FLinearColor(0.85f, 0.78f, 0.72f), 900000.f, true);
+	// the next night: the whole avenue out again in the dark, lit by lamps and fires
+	NightEnv(-1.3f, 0.04f);
+	BuildAlborz(15.f, FLinearColor(0.010f, 0.012f, 0.020f), FLinearColor(0.05f, 0.055f, 0.07f));
 	Ground(-3000.f, -5000.f, 11000.f, 5000.f);
 
 	StreetX(-900.f, 9000.f, 0.f, MsRoad, MsWalk, 71);
@@ -87,16 +68,18 @@ void ACHLoc_Streets::BuildMassacre()
 	Block(-2400.f, -MsEdge - 1500.f, -900.f, MsEdge + 1500.f, 6, 2, 0, 340);
 	for (float LampX = 0.f; LampX < 8800.f; LampX += 1400.f)
 	{
-		Lamp(FVector(LampX, MsEdge - 80.f, 14.f), -90.f, false, false);
-		Lamp(FVector(LampX + 700.f, -MsEdge + 80.f, 14.f), 90.f, false, false);
+		Lamp(FVector(LampX, MsEdge - 80.f, 14.f), -90.f, true, false);
+		Lamp(FVector(LampX + 700.f, -MsEdge + 80.f, 14.f), 90.f, true, false);
 	}
 	for (float WireX = 500.f; WireX < 8800.f; WireX += 2000.f)
 	{
 		Wires(FVector(WireX, -MsEdge, 700.f), FVector(WireX + 300.f, MsEdge, 720.f), 180.f);
 	}
 	// the night's barricades, still smouldering
-	Fire(FVector(3300.f, 520.f, 0.f), 1.1f, true, 11);
-	Fire(FVector(3150.f, -560.f, 0.f), 0.9f, false, 12);
+	Fire(FVector(3300.f, 520.f, 0.f), 1.3f, true, 11);
+	Fire(FVector(3150.f, -560.f, 0.f), 1.1f, true, 12);
+	Fire(FVector(1200.f, 560.f, 0.f), 1.0f, true, 13);
+	Fire(FVector(600.f, -480.f, 0.f), 0.9f, false, 14);
 	Car(FVector(3400.f, -250.f, 0.f), 70.f, FLinearColor::Black, true);
 
 	// ---- the people, and him among them

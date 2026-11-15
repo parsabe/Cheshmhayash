@@ -82,32 +82,33 @@ void ACHCityBuilder::InitCity(bool bInNight, float ExposureEV)
 void ACHCityBuilder::NightEnv(float ExposureEV, float FogDensity)
 {
 	FCHEnv Env;
-	// Clear moonlight and twilight sky fill so night streets and mountains are always clearly visible
-	Env.SunRotation = FRotator(-24.f, 60.f, 0.f);
-	Env.SunIntensity = 6.5f;
-	Env.SunColor = FLinearColor(0.65f, 0.76f, 1.f);
-	Env.bSunLightsWorld = true;
-	Env.bSunShadows = true;
+	// A real night: the people shout in the dark. The sun is far below the horizon and only colours
+	// the sky edge a cold blue; a faint moon and sky keep the shapes of the street and the mountains;
+	// the light itself comes from lamps, windows and fires.
+	Env.SunRotation = FRotator(9.f, 60.f, 0.f);
+	Env.SunIntensity = 2.f;
+	Env.bSunLightsWorld = false;
+	Env.bSunShadows = false;
 	Env.bMoon = true;
 	Env.MoonRotation = FRotator(-38.f, -130.f, 0.f);
-	Env.MoonIntensity = 4.2f;
-	Env.MoonColor = FLinearColor(0.62f, 0.74f, 1.f);
-	Env.SkyLightIntensity = 2.8f;
-	Env.SkyLightColor = FLinearColor(0.68f, 0.78f, 1.f);
+	Env.MoonIntensity = 0.12f;
+	Env.MoonColor = FLinearColor(0.5f, 0.62f, 1.f);
+	Env.SkyLightIntensity = 0.5f;
+	Env.SkyLightColor = FLinearColor(0.55f, 0.65f, 1.f);
 	Env.bFog = true;
-	Env.FogDensity = FMath::Min(FogDensity, 0.010f);
-	Env.FogHeightFalloff = 0.06f;
-	Env.FogColor = FLinearColor(0.08f, 0.10f, 0.16f);
+	Env.FogDensity = FogDensity;
+	Env.FogHeightFalloff = 0.09f;
+	Env.FogColor = FLinearColor(0.010f, 0.010f, 0.016f);
 	Env.bVolumetricFog = true;
-	Env.VolumetricExtinction = 0.45f;
-	Env.ExposureEV = -0.8f;
-	Env.Grain = 0.22f;
-	Env.Vignette = 0.32f;
-	Env.Fringe = 0.25f;
-	Env.Bloom = 0.8f;
-	Env.Saturation = 0.98f;
-	Env.Contrast = 1.04f;
-	Env.Temperature = 6100.f;
+	Env.VolumetricExtinction = 1.3f;
+	Env.ExposureEV = ExposureEV;
+	Env.Grain = 0.4f;
+	Env.Vignette = 0.6f;
+	Env.Fringe = 0.5f;
+	Env.Bloom = 1.0f;
+	Env.Saturation = 0.95f;
+	Env.Contrast = 1.08f;
+	Env.Temperature = 5900.f;
 	ApplyEnv(Env);
 }
 

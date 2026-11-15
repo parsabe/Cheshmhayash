@@ -8,8 +8,9 @@
 void ACHLoc_Streets::Build(const FString& InVariant)
 {
 	Super::Build(InVariant);
-	const bool bDay = Variant == TEXT("day") || Variant == TEXT("campus") || Variant == TEXT("massacre");
-	InitCity(!bDay, Variant == TEXT("massacre") ? -0.4f : (bDay ? -0.7f : -1.4f));
+	// only the day she was taken is in daylight; every other street is at night
+	const bool bDay = Variant == TEXT("day");
+	InitCity(!bDay, bDay ? -0.7f : -1.4f);
 
 	PlayerBoomLength = 330.f;
 	PlayerBoomOffset = FVector(0.f, 55.f, 75.f);
@@ -22,7 +23,7 @@ void ACHLoc_Streets::Build(const FString& InVariant)
 	{
 		BuildLastNight();
 	}
-	else if (Variant == TEXT("day"))
+	else if (Variant == TEXT("day") || Variant == TEXT("taxi"))
 	{
 		BuildDay();
 	}

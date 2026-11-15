@@ -662,7 +662,8 @@ USpotLightComponent* ACHLevelBuilder::SpotLight(const FVector& Location, const F
 
 void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 {
-	const float EffectiveEV = FMath::Min(Env.ExposureEV, -0.4f);
+	// every location's own lighting is used as designed (no global brightness floors)
+	const float EffectiveEV = Env.ExposureEV;
 	CHLight::SetExposure(Env.ExposureEV);
 
 	// --- sun
@@ -675,17 +676,13 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 		Sun->SetAtmosphereSunLightIndex(0);
 		Sun->RegisterComponent();
 	}
-	FRotator SunRot = Env.SunRotation;
-	if (SunRot.Pitch > -12.f)
-	{
-		SunRot.Pitch = -18.f;
-	}
-	Sun->SetWorldRotation(SunRot);
-	Sun->SetIntensity(FMath::Max(Env.SunIntensity, 5.5f));
+	Sun->SetWorldRotation(Env.SunRotation);
+	Sun->SetIntensity(Env.SunIntensity);
 	Sun->SetLightColor(Env.SunColor);
 	Sun->SetCastShadows(Env.bSunShadows);
 	Sun->SetVolumetricScatteringIntensity(Env.SunVolumetric);
-	Sun->SetLightingChannels(true, false, false);
+	// bSunLightsWorld false: the sun only colours the sky (night); it lights nothing
+	Sun->SetLightingChannels(Env.bSunLightsWorld, false, false);
 
 	// --- moon / fill
 	if (Env.bMoon)
@@ -699,7 +696,9 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 			Moon->RegisterComponent();
 		}
 		Moon->SetWorldRotation(Env.MoonRotation);
-		Moon->SetIntensity(FMath::Max(Env.MoonIntensity, 3.2f));
+		Moon->SetIntensity(Env.MoonIntensity);
+			// the sun stays the one light used for fog and translucency (no on-screen warning)
+			Moon->ForwardShadingPriority = -1;
 		Moon->SetLightColor(Env.MoonColor);
 		Moon->SetCastShadows(true);
 		Moon->SetVisibility(true);
@@ -722,11 +721,11 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 		SkyLight = NewObject<USkyLightComponent>(this);
 		SkyLight->SetMobility(EComponentMobility::Movable);
 		SkyLight->SetupAttachment(Root);
-		SkyLight->SetRealTimeCapture(Env.bAtmosphere && Env.SunRotation.Pitch < -10.f);
+		SkyLight->SetRealTimeCapture(Env.bAtmosphere);
 		SkyLight->bLowerHemisphereIsBlack = false;
 		SkyLight->RegisterComponent();
 	}
-	SkyLight->SetIntensity(FMath::Max(Env.SkyLightIntensity, 2.4f));
+	SkyLight->SetIntensity(Env.SkyLightIntensity);
 	SkyLight->SetLightColor(Env.SkyLightColor);
 
 	// --- fog
@@ -740,16 +739,13 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 			Fog->RegisterComponent();
 		}
 		Fog->SetWorldLocation(FVector(0.f, 0.f, Env.FogZ));
-		Fog->SetFogDensity(FMath::Min(Env.FogDensity, 0.012f));
+		Fog->SetFogDensity(Env.FogDensity);
 		Fog->SetFogHeightFalloff(Env.FogHeightFalloff);
-		Fog->SetFogInscatteringColor(FLinearColor(
-			FMath::Max(Env.FogColor.R, 0.08f),
-			FMath::Max(Env.FogColor.G, 0.09f),
-			FMath::Max(Env.FogColor.B, 0.13f)));
+		Fog->SetFogInscatteringColor(Env.FogColor);
 		Fog->SetStartDistance(Env.FogStartDistance);
 		Fog->SetFogMaxOpacity(Env.FogMaxOpacity);
 		Fog->SetVolumetricFog(Env.bVolumetricFog);
-		Fog->SetVolumetricFogExtinctionScale(FMath::Min(Env.VolumetricExtinction, 0.5f));
+		Fog->SetVolumetricFogExtinctionScale(Env.VolumetricExtinction);
 		Fog->SetVisibility(true);
 	}
 	else if (Fog)
@@ -775,7 +771,7 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 	S.AutoExposureMinBrightness = EffectiveEV;
 	S.AutoExposureMaxBrightness = EffectiveEV;
 	S.bOverride_AutoExposureBias = true;
-	S.AutoExposureBias = Env.ExposureEV < -0.5f ? 1.35f : 0.45f;
+	S.AutoExposureBias = 0.f;
 	S.bOverride_LocalExposureHighlightContrastScale = true;
 	S.LocalExposureHighlightContrastScale = 1.f;
 	S.bOverride_LocalExposureShadowContrastScale = true;
@@ -784,7 +780,7 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 	S.bOverride_FilmGrainIntensity = true;
 	S.FilmGrainIntensity = Env.Grain;
 	S.bOverride_VignetteIntensity = true;
-	S.VignetteIntensity = FMath::Min(Env.Vignette, 0.35f);
+	S.VignetteIntensity = Env.Vignette;
 	S.bOverride_SceneFringeIntensity = true;
 	S.SceneFringeIntensity = Env.Fringe;
 	S.bOverride_BloomIntensity = true;
