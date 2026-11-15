@@ -32,3 +32,9 @@ Packaged/
 Trailer/*_CheshmHayash_Trailer.mp4
 Trailer/recording*
 
+
+# Unreal build output and local data (never committed: GitHub rejects files over 100 MB)
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
