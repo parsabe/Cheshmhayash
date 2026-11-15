@@ -333,6 +333,9 @@ private:
 	bool bDevGhost = false;
 	bool bDevQuit = false;
 	bool bDevTrailer = false;
+	// -chdump: save every frame, UI included, to Saved/Dump (use with -benchmark -fps=30 to record the trailer)
+	bool bDevDump = false;
+	int32 DevDumpFrame = 0;
 	bool bDevKeys = false;
 	TArray<float> DevShotTimes;
 	TArray<FString> DevInterludes;

@@ -2482,6 +2482,7 @@ void UCHStoryDirector::ParseDevOptions()
 	}
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
 	bDevTrailer = FParse::Param(CommandLine, TEXT("chtrailer"));
+	bDevDump = FParse::Param(CommandLine, TEXT("chdump"));
 	FParse::Value(CommandLine, TEXT("chpause="), DevPauseAt);
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
 
@@ -2516,6 +2517,13 @@ void UCHStoryDirector::DevTick()
 	{
 		PlayInterlude(DevInterludes[0]);
 		DevInterludes.RemoveAt(0);
+	}
+
+	if (bDevDump)
+	{
+		const FString File = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("Dump") /
+			FString::Printf(TEXT("frame_%05d.png"), DevDumpFrame++));
+		FScreenshotRequest::RequestScreenshot(File, true, false);
 	}
 
 	if (DevShotTimes.Num() == 0)
