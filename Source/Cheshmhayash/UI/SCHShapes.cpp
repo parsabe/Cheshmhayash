@@ -1,4 +1,4 @@
-// Cheshm Hayash - tiny custom-painted widgets.
+﻿// Cheshm Hayash - tiny custom-painted widgets.
 
 #include "UI/SCHShapes.h"
 #include "UI/CHStyle.h"
@@ -50,25 +50,25 @@ int32 SCHEyeShade::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	}
 	const FVector2f Size = FVector2f(AllottedGeometry.GetLocalSize());
 	const float Soft = Size.X * 0.09f;
-	// the dark reaches the centre line when fully closed; the soft edge sits just outside it
-	const float EdgeX = Size.X - (Size.X * 0.5f + Soft) * Amount;
-	const float SolidX = EdgeX + Soft;
+	// His LEFT eye (as in the poem): the dark comes from the left edge and reaches the centre line
+	// when fully closed; the soft edge sits just outside it
+	const float EdgeX = (Size.X * 0.5f + Soft) * Amount;
+	const float SolidW = EdgeX - Soft;
 
-	if (SolidX < Size.X)
+	if (SolidW > 0.f)
 	{
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
-			AllottedGeometry.ToPaintGeometry(FVector2f(Size.X - SolidX, Size.Y), FSlateLayoutTransform(FVector2f(SolidX, 0.f))),
+			AllottedGeometry.ToPaintGeometry(FVector2f(SolidW, Size.Y), FSlateLayoutTransform(FVector2f(0.f, 0.f))),
 			CH::WhiteBrush(), ESlateDrawEffect::None, FLinearColor::Black);
 	}
 	TArray<FSlateGradientStop> Stops;
-	Stops.Emplace(FVector2D(0.0, 0.0), FLinearColor(0.f, 0.f, 0.f, 0.f));
-	Stops.Emplace(FVector2D(Soft, 0.0), FLinearColor(0.f, 0.f, 0.f, 1.f));
+	Stops.Emplace(FVector2D(0.0, 0.0), FLinearColor(0.f, 0.f, 0.f, 1.f));
+	Stops.Emplace(FVector2D(Soft, 0.0), FLinearColor(0.f, 0.f, 0.f, 0.f));
 	FSlateDrawElement::MakeGradient(OutDrawElements, LayerId,
-		AllottedGeometry.ToPaintGeometry(FVector2f(Soft, Size.Y), FSlateLayoutTransform(FVector2f(EdgeX, 0.f))),
+		AllottedGeometry.ToPaintGeometry(FVector2f(Soft, Size.Y), FSlateLayoutTransform(FVector2f(FMath::Max(0.f, SolidW), 0.f))),
 		MoveTemp(Stops), Orient_Vertical);
 	return LayerId;
 }
-
 int32 SCHSunEngraving::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {

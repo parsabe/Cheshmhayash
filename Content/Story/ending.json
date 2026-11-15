@@ -18,68 +18,68 @@
         },
         { "type": "audio", "cut": true },
         { "type": "silence", "seconds": 5.0 },
-        {
-          "type": "card",
-          "fa": ["به یاد حسام"],
-          "en": ["In loving memory of Hesam"],
-          "type_rate": 2.6,
-          "delay": 1.2,
-          "hold": 7.0,
-          "fa_size": 54,
-          "en_size": 26,
-          "skippable": false
-        },
+        { "type": "memorial", "on": true },
+        { "type": "silence", "seconds": 21.0 },
+        { "type": "audio", "music": "music_final", "fade": 4.0, "volume": 0.7 },
         { "type": "silence", "seconds": 2.5 },
-        { "type": "audio", "music": "music_setar_resolved", "fade": 4.0, "volume": 0.6 },
         {
           "type": "card",
+          "below": true,
           "fa": ["چشم‌هایش"],
           "en": ["CHESHM HAYASH  ·  HIS EYES"],
           "hold": 4.0,
           "fa_size": 40,
-          "en_size": 18
+          "en_size": 20
         },
         {
           "type": "card",
+          "below": true,
           "fa": ["بازی از پارسا بشارت"],
           "en": ["Game by Parsa Besharat", "Parsabe.com"],
           "hold": 4.0,
           "fa_size": 30,
-          "en_size": 20
+          "en_size": 22
         },
         {
           "type": "card",
-          "fa": ["داستان: به یاد حسام"],
-          "en": ["Story: in loving memory of Hesam"],
+          "below": true,
+          "fa": ["ساخته‌شده با آنریل انجین", "کد نوشته‌شده با عامل‌های هوش مصنوعی (Claude Code)"],
+          "en": ["Built with Unreal Engine", "AI agents (Claude Code)"],
           "hold": 4.0,
-          "fa_size": 30,
-          "en_size": 20
+          "fa_size": 28,
+          "en_size": 22
         },
         {
           "type": "card",
-          "fa": ["ساخته‌شده با آنریل انجین", "کد نوشته‌شده با عامل‌های هوش مصنوعی"],
-          "en": ["Built with Unreal Engine", "Code written with AI agents"],
-          "hold": 4.0,
-          "fa_size": 30,
-          "en_size": 20
+          "below": true,
+          "fa": ["موسیقی و صدا: fal"],
+          "en": ["Music and sound: fal"],
+          "hold": 3.5,
+          "fa_size": 28,
+          "en_size": 22
         },
         {
           "type": "card",
+          "below": true,
           "fa": ["فونت: وزیرمتن"],
           "en": ["Font: Vazirmatn (SIL Open Font License)"],
           "hold": 3.5,
-          "fa_size": 30,
-          "en_size": 20
+          "fa_size": 28,
+          "en_size": 22
         },
         {
           "type": "card",
+          "below": true,
           "fa": ["زن · زندگی · آزادی"],
           "en": ["Woman · Life · Freedom"],
-          "hold": 6.0,
+          "hold": 5.5,
           "fa_size": 40,
-          "en_size": 22
+          "en_size": 24
         },
-        { "type": "silence", "seconds": 3.0 }
+        { "type": "audio", "music": "none", "fade": 5.0 },
+        { "type": "silence", "seconds": 6.0 },
+        { "type": "memorial", "on": false, "fade": 4.0 },
+        { "type": "silence", "seconds": 5.0 }
       ]
     }
   ]

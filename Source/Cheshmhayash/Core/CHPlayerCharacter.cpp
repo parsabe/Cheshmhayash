@@ -69,6 +69,7 @@ ACHPlayerCharacter::ACHPlayerCharacter()
 void ACHPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	SetBoom(0.f, FVector::ZeroVector);
 	SetLook(TEXT("he"));
 }
 
@@ -94,9 +95,10 @@ void ACHPlayerCharacter::SetPace(bool bSprint, bool bSneak)
 
 void ACHPlayerCharacter::SetBoom(float Length, const FVector& Offset)
 {
-	// first person in small interiors: the camera sits at eye height, the body is hidden from its
-	// own view but still casts a shadow
-	bFirstPerson = Length < 1.f;
+	// UPDATE 02: the whole game is first person. The camera sits at eye height, the body is hidden
+	// from its own view but still casts a shadow.
+	Length = 0.f;
+	bFirstPerson = true;
 	BaseArm = bFirstPerson ? 0.f : Length;
 
 	CameraBoom->TargetArmLength = BaseArm;
@@ -131,6 +133,20 @@ void ACHPlayerCharacter::Tick(float DeltaSeconds)
 	if (!FMath::IsNearlyEqual(FOV, FollowCamera->FieldOfView, 0.01f))
 	{
 		FollowCamera->SetFieldOfView(FOV);
+	}
+	if (bFirstPerson)
+	{
+		// head bob: subtle walking, a little stronger running, none when standing still
+		const float Speed = GetVelocity().Size2D();
+		const bool bGround = GetCharacterMovement()->IsMovingOnGround();
+		const float Moving = bGround ? FMath::Clamp(Speed / JogSpeed, 0.f, 1.6f) : 0.f;
+		BobPhase += DeltaSeconds * (4.f + 5.f * Moving) * (Moving > 0.05f ? 1.f : 0.f);
+		const float Amp = (Speed > JogSpeed + 30.f) ? 3.2f : 1.7f;
+		const float Target = Moving > 0.05f ? 1.f : 0.f;
+		BobBlend = FMath::FInterpTo(BobBlend, Target, DeltaSeconds, 8.f);
+		const float Z = FMath::Sin(BobPhase * 2.f) * Amp * BobBlend;
+		const float Y = FMath::Sin(BobPhase) * Amp * 0.6f * BobBlend;
+		CameraBoom->SetRelativeLocation(FVector(0.f, Y, 70.f + Z));
 	}
 	if (!bFirstPerson)
 	{

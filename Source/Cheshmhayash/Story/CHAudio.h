@@ -1,4 +1,4 @@
-// Cheshm Hayash - sound. One music track and one ambience at a time, cross-faded; a heartbeat
+﻿// Cheshm Hayash - sound. One music track and one ambience at a time, cross-faded; a heartbeat
 // that takes over near the morality police van; fast percussion when he is spotted; the soft
 // key click that stands in for every voice. All sounds are /Game/Audio/<name> sound waves
 // (generated, never recorded). A missing sound is simply silent.
@@ -26,7 +26,7 @@ public:
 	void PlaySfx(const UObject* WorldContext, const FString& Name, float Volume = 1.f);
 	void TypeTick(const UObject* WorldContext, bool bPhone);
 	/** Stealth layers. bNearVan: only a heartbeat. bChased: fast percussion over a ducked score. */
-	void Update(const UObject* WorldContext, bool bNearVan, bool bChased);
+	void Update(const UObject* WorldContext, bool bNearVan, float Suspicion, bool bChased);
 
 private:
 	USoundWave* Find(const FString& Name);
@@ -46,7 +46,13 @@ private:
 	TObjectPtr<UAudioComponent> Heart;
 
 	UPROPERTY()
+	TObjectPtr<UAudioComponent> SuspicionLayer;
+
+	UPROPERTY()
 	TObjectPtr<UAudioComponent> Chase;
+
+	bool bWasNearVan = false;
+	bool bWasChased = false;
 
 	/** Fading out; kept alive until they stop. */
 	UPROPERTY()

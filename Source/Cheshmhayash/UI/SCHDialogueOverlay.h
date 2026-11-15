@@ -1,4 +1,4 @@
-// Cheshm Hayash - dialogue. There are no voices: every line is text, Farsi on top, English below,
+﻿// Cheshm Hayash - dialogue. There are no voices: every line is text, Farsi on top, English below,
 // typed out letter by letter.
 
 #pragma once
@@ -15,10 +15,12 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	/** Starts typing a new line. Speaker names may be empty (narration / thought). */
-	void ShowLine(const FString& InSpeakerFa, const FString& InSpeakerEn, const FString& InFa, const FString& InEn, float InRate = 30.f);
+	void ShowLine(const FString& InSpeakerFa, const FString& InSpeakerEn, const FString& InFa, const FString& InEn, float InRate = 30.f, const FLinearColor& InTint = FLinearColor(0.9f, 0.86f, 0.78f, 1.f));
 	void Advance(float DeltaTime);
 
 	bool IsShown() const { return bShown; }
+	/** Shows the small "Enter / Click to continue" hint under the line. */
+	void SetHint(bool bInHint) { bHint = bInHint; }
 	bool IsTyping() const { return bShown && Revealed < 1.f; }
 	/** Reveals the whole line at once. */
 	void CompleteNow();
@@ -43,6 +45,7 @@ private:
 	FSlateColor GetCursorColor() const;
 	FLinearColor GetBandColor() const;
 	FLinearColor GetShadowColor() const;
+	FSlateColor GetHintColor() const;
 
 	FString SpeakerFa;
 	FString SpeakerEn;
@@ -56,5 +59,7 @@ private:
 	float Blink = 0.f;
 	int32 LastFaCount = 0;
 	bool bShown = false;
+	bool bHint = false;
+	FLinearColor Tint = FLinearColor(0.9f, 0.86f, 0.78f, 1.f);
 	bool bTypeTick = false;
 };

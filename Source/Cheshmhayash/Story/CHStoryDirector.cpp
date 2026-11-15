@@ -1,4 +1,4 @@
-// Cheshm Hayash - the story director.
+﻿// Cheshm Hayash - the story director.
 
 #include "Story/CHStoryDirector.h"
 #include "Cheshmhayash.h"
@@ -29,6 +29,8 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Story/CHJson.h"
+#include "Story/CHSave.h"
+#include "Framework/Application/SlateApplication.h"
 #include "UI/CHStyle.h"
 #include "UI/SCHCardLayer.h"
 #include "UI/SCHChoiceList.h"
@@ -111,6 +113,12 @@ namespace
 			{ TEXT("stranger"), TEXT("غریبه"), TEXT("Stranger") },
 			{ TEXT("oldman"), TEXT("پیرمرد"), TEXT("Old man") },
 			{ TEXT("student"), TEXT("دانشجو"), TEXT("Student") },
+			{ TEXT("dad"), TEXT("بابا"), TEXT("Baba") },
+			{ TEXT("police"), TEXT("گشت ارشاد"), TEXT("Morality police") },
+			{ TEXT("official"), TEXT("مأمور"), TEXT("Official") },
+			{ TEXT("neighbour"), TEXT("همسایه"), TEXT("Neighbour") },
+			{ TEXT("relative"), TEXT("فامیل"), TEXT("Relative") },
+			{ TEXT("crowd"), TEXT("جمعیت"), TEXT("Crowd") },
 		};
 		OutFa.Reset();
 		OutEn.Reset();
@@ -123,6 +131,118 @@ namespace
 				return;
 			}
 		}
+	}
+
+	/** One colour per speaker, the same everywhere in the game. */
+	FLinearColor SpeakerColor(const FString& Who)
+	{
+		auto Srgb = [](int32 R, int32 G, int32 B) { return FLinearColor::FromSRGBColor(FColor(R, G, B)); };
+		if (Who.IsEmpty() || Who.Equals(TEXT("he"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(255, 255, 255);
+		}
+		if (Who.Equals(TEXT("sister"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(255, 150, 190);
+		}
+		if (Who.Equals(TEXT("brother"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(150, 200, 255);
+		}
+		if (Who.Equals(TEXT("mom"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(255, 214, 90);
+		}
+		if (Who.Equals(TEXT("dad"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(165, 165, 165);
+		}
+		if (Who.Equals(TEXT("kian"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(150, 235, 150);
+		}
+		if (Who.Equals(TEXT("lawyer"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("guard"), ESearchCase::IgnoreCase) ||
+			Who.Equals(TEXT("official"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("police"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(255, 100, 55);
+		}
+		if (Who.Equals(TEXT("system"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("narration"), ESearchCase::IgnoreCase))
+		{
+			return Srgb(190, 190, 195);
+		}
+		// strangers, crowd, every other face
+		return Srgb(235, 215, 170);
+	}
+
+	/** A poem couplet at the bottom of the screen: Farsi, the English line right under it, slow fade-in. */
+	FCHCard MakePoemCard(const FString& Fa, const FString& En, float Hold)
+	{
+		FCHCard Card;
+		Card.HAlign = HAlign_Center;
+		Card.VAlign = VAlign_Bottom;
+		Card.Padding = FMargin(120.f, 0.f, 120.f, 150.f);
+		Card.MaxWidth = 1500.f;
+		Card.bSkippable = true;
+		Card.MinSkipTime = 1.2f;
+		Card.Hold = Hold;
+		Card.FadeOut = 1.6f;
+
+		FCHCardLine FaLine(Fa, true, 38.f, CH::EWeight::Regular, CH::Col::Paper);
+		FaLine.Delay = 0.4f;
+		FaLine.FadeIn = 2.2f;
+		Card.Lines.Add(FaLine);
+
+		FCHCardLine EnLine(En, false, 26.f, CH::EWeight::Light, CH::Col::PaperDim);
+		EnLine.TopPadding = 12.f;
+		EnLine.Delay = 1.4f;
+		EnLine.FadeIn = 2.2f;
+		Card.Lines.Add(EnLine);
+		return Card;
+	}
+
+	/** "Click or press any key to continue" on the main menu. */
+	FCHCard MakePromptCard()
+	{
+		FCHCard Card;
+		Card.HAlign = HAlign_Center;
+		Card.VAlign = VAlign_Bottom;
+		Card.Padding = FMargin(60.f, 0.f, 60.f, 110.f);
+		Card.bSkippable = false;
+		Card.Hold = -1.f;
+		Card.FadeOut = 0.6f;
+
+		FCHCardLine FaLine(TEXT("برای ادامه کلیک کنید یا کلیدی را فشار دهید"), true, 22.f, CH::EWeight::Light, CH::Col::PaperDim);
+		FaLine.Delay = 4.0f;
+		FaLine.FadeIn = 1.6f;
+		Card.Lines.Add(FaLine);
+		FCHCardLine EnLine(TEXT("Click or press any key to continue"), false, 19.f, CH::EWeight::Light, CH::Col::PaperDim);
+		EnLine.TopPadding = 4.f;
+		EnLine.LetterSpacing = 200;
+		EnLine.Delay = 4.0f;
+		EnLine.FadeIn = 1.6f;
+		Card.Lines.Add(EnLine);
+		return Card;
+	}
+
+	FCHCard MakeMenuTitleCard()
+	{
+		FCHCard Card;
+		FCHCardLine Title(TEXT("چشم‌هایش"), true, 140.f, CH::EWeight::Bold, CH::Col::Paper);
+		Title.Delay = 0.8f;
+		Title.FadeIn = 3.0f;
+		Card.Lines.Add(Title);
+		FCHCardLine Sub(TEXT("CHESHM HAYASH"), false, 26.f, CH::EWeight::Light, CH::Col::Paper);
+		Sub.TopPadding = 2.f;
+		Sub.LetterSpacing = 700;
+		Sub.Delay = 2.4f;
+		Sub.FadeIn = 2.2f;
+		Card.Lines.Add(Sub);
+		Card.Hold = -1.f;
+		Card.bSkippable = false;
+		Card.FadeOut = 1.2f;
+		Card.VAlign = VAlign_Center;
+		Card.Padding = FMargin(80.f, 0.f, 80.f, 330.f);
+		return Card;
 	}
 
 	FCHCard MakeOpeningCard(const TArray<FString>& Fa, const TArray<FString>& En, float Hold)
@@ -443,6 +563,7 @@ void UCHStoryDirector::OnLocationReady(ACHLevelBuilder* InBuilder, const FString
 
 void UCHStoryDirector::StartStory()
 {
+	CHSettings::ApplyVolume();
 	FadeAlpha = FadeTarget = 1.f;
 	FadeColor = FLinearColor::Black;
 
@@ -492,6 +613,11 @@ void UCHStoryDirector::StartScene(int32 Index)
 
 	const FCHScene& Scene = Scenes[Index];
 	UE_LOG(LogCheshmhayash, Log, TEXT("Scene %s (location '%s' variant '%s')"), *Scene.Id, *Scene.Location, *Scene.Variant);
+	// a checkpoint at the start of every story scene (not when resuming a saved beat)
+	if (SkipToBeat == 0 && Scene.Chapter >= 1 && !Scene.bDev)
+	{
+		AutoSave(0);
+	}
 	if (Audio && !Scene.bInterlude)
 	{
 		Audio->SetMusic(this, Scene.Music);
@@ -520,12 +646,8 @@ void UCHStoryDirector::NextScene()
 		}
 	}
 
-	// the story is over: back to the title with a clean slate
-	Flags.Reset();
-	Clips.Reset();
-	bRec = false;
-	RecSeconds = 0.f;
-	StartScene(0);
+	// the story is over: back to the main menu with a clean slate
+	GoToMainMenu();
 }
 
 void UCHStoryDirector::TravelTo(const FString& Location, const FString& Variant)
@@ -659,7 +781,7 @@ void UCHStoryDirector::Tick(float DeltaTime)
 	{
 		const UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
 		const bool bStealth = Segment && Segment->IsActive() && !Segment->IsSuspended();
-		Audio->Update(this, bStealth && Segment->IsInVanZone(), bStealth && Segment->AnyChasing());
+		Audio->Update(this, bStealth && Segment->IsInVanZone(), bStealth ? Segment->GetMaxSuspicion() : 0.f, bStealth && Segment->AnyChasing());
 	}
 
 	if (!bTraveling && Scenes.IsValidIndex(SceneIndex))
@@ -683,6 +805,28 @@ void UCHStoryDirector::Tick(float DeltaTime)
 			}
 
 			const TSharedPtr<FJsonObject> Beat = Scene.Beats[BeatIndex];
+			if (SkipToBeat > 0 && BeatIndex >= SkipToBeat)
+			{
+				// the scene is set up again: fade in on the checkpoint
+				SkipToBeat = 0;
+				SetFade(0.f, 1.4f, FLinearColor::Black);
+			}
+			if (SkipToBeat > 0 && !bInInterlude)
+			{
+				// continuing: only the beats that set the scene up run, nothing is played again
+				if (PassesCondition(*Beat))
+				{
+					const FString SkipType = JStr(*Beat, TEXT("type"));
+					if (SkipType == TEXT("camera") || SkipType == TEXT("event") || SkipType == TEXT("flag") || SkipType == TEXT("npc") ||
+						SkipType == TEXT("place") || SkipType == TEXT("control") || SkipType == TEXT("rec") || SkipType == TEXT("audio"))
+					{
+						BeginBeat(*Beat);
+					}
+				}
+				++BeatIndex;
+				bBeatStarted = false;
+				continue;
+			}
 			if (!bBeatStarted)
 			{
 				bBeatStarted = true;
@@ -717,6 +861,8 @@ void UCHStoryDirector::Tick(float DeltaTime)
 	}
 
 	bAdvancePressed = false;
+	bClickPressed = false;
+	bAnyKeyPressed = false;
 	NavInput = 0;
 	DirectChoice = INDEX_NONE;
 }
@@ -780,9 +926,65 @@ void UCHStoryDirector::UpdateFade(float DeltaTime)
 
 bool UCHStoryDirector::ConsumeAdvance()
 {
-	const bool bPressed = bAdvancePressed;
+	const bool bPressed = bAdvancePressed || bClickPressed;
 	bAdvancePressed = false;
+	bClickPressed = false;
 	return bPressed;
+}
+
+bool UCHStoryDirector::WantsCursor() const
+{
+	if (!UI.IsValid())
+	{
+		return false;
+	}
+	return bPauseMenu || UI->PauseMenu->IsShown() || UI->Menu->IsShown();
+}
+
+int32 UCHStoryDirector::PollMenu(SCHChoiceList& Menu)
+{
+	// the mouse moves the highlight
+	if (Menu.IsShown() && FSlateApplication::IsInitialized())
+	{
+		const FVector2D Cursor = FSlateApplication::Get().GetCursorPos();
+		if (!Cursor.Equals(LastCursor, 1.f))
+		{
+			LastCursor = Cursor;
+			const int32 Hovered = Menu.HitTest();
+			if (Hovered != INDEX_NONE)
+			{
+				Menu.SetSelected(Hovered);
+			}
+		}
+	}
+	if (NavInput != 0)
+	{
+		Menu.Move(NavInput > 0 ? 1 : -1);
+		NavInput = 0;
+	}
+	if (!Menu.IsReady())
+	{
+		return INDEX_NONE;
+	}
+	if (DirectChoice != INDEX_NONE && DirectChoice < Menu.Num())
+	{
+		return DirectChoice;
+	}
+	if (bClickPressed)
+	{
+		bClickPressed = false;
+		const int32 Hovered = Menu.HitTest();
+		if (Hovered != INDEX_NONE)
+		{
+			return Hovered;
+		}
+	}
+	if (bAdvancePressed)
+	{
+		bAdvancePressed = false;
+		return Menu.GetSelected();
+	}
+	return INDEX_NONE;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -833,6 +1035,11 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			: MakePlainCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), Hold,
 				static_cast<float>(JNum(Beat, TEXT("fa_size"), 40.0)), static_cast<float>(JNum(Beat, TEXT("en_size"), 22.0)));
 		Card.bSkippable = JBool(Beat, TEXT("skippable"), true);
+		if (JBool(Beat, TEXT("below"), false))
+		{
+			Card.VAlign = VAlign_Center;
+			Card.Padding = FMargin(60.f, 220.f, 60.f, 0.f);
+		}
 		// "type_rate": the lines are written letter by letter, one after another
 		const float TypeRate = static_cast<float>(JNum(Beat, TEXT("type_rate"), 0.0));
 		if (TypeRate > 0.f)
@@ -859,9 +1066,67 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	{
 		UI->Captions->Play(MakeCaptionCard(JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("hold"), 4.5))));
 	}
+	else if (Type == TEXT("memorial"))
+	{
+		// His name, typed out slowly, held at the top of the screen through the whole final song and
+		// the credits, and the last thing to fade out.
+		if (!JBool(Beat, TEXT("on"), true))
+		{
+			UI->Captions->Dismiss(static_cast<float>(JNum(Beat, TEXT("fade"), 4.0)));
+		}
+		else
+		{
+			FCHCard Card;
+			Card.HAlign = HAlign_Center;
+			Card.VAlign = VAlign_Top;
+			Card.Padding = FMargin(80.f, 170.f, 80.f, 0.f);
+			Card.bSkippable = false;
+			Card.Hold = -1.f;
+			Card.FadeOut = 4.0f;
+
+			const float Rate = 2.6f;
+			const FString Fa = TEXT("به یاد حسام");
+			const FString En = TEXT("In loving memory of Hesam");
+			FCHCardLine FaLine(Fa, true, 58.f, CH::EWeight::Regular, CH::Col::Paper);
+			FaLine.Delay = 1.0f;
+			FaLine.TypeRate = Rate;
+			Card.Lines.Add(FaLine);
+
+			FCHCardLine EnLine(En, false, 28.f, CH::EWeight::Light, CH::Col::PaperDim);
+			EnLine.TopPadding = 10.f;
+			EnLine.Delay = 1.0f + Fa.Len() / Rate + 1.0f;
+			EnLine.TypeRate = Rate;
+			Card.Lines.Add(EnLine);
+			UI->Captions->Play(Card);
+		}
+	}
 	else if (Type == TEXT("title"))
 	{
 		UI->Cards->Play(MakeTitleCard());
+	}
+	else if (Type == TEXT("poem"))
+	{
+		// the poem: couplets one by one at the bottom of the screen, over black
+		BeatPhase = 0;
+		const TArray<TSharedPtr<FJsonObject>> Couplets = CHJson::Objects(Beat, TEXT("lines"));
+		if (Couplets.Num() > 0)
+		{
+			const FString Fa = JStr(*Couplets[0], TEXT("fa"));
+			const FString En = JStr(*Couplets[0], TEXT("en"));
+			UI->Cards->Play(MakePoemCard(Fa, En, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
+			BeatPhase = 1;
+		}
+	}
+	else if (Type == TEXT("loading"))
+	{
+		UI->Hud->SetLoading(true);
+	}
+	else if (Type == TEXT("mainmenu"))
+	{
+		UI->Hud->SetLoading(false);
+		bMenuSettings = false;
+		UI->Cards->Play(MakeMenuTitleCard());
+		UI->Captions->Play(MakePromptCard());
 	}
 	else if (Type == TEXT("control"))
 	{
@@ -890,6 +1155,11 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("gameplay"))
 	{
+		// a checkpoint right before every gameplay segment
+		if (!bInInterlude)
+		{
+			AutoSave(BeatIndex);
+		}
 		bSegmentDone = false;
 		bPlayerControl = true;
 		bMoveAllowed = JBool(Beat, TEXT("move"), true);
@@ -923,7 +1193,12 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		FString SpeakerFa;
 		FString SpeakerEn;
 		SpeakerNames(JStr(Beat, TEXT("who")), SpeakerFa, SpeakerEn);
-		UI->Dialogue->ShowLine(SpeakerFa, SpeakerEn, JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("rate"), 30.0)));
+		UI->Dialogue->SetHint(HintLinesLeft > 0);
+		if (HintLinesLeft > 0)
+		{
+			--HintLinesLeft;
+		}
+		UI->Dialogue->ShowLine(SpeakerFa, SpeakerEn, JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("rate"), 30.0)), SpeakerColor(JStr(Beat, TEXT("who"))));
 	}
 	else if (Type == TEXT("hide_text"))
 	{
@@ -937,7 +1212,8 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		{
 			Options.Emplace(JStr(*Option, TEXT("fa")), JStr(*Option, TEXT("en")));
 		}
-		UI->Menu->Show(Options, VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 96.f), 30.f, 17.f);
+		UI->Menu->Show(Options, VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 96.f), 30.f, 20.f);
+		UI->Menu->SetFooter(TEXT("Click an answer  /  1 2 3  /  Enter"));
 	}
 	else if (Type == TEXT("phone"))
 	{
@@ -993,7 +1269,7 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("eye"))
 	{
-		// his right eye: "close" 1 = the right half goes dark
+		// his LEFT eye: "close" 1 = the left half goes dark
 		UI->EyeTarget = static_cast<float>(JNum(Beat, TEXT("close"), 1.0));
 		const float Time = static_cast<float>(JNum(Beat, TEXT("time"), 2.5));
 		UI->EyeRate = Time > 0.f ? 1.f / Time : 100.f;
@@ -1359,10 +1635,14 @@ bool UCHStoryDirector::UpdateDialogueLine(const FJsonObject& Beat)
 		return false;
 	}
 
-	// "auto": seconds after the line is complete before moving on without input
-	const float Auto = static_cast<float>(JNum(Beat, TEXT("auto"), -1.0));
+	// Auto-advance: about 2 s + 0.06 s per character in total (the longer of the two lines), counted
+	// from the first letter. A scripted "auto" (seconds after the line is complete) overrides it.
+	const float Explicit = static_cast<float>(JNum(Beat, TEXT("auto"), -1.0));
+	const float Len = static_cast<float>(FMath::Max(JStr(Beat, TEXT("fa")).Len(), JStr(Beat, TEXT("en")).Len()));
+	const float TypeRate = FMath::Max(1.f, static_cast<float>(JNum(Beat, TEXT("rate"), 30.0)));
+	const float Auto = Explicit >= 0.f ? Explicit : FMath::Max(1.6f, 2.f + 0.06f * Len - Len / TypeRate);
 	const float Waited = Dialogue.GetTimeSinceComplete();
-	const bool bAuto = (Auto >= 0.f && Waited >= Auto) || (bDevAuto && Waited >= 1.1f);
+	const bool bAuto = Waited >= Auto || (bDevAuto && Waited >= 1.1f);
 	if ((bPressed && Waited > 0.12f) || bAuto)
 	{
 		const FString Next = PeekNextType();
@@ -1397,37 +1677,101 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 	}
 	if (Type == TEXT("title"))
 	{
-		// phase 0: title fades in. 1: menu. 2: fading out.
+		// the title, alone in its own scene: it fades in, holds, then fades out on its own
 		if (BeatPhase == 0)
 		{
-			if (UI->Cards->GetTime() > 4.4f || (UI->Cards->GetTime() > 1.5f && ConsumeAdvance()))
+			if (BeatTime > 6.f || (UI->Cards->GetTime() > 2.5f && ConsumeAdvance()))
 			{
-				TArray<FCHOption> Options;
-				Options.Emplace(TEXT("شروع"), TEXT("Start"));
-				Options.Emplace(TEXT("خروج"), TEXT("Quit"));
-				UI->Menu->Show(Options, VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 120.f), 30.f, 15.f);
+				UI->Cards->Dismiss(2.0f);
+				BeatPhase = 1;
+			}
+			return false;
+		}
+		return UI->Cards->IsFinished();
+	}
+	if (Type == TEXT("poem"))
+	{
+		if (ConsumeAdvance())
+		{
+			UI->Cards->Skip();
+		}
+		if (!UI->Cards->IsFinished())
+		{
+			return false;
+		}
+		const TArray<TSharedPtr<FJsonObject>> Couplets = CHJson::Objects(Beat, TEXT("lines"));
+		if (Couplets.IsValidIndex(BeatPhase))
+		{
+			const FString Fa = JStr(*Couplets[BeatPhase], TEXT("fa"));
+			const FString En = JStr(*Couplets[BeatPhase], TEXT("en"));
+			UI->Cards->Play(MakePoemCard(Fa, En, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
+			++BeatPhase;
+			return false;
+		}
+		return true;
+	}
+	if (Type == TEXT("loading"))
+	{
+		return BeatTime >= static_cast<float>(JNum(Beat, TEXT("seconds"), 3.0));
+	}
+	if (Type == TEXT("mainmenu"))
+	{
+		// phase 0: "press any key". 1: the menu. 2: new game (fading out). 3: settings.
+		if (BeatPhase == 0)
+		{
+			const bool bKey = (bAnyKeyPressed || bClickPressed) && BeatTime > 3.f;
+			if (bKey || (bDevAuto && BeatTime > 6.f))
+			{
+				UI->Captions->Dismiss(0.4f);
+				ShowMainMenuOptions();
 				BeatPhase = 1;
 				BeatTime = 0.f;
 			}
 			return false;
 		}
-		if (BeatPhase == 1)
+		if (BeatPhase == 1 || BeatPhase == 3)
 		{
-			if (NavInput != 0)
+			int32 Picked = PollMenu(*UI->Menu);
+			if (BeatPhase == 1 && bDevAuto && BeatTime > 3.f && Picked == INDEX_NONE)
 			{
-				UI->Menu->Move(NavInput > 0 ? 1 : -1);
+				Picked = bMenuHasContinue ? 1 : 0;
 			}
-			const bool bAutoStart = bDevAuto && BeatTime > 3.f;
-			if (UI->Menu->IsReady() && (ConsumeAdvance() || bAutoStart))
+			if (Picked == INDEX_NONE)
 			{
-				if (UI->Menu->GetSelected() == 1 && !bAutoStart)
+				return false;
+			}
+			if (BeatPhase == 3)
+			{
+				if (ActivateSetting(Picked, *UI->Menu))
 				{
-					UKismetSystemLibrary::QuitGame(GetWorld(), GetController(), EQuitPreference::Quit, false);
-					return false;
+					ShowMainMenuOptions();
+					BeatPhase = 1;
+					BeatTime = 0.f;
 				}
+				return false;
+			}
+			const int32 Action = bMenuHasContinue ? Picked : Picked + 1;
+			if (Action == 0)
+			{
+				// Continue: the last checkpoint, no intro cards
+				LoadCheckpoint();
+				return false;
+			}
+			if (Action == 1)
+			{
+				ResetRun();
 				UI->Menu->Hide();
-				UI->Cards->Dismiss(2.0f);
+				UI->Cards->Dismiss(1.6f);
 				BeatPhase = 2;
+			}
+			else if (Action == 2)
+			{
+				ShowSettings(*UI->Menu);
+				BeatPhase = 3;
+			}
+			else
+			{
+				UKismetSystemLibrary::QuitGame(GetWorld(), GetController(), EQuitPreference::Quit, false);
 			}
 			return false;
 		}
@@ -1451,25 +1795,10 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 		// phase 0: choosing. 1: his chosen words are typed out. 2: the list fades away.
 		if (BeatPhase == 0)
 		{
-			if (NavInput != 0)
+			int32 Picked = PollMenu(*UI->Menu);
+			if (Picked == INDEX_NONE && UI->Menu->IsReady() && bDevAuto && BeatTime > 2.5f)
 			{
-				UI->Menu->Move(NavInput > 0 ? 1 : -1);
-			}
-			int32 Picked = INDEX_NONE;
-			if (UI->Menu->IsReady())
-			{
-				if (DirectChoice != INDEX_NONE && DirectChoice < UI->Menu->Num())
-				{
-					Picked = DirectChoice;
-				}
-				else if (ConsumeAdvance())
-				{
-					Picked = UI->Menu->GetSelected();
-				}
-				else if (bDevAuto && BeatTime > 2.5f)
-				{
-					Picked = FMath::Clamp(DevPick, 0, UI->Menu->Num() - 1);
-				}
+				Picked = FMath::Clamp(DevPick, 0, UI->Menu->Num() - 1);
 			}
 			const TArray<TSharedPtr<FJsonObject>> Options = CHJson::Objects(Beat, TEXT("options"));
 			if (Options.IsValidIndex(Picked))
@@ -1573,12 +1902,105 @@ FString UCHStoryDirector::GetFlag(const FString& Name) const
 
 void UCHStoryDirector::InputPause()
 {
-	// not on the title, not between locations
-	if (!UI.IsValid() || bTraveling || !Scenes.IsValidIndex(SceneIndex) || SceneIndex == 0)
+	// not on the menus, not between locations
+	if (!UI.IsValid() || bTraveling || !Scenes.IsValidIndex(SceneIndex) || Scenes[SceneIndex].Chapter < 1)
 	{
 		return;
 	}
 	SetPaused(!bPauseMenu);
+}
+
+void UCHStoryDirector::ShowPauseOptions()
+{
+	bPauseSettings = false;
+	TArray<FCHOption> Options;
+	Options.Emplace(TEXT("ادامه"), TEXT("Resume"));
+	Options.Emplace(TEXT("تنظیمات"), TEXT("Settings"));
+	Options.Emplace(TEXT("منوی اصلی"), TEXT("Main Menu"));
+	Options.Emplace(TEXT("خروج"), TEXT("Quit"));
+	UI->PauseMenu->Show(Options, VAlign_Center, FMargin(0.f), 30.f, 18.f);
+}
+
+void UCHStoryDirector::ShowMainMenuOptions()
+{
+	bMenuSettings = false;
+	bMenuHasContinue = CHSave::Exists();
+	TArray<FCHOption> Options;
+	if (bMenuHasContinue)
+	{
+		Options.Emplace(TEXT("ادامه"), TEXT("Continue"));
+	}
+	Options.Emplace(TEXT("بازی جدید"), TEXT("New Game"));
+	Options.Emplace(TEXT("تنظیمات"), TEXT("Settings"));
+	Options.Emplace(TEXT("خروج"), TEXT("Quit"));
+	UI->Menu->Show(Options, VAlign_Center, FMargin(0.f, 300.f, 0.f, 0.f), 30.f, 19.f);
+}
+
+namespace
+{
+	const float SensitivitySteps[] = { 0.5f, 0.75f, 1.f, 1.5f, 2.f, 3.f };
+	const float VolumeSteps[] = { 0.f, 0.2f, 0.4f, 0.6f, 0.8f, 1.f };
+
+	int32 NearestStep(const float* Steps, int32 Num, float Value)
+	{
+		int32 Best = 0;
+		for (int32 Index = 1; Index < Num; ++Index)
+		{
+			if (FMath::Abs(Steps[Index] - Value) < FMath::Abs(Steps[Best] - Value))
+			{
+				Best = Index;
+			}
+		}
+		return Best;
+	}
+}
+
+void UCHStoryDirector::RefreshSettings(SCHChoiceList& Menu)
+{
+	const float Sens = CHSettings::GetSensitivity();
+	const bool bInvert = CHSettings::GetInvertY();
+	const int32 Volume = FMath::RoundToInt(CHSettings::GetVolume() * 100.f);
+	Menu.UpdateOption(0, FString::Printf(TEXT("حساسیت ماوس: %s"), *CH::PersianDigits(FString::Printf(TEXT("%.2f"), Sens))),
+		FString::Printf(TEXT("Mouse sensitivity: %.2fx"), Sens));
+	Menu.UpdateOption(1, FString::Printf(TEXT("وارونه کردن محور عمودی: %s"), bInvert ? TEXT("روشن") : TEXT("خاموش")),
+		FString::Printf(TEXT("Invert Y: %s"), bInvert ? TEXT("On") : TEXT("Off")));
+	Menu.UpdateOption(2, FString::Printf(TEXT("صدا: %s٪"), *CH::PersianDigits(FString::FromInt(Volume))),
+		FString::Printf(TEXT("Volume: %d%%"), Volume));
+}
+
+void UCHStoryDirector::ShowSettings(SCHChoiceList& Menu)
+{
+	TArray<FCHOption> Options;
+	Options.Emplace(TEXT("."), TEXT("."));
+	Options.Emplace(TEXT("."), TEXT("."));
+	Options.Emplace(TEXT("."), TEXT("."));
+	Options.Emplace(TEXT("بازگشت"), TEXT("Back"));
+	Menu.Show(Options, VAlign_Center, FMargin(0.f, 80.f, 0.f, 0.f), 26.f, 18.f);
+	RefreshSettings(Menu);
+}
+
+bool UCHStoryDirector::ActivateSetting(int32 Row, SCHChoiceList& Menu)
+{
+	if (Row == 0)
+	{
+		const int32 Step = NearestStep(SensitivitySteps, UE_ARRAY_COUNT(SensitivitySteps), CHSettings::GetSensitivity());
+		CHSettings::SetSensitivity(SensitivitySteps[(Step + 1) % UE_ARRAY_COUNT(SensitivitySteps)]);
+	}
+	else if (Row == 1)
+	{
+		CHSettings::SetInvertY(!CHSettings::GetInvertY());
+	}
+	else if (Row == 2)
+	{
+		const int32 Step = NearestStep(VolumeSteps, UE_ARRAY_COUNT(VolumeSteps), CHSettings::GetVolume());
+		CHSettings::SetVolume(VolumeSteps[(Step + 1) % UE_ARRAY_COUNT(VolumeSteps)]);
+	}
+	else
+	{
+		return true;
+	}
+	RefreshSettings(Menu);
+	return false;
 }
 
 void UCHStoryDirector::SetPaused(bool bInPaused)
@@ -1587,6 +2009,7 @@ void UCHStoryDirector::SetPaused(bool bInPaused)
 	// the world all but stops (a true engine pause would stop this director ticking too)
 	UGameplayStatics::SetGlobalTimeDilation(this, bInPaused ? 0.0001f : 1.f);
 	bAdvancePressed = false;
+	bClickPressed = false;
 	NavInput = 0;
 	DirectChoice = INDEX_NONE;
 	if (!UI.IsValid())
@@ -1596,63 +2019,156 @@ void UCHStoryDirector::SetPaused(bool bInPaused)
 	UI->PauseDimTarget = bInPaused ? 1.f : 0.f;
 	if (bInPaused)
 	{
-		TArray<FCHOption> Options;
-		Options.Emplace(TEXT("ادامه"), TEXT("Resume"));
-		Options.Emplace(TEXT("بازگشت به صفحه‌ی اول"), TEXT("Back to the title"));
-		Options.Emplace(TEXT("خروج"), TEXT("Quit"));
-		UI->PauseMenu->Show(Options, VAlign_Center, FMargin(0.f), 30.f, 16.f);
+		ShowPauseOptions();
 	}
 	else
 	{
+		bPauseSettings = false;
 		UI->PauseMenu->Hide();
 	}
 }
 
 void UCHStoryDirector::UpdatePause()
 {
-	if (NavInput != 0)
-	{
-		UI->PauseMenu->Move(NavInput > 0 ? 1 : -1);
-		NavInput = 0;
-	}
-	int32 Picked = INDEX_NONE;
-	if (UI->PauseMenu->IsReady())
-	{
-		if (DirectChoice != INDEX_NONE && DirectChoice < UI->PauseMenu->Num())
-		{
-			Picked = DirectChoice;
-		}
-		else if (ConsumeAdvance())
-		{
-			Picked = UI->PauseMenu->GetSelected();
-		}
-	}
+	const int32 Picked = PollMenu(*UI->PauseMenu);
 	DirectChoice = INDEX_NONE;
 	bAdvancePressed = false;
+	bClickPressed = false;
+	if (Picked == INDEX_NONE)
+	{
+		return;
+	}
+	if (bPauseSettings)
+	{
+		if (ActivateSetting(Picked, *UI->PauseMenu))
+		{
+			ShowPauseOptions();
+		}
+		return;
+	}
 	if (Picked == 0)
 	{
 		SetPaused(false);
 	}
 	else if (Picked == 1)
 	{
-		SetPaused(false);
-		ClearScreen();
-		if (Audio)
-		{
-			Audio->Cut(1.f);
-		}
-		Flags.Reset();
-		Clips.Reset();
-		bRec = false;
-		RecSeconds = 0.f;
-		StartScene(0);
+		bPauseSettings = true;
+		ShowSettings(*UI->PauseMenu);
 	}
 	else if (Picked == 2)
+	{
+		SetPaused(false);
+		GoToMainMenu();
+	}
+	else if (Picked == 3)
 	{
 		FPlatformMisc::RequestExit(false);
 	}
 }
 
+void UCHStoryDirector::ResetRun()
+{
+	Flags.Reset();
+	Clips.Reset();
+	bRec = false;
+	RecSeconds = 0.f;
+	Molotovs = 0;
+	HintLinesLeft = 5;
+	SkipToBeat = 0;
+	bControlsShown = false;
+}
+
+void UCHStoryDirector::GoToMainMenu()
+{
+	ResetRun();
+	ClearScreen();
+	if (Audio)
+	{
+		Audio->Cut(1.f);
+	}
+	int32 Index = FindScene(TEXT("menu"));
+	if (Index == INDEX_NONE)
+	{
+		Index = 0;
+	}
+	// always a fresh load of the menu location
+	CurrentLocation.Reset();
+	StartScene(Index);
+}
+
+bool UCHStoryDirector::LoadCheckpoint()
+{
+	UCHSaveGame* Save = CHSave::Load();
+	if (!Save)
+	{
+		return false;
+	}
+	const int32 Index = FindScene(Save->SceneId);
+	if (Index == INDEX_NONE)
+	{
+		return false;
+	}
+	ResetRun();
+	ClearScreen();
+	if (Audio)
+	{
+		Audio->Cut(0.8f);
+	}
+	Flags = Save->Flags;
+	for (int32 Id = 0; Id < Save->ClipIds.Num(); ++Id)
+	{
+		FCHClip Clip;
+		Clip.Id = Save->ClipIds[Id];
+		Clip.CaptionFa = Save->ClipCaptionsFa.IsValidIndex(Id) ? Save->ClipCaptionsFa[Id] : FString();
+		Clip.CaptionEn = Save->ClipCaptionsEn.IsValidIndex(Id) ? Save->ClipCaptionsEn[Id] : FString();
+		Clip.Chapter = Save->ClipChapters.IsValidIndex(Id) ? Save->ClipChapters[Id] : 1;
+		Clips.Add(Clip);
+	}
+	Molotovs = Save->Molotovs;
+	bRec = Save->bRec;
+	RecSeconds = Save->RecSeconds;
+	HintLinesLeft = 0;
+	bControlsShown = true;
+	SkipToBeat = Save->BeatIndex;
+	// always rebuild the location
+	CurrentLocation.Reset();
+	UE_LOG(LogCheshmhayash, Log, TEXT("Continue: scene %s beat %d"), *Save->SceneId, Save->BeatIndex);
+	StartScene(Index);
+	return true;
+}
+
+void UCHStoryDirector::AutoSave(int32 Beat)
+{
+	if (!Scenes.IsValidIndex(SceneIndex) || bInInterlude)
+	{
+		return;
+	}
+	const FCHScene& Scene = Scenes[SceneIndex];
+	if (Scene.bDev || Scene.bInterlude || Scene.Chapter < 1)
+	{
+		return;
+	}
+	UCHSaveGame* Save = NewObject<UCHSaveGame>(this);
+	Save->Chapter = Scene.Chapter;
+	Save->SceneId = Scene.Id;
+	Save->BeatIndex = Beat;
+	Save->Flags = Flags;
+	for (const FCHClip& Clip : Clips)
+	{
+		Save->ClipIds.Add(Clip.Id);
+		Save->ClipCaptionsFa.Add(Clip.CaptionFa);
+		Save->ClipCaptionsEn.Add(Clip.CaptionEn);
+		Save->ClipChapters.Add(Clip.Chapter);
+	}
+	Save->Molotovs = Molotovs;
+	Save->bRec = bRec;
+	Save->RecSeconds = RecSeconds;
+	CHSave::Write(Save);
+	if (UI.IsValid())
+	{
+		UI->Hud->ShowSaving();
+	}
+}
 void UCHStoryDirector::ClearScreen()
 {
 	if (!UI.IsValid())

@@ -6,6 +6,40 @@
       "location": "Boot",
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
+        { "type": "silence", "seconds": 1.0 },
+        {
+          "type": "card",
+          "fa": [],
+          "en": ["Created by Parsa Besharat", "Made with Unreal Engine"],
+          "hold": 2.6,
+          "en_size": 28,
+          "skippable": true
+        },
+        { "type": "silence", "seconds": 0.6 },
+        { "type": "loading", "seconds": 3.4 }
+      ]
+    },
+    {
+      "id": "menu",
+      "music": "music_menu",
+      "ambient": "amb_wind",
+      "location": "FinalRoof",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "place", "mark": "Body", "hidden": true },
+        { "type": "camera", "mark": "PhoneView" },
+        { "type": "event", "name": "sunrise", "to": 14, "time": 260 },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "mainmenu" }
+      ]
+    },
+    {
+      "id": "intro",
+      "music": "music_poem",
+      "ambient": "amb_drone",
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
         { "type": "silence", "seconds": 1.2 },
         {
           "type": "card",
@@ -22,7 +56,28 @@
             "Their words are written here instead."
           ]
         },
-        { "type": "silence", "seconds": 1.0 },
+        { "type": "silence", "seconds": 1.4 },
+        {
+          "type": "poem",
+          "lines": [
+            { "fa": "در تمامیِ محاکمه‌هایی که مو حاکم بود", "en": "In every trial where hair was the judge," },
+            { "fa": "صورت‌های دلربا، گیس‌هاشان کنده شد", "en": "lovely faces had their braids torn away." },
+            { "fa": "قبرهای سرد و گلی برای سروهای تنومند", "en": "Cold, muddy graves for tall, strong cypresses," },
+            { "fa": "بعد از شنیدن صدای بیگانه‌های کروکودیل‌صفت", "en": "after the voices of crocodile-hearted strangers" },
+            { "fa": "که همه‌جا را تاریک کردند و یک گلوله چشم چپش را شکافت", "en": "who darkened everything, and a bullet split his left eye," },
+            { "fa": "و پوکه‌اش رفت توی باارزش‌ترین دارایی موزه‌ها", "en": "and its casing became the most treasured piece in the museums." }
+          ]
+        },
+        { "type": "silence", "seconds": 1.8 }
+      ]
+    },
+    {
+      "id": "title",
+      "music": "none",
+      "ambient": "amb_drone",
+      "location": "Boot",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
         { "type": "title" },
         { "type": "silence", "seconds": 1.0 }
       ]

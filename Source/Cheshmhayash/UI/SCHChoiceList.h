@@ -25,11 +25,17 @@ public:
 
 	void Show(const TArray<FCHOption>& InOptions, EVerticalAlignment VAlign, const FMargin& Padding, float FaSize = 30.f, float EnSize = 17.f);
 	void Hide();
+	/** A small hint line under the options (clears when the list is shown again). */
+	void SetFooter(const FString& InFooter) { Footer = InFooter; }
 	void Advance(float DeltaTime);
 
 	/** Moves the highlight (wraps around). */
 	void Move(int32 Direction);
 	void SetSelected(int32 Index);
+	/** Changes the text of one row while it is shown (settings). */
+	void UpdateOption(int32 Index, const FString& Fa, const FString& En);
+	/** The row under the mouse cursor, or INDEX_NONE. */
+	int32 HitTest() const;
 	int32 GetSelected() const { return Selected; }
 	int32 Num() const { return Options.Num(); }
 
@@ -45,6 +51,8 @@ private:
 	FLinearColor GetBandColor() const;
 
 	TArray<FCHOption> Options;
+	TArray<TSharedPtr<SWidget>> Rows;
+	FString Footer;
 	int32 Selected = 0;
 	float Alpha = 0.f;
 	float Pulse = 0.f;

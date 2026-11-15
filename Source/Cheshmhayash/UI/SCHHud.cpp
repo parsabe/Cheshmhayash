@@ -400,6 +400,85 @@ void SCHHud::Construct(const FArguments& InArgs)
 			]
 		]
 
+		// ---- the phone, raised into view while he films
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Bottom)
+		.Padding(TAttribute<FMargin>(this, &SCHHud::GetPhonePadding))
+		[
+			SNew(SBox)
+			.WidthOverride(250.f)
+			.HeightOverride(400.f)
+			[
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				[
+					SNew(SImage).Image(CH::RoundedBrush(30.f)).ColorAndOpacity(FLinearColor(0.012f, 0.012f, 0.014f, 1.f))
+				]
+				+ SOverlay::Slot().Padding(7.f)
+				[
+					SNew(SImage).Image(CH::RoundedBrush(24.f)).ColorAndOpacity(FLinearColor(0.02f, 0.022f, 0.028f, 1.f))
+				]
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 20.f, 0.f, 0.f)
+				[
+					SNew(SBox).WidthOverride(8.f).HeightOverride(8.f)
+					[
+						SNew(SImage).Image(CH::RoundedBrush(4.f)).ColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 1.f))
+					]
+				]
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 44.f, 0.f, 0.f)
+				[
+					SNew(SBox).WidthOverride(12.f).HeightOverride(12.f)
+					[
+						SNew(SImage).Image(CH::RoundedBrush(6.f)).ColorAndOpacity(this, &SCHHud::GetFilmRecColor)
+					]
+				]
+			]
+		]
+
+		// ---- "Saving..." bottom right
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Bottom)
+		.Padding(0.f, 0.f, 44.f, 36.f)
+		[
+			SNew(SHorizontalBox)
+			.Visibility_Lambda([this]() { return SavingAlpha > 0.f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(SBox).WidthOverride(14.f).HeightOverride(14.f)
+				[
+					SNew(SImage).Image(CH::RoundedBrush(7.f))
+					.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.9f, 0.85f, 0.75f, SavingAlpha * (0.5f + 0.5f * FMath::Cos(Time * 6.f)))); })
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(12.f, 0.f, 0.f, 0.f)
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(TEXT("Saving...")))
+				.Font(CH::LatinFont(17.f, CH::EWeight::Regular, 120))
+				.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.85f, 0.82f, 0.76f, SavingAlpha * 0.9f)); })
+			]
+		]
+
+		// ---- the loading screen indicator
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Bottom)
+		.Padding(0.f, 0.f, 70.f, 60.f)
+		[
+			SNew(STextBlock)
+			.Visibility_Lambda([this]() { return LoadingAlpha > 0.f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+			.Text(this, &SCHHud::GetLoadingText)
+			.Font(CH::LatinFont(18.f, CH::EWeight::Regular, 300))
+			.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.7f, 0.68f, 0.64f, LoadingAlpha)); })
+		]
+
 		// ---- controls, bottom right (first time only)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
@@ -458,6 +537,9 @@ void SCHHud::Toast(const FString& Fa, const FString& En, const FLinearColor& Col
 void SCHHud::Advance(float DeltaTime)
 {
 	Time += DeltaTime;
+	SavingTime = FMath::Max(0.f, SavingTime - DeltaTime);
+	SavingAlpha = FMath::Clamp(SavingAlpha + (SavingTime > 0.f ? DeltaTime / 0.25f : -DeltaTime / 0.5f), 0.f, 1.f);
+	LoadingAlpha = FMath::Clamp(LoadingAlpha + (bLoading ? DeltaTime / 0.4f : -DeltaTime / 0.4f), 0.f, 1.f);
 
 	auto Approach = [DeltaTime](float& Value, bool bOn, float InTime, float OutTime)
 	{
@@ -767,4 +849,16 @@ FSlateColor SCHHud::GetControlsColor() const
 	FLinearColor Color = CH::Col::PaperDim;
 	Color.A = FMath::Clamp(ControlsTime / 1.5f, 0.f, 1.f) * 0.85f;
 	return FSlateColor(Color);
+}
+
+FMargin SCHHud::GetPhonePadding() const
+{
+	const float Up = FMath::InterpEaseInOut(0.f, 1.f, FilmAlpha, 2.f);
+	return FMargin(0.f, 0.f, 0.f, -330.f + 300.f * Up);
+}
+
+FText SCHHud::GetLoadingText() const
+{
+	const int32 Dots = static_cast<int32>(Time * 2.5f) % 4;
+	return FText::FromString(FString(TEXT("LOADING")) + FString::ChrN(Dots, TEXT('.')));
 }

@@ -2,6 +2,7 @@
   "scenes": [
     {
       "id": "3.0",
+      "music": "music_ch3_gate",
       "chapter": 3,
       "location": "Boot",
       "beats": [
@@ -20,6 +21,7 @@
     },
     {
       "id": "3.1",
+      "music": "music_ch3_gate",
       "ambient": "amb_wind",
       "chapter": 3,
       "location": "PrisonGate",
@@ -60,6 +62,7 @@
     },
     {
       "id": "3.2",
+      "music": "music_letter",
       "ambient": "amb_room",
       "chapter": 3,
       "location": "Room",
@@ -106,6 +109,7 @@
     },
     {
       "id": "3.3",
+      "music": "music_news",
       "ambient": "amb_room",
       "chapter": 3,
       "location": "Home",
@@ -141,7 +145,7 @@
     },
     {
       "id": "3.4",
-      "music": "music_sunrise",
+      "music": "music_cemetery",
       "ambient": "amb_wind",
       "chapter": 3,
       "location": "Cemetery",

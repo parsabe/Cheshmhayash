@@ -46,6 +46,11 @@ public:
 	void Toast(const FString& Fa, const FString& En, const FLinearColor& Color, float Seconds = 2.8f, UTexture* Image = nullptr);
 	void ShowControls(float Seconds) { ControlsTime = Seconds; }
 
+	/** The small "Saving..." mark in the bottom right corner. */
+	void ShowSaving(float Seconds = 2.2f) { SavingTime = Seconds; }
+	/** The loading screen's small animated indicator. */
+	void SetLoading(bool bOn) { bLoading = bOn; }
+
 	/** A phone lock-screen notification sliding up from the bottom (a message nobody will read). */
 	void Notify(const FString& Title, const FString& Fa, const FString& En, float Seconds);
 
@@ -118,6 +123,12 @@ private:
 	TSharedPtr<FSlateBrush> ToastBrush;
 
 	float ControlsTime = 0.f;
+	float SavingTime = 0.f;
+	float SavingAlpha = 0.f;
+	bool bLoading = false;
+	float LoadingAlpha = 0.f;
+	FMargin GetPhonePadding() const;
+	FText GetLoadingText() const;
 
 	FString NoteTitle;
 	FString NoteFa;

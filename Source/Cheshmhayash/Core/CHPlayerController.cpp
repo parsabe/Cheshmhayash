@@ -1,10 +1,11 @@
-// Cheshm Hayash - player controller.
+﻿// Cheshm Hayash - player controller.
 
 #include "Core/CHPlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Core/CHPlayerCharacter.h"
 #include "Game/CHSegment.h"
 #include "InputCoreTypes.h"
+#include "Story/CHSave.h"
 #include "Story/CHStoryDirector.h"
 
 ACHPlayerController::ACHPlayerController()
@@ -22,8 +23,8 @@ void ACHPlayerController::BeginPlay()
 
 	if (PlayerCameraManager)
 	{
-		PlayerCameraManager->ViewPitchMin = -70.f;
-		PlayerCameraManager->ViewPitchMax = 55.f;
+		PlayerCameraManager->ViewPitchMin = -80.f;
+		PlayerCameraManager->ViewPitchMax = 80.f;
 	}
 }
 
@@ -93,6 +94,25 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	}
 
 	const bool bControl = Director->IsPlayerControlEnabled() && !IsPaused();
+	UpdateCursorMode(Director->WantsCursor());
+
+	// any key (the main menu's "press any key")
+	{
+		TArray<FKey> AllKeys;
+		EKeys::GetAllKeys(AllKeys);
+		for (const FKey& Key : AllKeys)
+		{
+			if (Key.IsDigital() && !Key.IsGamepadKey() && !Key.IsTouch() && !Key.IsMouseButton() && WasInputKeyJustPressed(Key))
+			{
+				Director->InputAnyKey();
+				break;
+			}
+		}
+		if (WasInputKeyJustPressed(EKeys::LeftMouseButton) || WasInputKeyJustPressed(EKeys::RightMouseButton))
+		{
+			Director->InputAnyKey();
+		}
+	}
 
 	// ---- menus, choices, advancing text
 	if (WasInputKeyJustPressed(EKeys::Up) || (!bControl && WasInputKeyJustPressed(EKeys::W)))
@@ -104,9 +124,13 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 		Director->InputNav(1);
 	}
 	if (WasInputKeyJustPressed(EKeys::Enter) ||
-		(!bControl && (WasInputKeyJustPressed(EKeys::SpaceBar) || WasInputKeyJustPressed(EKeys::LeftMouseButton) || WasInputKeyJustPressed(EKeys::E))))
+		(!bControl && (WasInputKeyJustPressed(EKeys::SpaceBar) || WasInputKeyJustPressed(EKeys::E))))
 	{
 		Director->InputAdvance();
+	}
+	if (!bControl && WasInputKeyJustPressed(EKeys::LeftMouseButton))
+	{
+		Director->InputClick();
 	}
 	if (WasInputKeyJustPressed(EKeys::PageDown))
 	{
@@ -132,7 +156,7 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	{
 		return;
 	}
-	if (Segment && WasInputKeyJustPressed(EKeys::E))
+	if (Segment && (WasInputKeyJustPressed(EKeys::E) || WasInputKeyJustPressed(EKeys::LeftMouseButton)))
 	{
 		Segment->Interact();
 	}
@@ -144,8 +168,9 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	float MouseX = 0.f;
 	float MouseY = 0.f;
 	GetInputMouseDelta(MouseX, MouseY);
-	AddYawInput(MouseX * MouseSensitivity);
-	AddPitchInput(-MouseY * MouseSensitivity);
+	const float Sens = MouseSensitivity * CHSettings::GetSensitivity();
+	AddYawInput(MouseX * Sens);
+	AddPitchInput(-MouseY * Sens * (CHSettings::GetInvertY() ? -1.f : 1.f));
 
 	FVector2D Move(0.f, 0.f);
 	if (IsInputKeyDown(EKeys::W) || IsInputKeyDown(EKeys::Up))
@@ -181,5 +206,26 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	if (WasInputKeyJustPressed(EKeys::SpaceBar))
 	{
 		Hero->Jump();
+	}
+}
+
+void ACHPlayerController::UpdateCursorMode(bool bWantCursor)
+{
+	if (bWantCursor == bCursorOn)
+	{
+		return;
+	}
+	bCursorOn = bWantCursor;
+	bShowMouseCursor = bWantCursor;
+	if (bWantCursor)
+	{
+		FInputModeGameAndUI Mode;
+		Mode.SetHideCursorDuringCapture(false);
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+		SetInputMode(Mode);
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
 	}
 }

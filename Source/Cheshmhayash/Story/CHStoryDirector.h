@@ -13,6 +13,7 @@ class ACHLevelBuilder;
 class ACHNpc;
 class ACHPlayerController;
 class FJsonObject;
+class SCHChoiceList;
 class SCHRootOverlay;
 class UCHAudio;
 class UTexture;
@@ -87,7 +88,13 @@ public:
 
 	// ---- input (from the player controller)
 	void InputAdvance() { bAdvancePressed = true; }
+	/** Left mouse button while no gameplay is running: advances text, picks the hovered choice. */
+	void InputClick() { bClickPressed = true; }
+	/** Any key or mouse button was pressed this frame (the main menu's "press any key"). */
+	void InputAnyKey() { bAnyKeyPressed = true; }
 	void InputNav(int32 Direction) { NavInput += Direction; }
+	/** The mouse cursor is needed (a menu or a choice is up). */
+	bool WantsCursor() const;
 	/** Number keys pick a choice directly (0-based). */
 	void InputChoice(int32 Index) { DirectChoice = Index; }
 	void InputPause();
@@ -105,6 +112,15 @@ public:
 	// ---- choices
 	void SetFlag(const FString& Name, const FString& Value);
 	FString GetFlag(const FString& Name) const;
+
+	// ---- molotovs (Tier 4)
+	int32 GetMolotovs() const { return Molotovs; }
+	void SetMolotovs(int32 Count) { Molotovs = FMath::Max(0, Count); }
+	void AddMolotovs(int32 Count) { Molotovs = FMath::Max(0, Molotovs + Count); }
+
+	// ---- checkpoints
+	/** Writes the checkpoint (scene + beat + choices + clips) and shows the small "Saving" mark. */
+	void AutoSave(int32 Beat);
 
 	// ---- gameplay segments (started by a "gameplay" beat, finished by the location)
 	void FinishSegment();
@@ -158,9 +174,34 @@ private:
 	void EnsureUI();
 	void SetPaused(bool bInPaused);
 	void UpdatePause();
+
+	/** Menu helpers: hover moves the highlight; returns the picked row (click, number key, Enter) or INDEX_NONE. */
+	int32 PollMenu(SCHChoiceList& Menu);
+	void ShowSettings(SCHChoiceList& Menu);
+	void RefreshSettings(SCHChoiceList& Menu);
+	/** A row of the settings panel was activated. Returns true when "Back" was picked. */
+	bool ActivateSetting(int32 Row, SCHChoiceList& Menu);
+	void ShowPauseOptions();
+	void ShowMainMenuOptions();
+	/** Continue: loads the checkpoint and resumes there. */
+	bool LoadCheckpoint();
+	/** Back to the main menu from anywhere. */
+	void GoToMainMenu();
+	/** Speaker name tag + colour. */
+	void ResetRun();
 	/** Clears every overlay: cards, text, phone, letter, montage. */
 	void ClearScreen();
 	bool bPauseMenu = false;
+	bool bPauseSettings = false;
+	bool bMenuSettings = false;
+	bool bMenuHasContinue = false;
+	FVector2D LastCursor = FVector2D::ZeroVector;
+	/** Beats before this index only set up the scene (camera, npcs, events); used when continuing. */
+	int32 SkipToBeat = 0;
+	int32 Molotovs = 0;
+	int32 HintLinesLeft = 5;
+	bool bClickPressed = false;
+	bool bAnyKeyPressed = false;
 	float DevPauseAt = 0.f;
 	void UpdateFade(float DeltaTime);
 	void SetFade(float Target, float Time, const FLinearColor& Color);

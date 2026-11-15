@@ -1,4 +1,4 @@
-// Cheshm Hayash - the player. "He" in chapters 1 and 2, his sister in chapter 3.
+﻿// Cheshm Hayash - the player. "He" in chapters 1 and 2, his sister in chapter 3.
 // Third person outdoors, first person in small rooms. The template mannequin, tinted dark.
 
 #pragma once
@@ -60,7 +60,9 @@ private:
 
 	float BaseFOV = 78.f;
 	float BaseArm = 300.f;
-	bool bFirstPerson = false;
+	bool bFirstPerson = true;
+	float BobPhase = 0.f;
+	float BobBlend = 0.f;
 	bool bFilming = false;
 	bool bSneaking = false;
 	bool bSprinting = false;

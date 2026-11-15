@@ -49,7 +49,7 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.Text(this, &SCHDialogueOverlay::GetSpeakerEn)
-					.Font(CH::LatinFont(12.f, CH::EWeight::Regular, 380))
+					.Font(CH::LatinFont(15.f, CH::EWeight::Regular, 380))
 					.ColorAndOpacity(this, &SCHDialogueOverlay::GetSpeakerEnColor)
 				]
 				+ SHorizontalBox::Slot()
@@ -59,7 +59,7 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.Text(this, &SCHDialogueOverlay::GetSpeakerFa)
-					.Font(CH::FarsiFont(21.f, CH::EWeight::Bold))
+					.Font(CH::FarsiFont(24.f, CH::EWeight::Bold))
 					.ColorAndOpacity(this, &SCHDialogueOverlay::GetSpeakerColor)
 					.TextShapingMethod(ETextShapingMethod::FullShaping)
 					.TextFlowDirection(ETextFlowDirection::RightToLeft)
@@ -74,7 +74,7 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 			[
 				SNew(STextBlock)
 				.Text(this, &SCHDialogueOverlay::GetFaText)
-				.Font(CH::FarsiFont(36.f, CH::EWeight::Regular))
+				.Font(CH::FarsiFont(34.f, CH::EWeight::Regular))
 				.ColorAndOpacity(this, &SCHDialogueOverlay::GetFaColor)
 				.ShadowOffset(FVector2D(1.5f, 1.5f))
 				.ShadowColorAndOpacity(this, &SCHDialogueOverlay::GetShadowColor)
@@ -92,7 +92,7 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 			[
 				SNew(STextBlock)
 				.Text(this, &SCHDialogueOverlay::GetEnText)
-				.Font(CH::LatinFont(21.f, CH::EWeight::Light))
+				.Font(CH::LatinFont(34.f, CH::EWeight::Regular))
 				.ColorAndOpacity(this, &SCHDialogueOverlay::GetEnColor)
 				.ShadowOffset(FVector2D(1.f, 1.f))
 				.ShadowColorAndOpacity(this, &SCHDialogueOverlay::GetShadowColor)
@@ -115,14 +115,27 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 					.ColorAndOpacity(this, &SCHDialogueOverlay::GetCursorColor)
 				]
 			]
+
+			// hint
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.HAlign(HAlign_Center)
+			.Padding(0.f, 10.f, 0.f, 0.f)
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(TEXT("Enter  /  Click to continue")))
+				.Font(CH::LatinFont(14.f, CH::EWeight::Regular, 200))
+				.ColorAndOpacity(this, &SCHDialogueOverlay::GetHintColor)
+			]
 		]
 	];
 }
 
-void SCHDialogueOverlay::ShowLine(const FString& InSpeakerFa, const FString& InSpeakerEn, const FString& InFa, const FString& InEn, float InRate)
+void SCHDialogueOverlay::ShowLine(const FString& InSpeakerFa, const FString& InSpeakerEn, const FString& InFa, const FString& InEn, float InRate, const FLinearColor& InTint)
 {
 	SpeakerFa = InSpeakerFa;
 	SpeakerEn = InSpeakerEn.ToUpper();
+	Tint = InTint;
 	Fa = InFa;
 	En = InEn;
 	Rate = FMath::Max(1.f, InRate);
@@ -209,28 +222,28 @@ FText SCHDialogueOverlay::GetEnText() const
 
 FSlateColor SCHDialogueOverlay::GetSpeakerColor() const
 {
-	FLinearColor Color = CH::Col::Ember;
-	Color.A = Alpha * 0.9f;
+	FLinearColor Color = Tint;
+	Color.A = Alpha * 0.95f;
 	return FSlateColor(Color);
 }
 
 FSlateColor SCHDialogueOverlay::GetSpeakerEnColor() const
 {
-	FLinearColor Color = CH::Col::PaperDim;
+	FLinearColor Color = Tint;
 	Color.A = Alpha * 0.8f;
 	return FSlateColor(Color);
 }
 
 FSlateColor SCHDialogueOverlay::GetFaColor() const
 {
-	FLinearColor Color = CH::Col::Paper;
+	FLinearColor Color = Tint;
 	Color.A = Alpha;
 	return FSlateColor(Color);
 }
 
 FSlateColor SCHDialogueOverlay::GetEnColor() const
 {
-	FLinearColor Color = CH::Col::PaperDim;
+	FLinearColor Color = Tint;
 	Color.A = Alpha;
 	return FSlateColor(Color);
 }
@@ -251,4 +264,11 @@ FLinearColor SCHDialogueOverlay::GetBandColor() const
 FLinearColor SCHDialogueOverlay::GetShadowColor() const
 {
 	return FLinearColor(0.f, 0.f, 0.f, 0.7f * Alpha);
+}
+
+FSlateColor SCHDialogueOverlay::GetHintColor() const
+{
+	FLinearColor Color = FLinearColor(0.75f, 0.75f, 0.75f, 1.f);
+	Color.A = bHint ? Alpha * (0.45f + 0.2f * FMath::Cos(Blink * 3.f)) : 0.f;
+	return FSlateColor(Color);
 }

@@ -1,47 +1,36 @@
 {
-  "_comment": "Tracks for gen_audio_fal.py. 'name' must match a file made by gen_audio_procedural.py: the fal version replaces it at import. kind: music | sfx. No vocals, no voices, no recordings of real events.",
+  "_comment": "Tracks for gen_audio_fal.py (UPDATE 02). 'name' must match a file made by gen_audio_procedural.py: the fal version replaces it at import. kind: music | sfx. No vocals, no voices, no recordings of real events.",
   "tracks": [
-    {
-      "name": "music_setar",
-      "kind": "music",
-      "seconds": 45,
-      "prompt": "Solo Persian setar, quiet and intimate, slow melancholic melody in Dastgah Shur, unresolved ending, close microphone, small room, no percussion, no vocals, instrumental"
-    },
-    {
-      "name": "music_setar_resolved",
-      "kind": "music",
-      "seconds": 47,
-      "prompt": "Solo Persian setar, the same slow melancholic melody in Dastgah Shur, tender, this time resolving gently to the tonic, peaceful ending, close microphone, no percussion, no vocals, instrumental"
-    },
-    {
-      "name": "music_daf",
-      "kind": "music",
-      "seconds": 45,
-      "prompt": "Persian daf frame drum in a driving 6/8 rhythm with slowly rising cinematic strings, tense, hopeful, building, protest in the streets at night, no vocals, no chanting, instrumental, loopable"
-    },
-    {
-      "name": "music_chase",
-      "kind": "music",
-      "seconds": 30,
-      "prompt": "Fast urgent Persian percussion, daf and tombak, rapid hands, heart-pounding chase, dry, no melody, no vocals, instrumental, loopable"
-    },
-    {
-      "name": "music_sunrise",
-      "kind": "music",
-      "seconds": 47,
-      "prompt": "Slow Persian ney flute over warm sustained strings, sunrise over mountains, bright, tender, grief and peace, spacious, no percussion, no vocals, instrumental"
-    },
-    {
-      "name": "amb_wind",
-      "kind": "sfx",
-      "seconds": 20,
-      "prompt": "Soft wind over city rooftops before dawn, distant, empty, no voices, no traffic, seamless loop"
-    },
-    {
-      "name": "amb_city",
-      "kind": "sfx",
-      "seconds": 20,
-      "prompt": "Distant city traffic hum on a warm afternoon, far away cars, no horns, no voices, seamless loop"
-    }
+    { "name": "music_menu", "kind": "music", "seconds": 45, "prompt": "Dark cinematic Persian thriller theme, distant reverbed kamancheh and ney over deep sub-bass drone and slow low brass swells, sorrowful and vast, sunrise over a dark city, no vocals, instrumental, loopable" },
+    { "name": "music_poem", "kind": "music", "seconds": 45, "prompt": "Dark atmospheric score, low sub-bass drone, solitary reverbed Persian setar notes in Dastgah Shur, reversed string swells, eerie, solemn, mournful, no vocals, instrumental" },
+    { "name": "music_ch1_morning", "kind": "music", "seconds": 45, "prompt": "Fragile warm solo Persian setar melody with a faint uneasy low cello drone underneath, quiet morning in a small room, melancholic, unresolved, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_arrest", "kind": "music", "seconds": 35, "prompt": "Sharp horrifying cinematic thriller score, dissonant screeching strings, metallic hits, deep sub-bass drop, panic, fast pulsing heartbeat percussion, no vocals, instrumental, loopable" },
+    { "name": "music_run", "kind": "music", "seconds": 40, "prompt": "Urgent dark thriller pulse, fast low synth and taiko drum heartbeat rhythm, tense strings, running through city streets in panic, breathless, no vocals, instrumental, loopable" },
+    { "name": "music_vozara", "kind": "music", "seconds": 45, "prompt": "Cold oppressive sub-bass drone, distant metallic resonance, detuned kamancheh harmonic, dread and helplessness outside a prison gate, minimal, dark horror atmosphere, no vocals, instrumental, loopable" },
+    { "name": "music_table", "kind": "music", "seconds": 45, "prompt": "Slow grieving chamber strings and quiet reverbed Persian setar, heavy silence between notes, a family in shock at night, dark and intimate, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_taxi", "kind": "music", "seconds": 45, "prompt": "Low creeping dread, deep sub-bass rumble, dissonant high string harmonic, slow reversed swells, numbness after terrible news, dark thriller score, no vocals, instrumental, loopable" },
+    { "name": "music_lawyer", "kind": "music", "seconds": 45, "prompt": "Hopeless slow cello and kamancheh duet over a dark low drone, bureaucratic dread, cold and defeated, minor key, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_rooftops", "kind": "music", "seconds": 45, "prompt": "Rising chilling dark score, low brass and trembling strings building slowly in pitch, distant deep daf frame drum pulse, night wind over rooftops, goosebumps, no vocals, instrumental, loopable" },
+    { "name": "music_stairwell", "kind": "music", "seconds": 45, "prompt": "Broken solitary Persian setar, sparse detuned notes with long dark reverb tails and a faint low drone, quiet weeping, grief on a stairwell, no vocals, instrumental, loopable" },
+    { "name": "music_ch1_end", "kind": "music", "seconds": 45, "prompt": "Dark determined cinematic score, Persian setar melody joined by deep low brass and slow heavy taiko drum hits, a vow in the dark, tense and tragic, no vocals, instrumental" },
+    { "name": "music_ch2_university", "kind": "music", "seconds": 45, "prompt": "Tense hopeful underscore, rhythmic Persian daf and muted strings, young energy under threat, pulsing bass, cinematic drama, no vocals, no chanting, instrumental, loopable" },
+    { "name": "music_siege", "kind": "music", "seconds": 45, "prompt": "Horror stealth soundtrack, deep sub-bass pulses, ticking metallic percussion, dissonant string clusters, trapped in a dark underground garage, terrifying tension, no vocals, instrumental, loopable" },
+    { "name": "music_kian", "kind": "music", "seconds": 45, "prompt": "Tender sad Persian setar and soft warm strings, a goodbye between best friends, bittersweet, fragile, intimate, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_nightstreets", "kind": "music", "seconds": 45, "prompt": "Dark pulsing stealth thriller score, deep synth bass, Persian daf frame drum in 6/8, tense low strings, night streets full of smoke and danger, no vocals, instrumental, loopable" },
+    { "name": "music_suspicion", "kind": "music", "seconds": 30, "prompt": "Tense suspicion layer, fast ticking percussion, rising dissonant string tremolos, low sub-bass throb, about to be spotted, horror thriller, no vocals, instrumental, loopable" },
+    { "name": "music_chase", "kind": "music", "seconds": 35, "prompt": "Aggressive combat and chase music, heavy pounding taiko drums and rapid Persian daf, distorted low brass blasts, frantic strings, terrifying pursuit, no vocals, instrumental, loopable" },
+    { "name": "music_mom", "kind": "music", "seconds": 45, "prompt": "Fragile solo kamancheh and soft piano-like setar harmonics, a mother's love and fear, tender, heartbreaking, quiet night alley, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_lastnight", "kind": "music", "seconds": 47, "prompt": "Epic tragic cinematic score, driving heavy taiko and daf drums, soaring mournful Persian kamancheh and full dark orchestra, low brass, the final night run, overwhelming emotion, no vocals, instrumental, loopable" },
+    { "name": "music_sunrise", "kind": "music", "seconds": 47, "prompt": "Overwhelming warm sorrowful sunrise score, slow breathy Persian ney flute over rich glowing strings and deep warm brass, grief turning into light over mountains, spacious, no vocals, instrumental, loopable" },
+    { "name": "music_ch3_gate", "kind": "music", "seconds": 45, "prompt": "Empty cold morning atmosphere, single distant ney note and hollow wind-like string harmonics, aftermath, silence and loss outside a gate, minimal, no vocals, instrumental, loopable" },
+    { "name": "music_letter", "kind": "music", "seconds": 47, "prompt": "Intimate delicate Persian setar and soft felt piano, reading a letter from someone who is gone, tender, tearful, resolving gently, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_news", "kind": "music", "seconds": 45, "prompt": "Uneasy quiet drone with a slow distant setar motif, years later, a strange stillness, bittersweet memory, no percussion, no vocals, instrumental, loopable" },
+    { "name": "music_cemetery", "kind": "music", "seconds": 47, "prompt": "Sorrow resolving to light, Persian setar and ney flute over warm sustained strings in Dastgah Mahur, morning at a cemetery on a hill, peaceful, luminous, no vocals, instrumental, loopable" },
+    { "name": "music_final", "kind": "music", "seconds": 47, "prompt": "Full main theme for end credits, solo Persian setar joined by kamancheh, ney, deep warm strings and gentle daf, in loving memory, tragic, proud, unforgettable, resolving to peace, no vocals, instrumental" },
+    { "name": "music_setar", "kind": "music", "seconds": 45, "prompt": "Solo Persian setar, quiet and intimate, slow melancholic melody in Dastgah Shur, unresolved ending, close microphone, no percussion, no vocals, instrumental" },
+    { "name": "music_setar_resolved", "kind": "music", "seconds": 47, "prompt": "Solo Persian setar, slow melancholic melody in Dastgah Shur resolving gently to the tonic, peaceful ending, no percussion, no vocals, instrumental" },
+    { "name": "music_daf", "kind": "music", "seconds": 45, "prompt": "Persian daf frame drum in 6/8 with dark rising strings and low brass, tense night protest, no vocals, instrumental, loopable" },
+    { "name": "amb_wind", "kind": "sfx", "seconds": 20, "prompt": "Soft wind over city rooftops before dawn, distant, empty, no voices, no traffic, seamless loop" },
+    { "name": "amb_city", "kind": "sfx", "seconds": 20, "prompt": "Distant city traffic hum on a warm afternoon, far away cars, no horns, no voices, seamless loop" }
   ]
 }

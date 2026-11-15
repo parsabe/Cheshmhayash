@@ -2,7 +2,7 @@
   "scenes": [
     {
       "id": "2.0",
-      "music": "music_daf",
+      "music": "music_ch2_university",
       "chapter": 2,
       "location": "Boot",
       "beats": [
@@ -20,7 +20,7 @@
     },
     {
       "id": "2.1",
-      "music": "music_daf",
+      "music": "music_ch2_university",
       "ambient": "amb_city",
       "chapter": 2,
       "location": "Streets",
@@ -77,6 +77,7 @@
     },
     {
       "id": "2.2",
+      "music": "music_siege",
       "ambient": "amb_drone",
       "chapter": 2,
       "location": "Streets",
@@ -103,7 +104,7 @@
     },
     {
       "id": "2.3",
-      "music": "music_setar",
+      "music": "music_kian",
       "ambient": "amb_room",
       "chapter": 2,
       "location": "Room",
@@ -142,7 +143,7 @@
     },
     {
       "id": "2.4",
-      "music": "music_daf",
+      "music": "music_nightstreets",
       "ambient": "amb_wind",
       "chapter": 2,
       "location": "Streets",
@@ -216,6 +217,7 @@
     },
     {
       "id": "2.5",
+      "music": "music_mom",
       "ambient": "amb_wind",
       "chapter": 2,
       "location": "Streets",
@@ -252,7 +254,7 @@
     },
     {
       "id": "2.6",
-      "music": "music_daf",
+      "music": "music_lastnight",
       "ambient": "amb_wind",
       "chapter": 2,
       "location": "Streets",
@@ -286,6 +288,7 @@
     },
     {
       "id": "2.6.roof",
+      "music": "music_lastnight",
       "ambient": "amb_wind",
       "chapter": 2,
       "location": "FinalRoof",
@@ -330,6 +333,7 @@
         { "type": "text", "who": "he", "fa": "نگاه کن… داره میاد بالا.", "en": "Look… it's coming up.", "rate": 16, "auto": 2.8 },
         { "type": "hide_text" },
         { "type": "silence", "seconds": 1.4 },
+        { "type": "sfx", "name": "sting_shot", "volume": 0.9 },
         { "type": "audio", "cut": true },
         { "type": "eye", "close": 1, "time": 2.6 },
         { "type": "event", "name": "phone_fall" },

@@ -2,7 +2,7 @@
   "scenes": [
     {
       "id": "1.0",
-      "music": "music_setar",
+      "music": "music_ch1_morning",
       "chapter": 1,
       "location": "Boot",
       "beats": [
@@ -19,7 +19,7 @@
     },
     {
       "id": "1.1",
-      "music": "music_setar",
+      "music": "music_ch1_morning",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",
@@ -82,6 +82,7 @@
     },
     {
       "id": "1.2",
+      "music": "music_arrest",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",
@@ -94,6 +95,7 @@
         { "type": "fade", "to": 0, "time": 2.0 },
         { "type": "silence", "seconds": 2.0 },
         { "type": "phone", "action": "clock", "en": "14:20" },
+        { "type": "sfx", "name": "sting_message", "volume": 0.85 },
         { "type": "phone", "action": "chat", "fa": "مینا (دوستش)", "en": "Mina (her friend)" },
         { "type": "phone", "action": "msg", "fa": "بردنش", "en": "they took her", "typing": 0.9 },
         { "type": "phone", "action": "msg", "fa": "گشت ارشاد", "en": "gasht ershad", "typing": 0.5 },
@@ -108,6 +110,7 @@
     },
     {
       "id": "1.2.run",
+      "music": "music_run",
       "ambient": "amb_city",
       "chapter": 1,
       "location": "Streets",
@@ -130,6 +133,7 @@
     },
     {
       "id": "1.3",
+      "music": "music_vozara",
       "ambient": "amb_city",
       "chapter": 1,
       "location": "PrisonGate",
@@ -192,6 +196,7 @@
     },
     {
       "id": "1.4",
+      "music": "music_table",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
@@ -227,6 +232,7 @@
     },
     {
       "id": "1.5",
+      "music": "music_taxi",
       "ambient": "amb_city",
       "chapter": 1,
       "location": "Streets",
@@ -249,6 +255,8 @@
           "en": "Mahsa Amini, 22, has died after being held at the Vozara Street detention center."
         },
         { "type": "silence", "seconds": 5.0 },
+        { "type": "sfx", "name": "sting_alert", "volume": 0.7 },
+        { "type": "audio", "music": "music_taxi", "fade": 5.0, "volume": 0.65 },
         { "type": "text", "who": "he", "fa": "همون ساختمون. همون در.", "en": "Same building. Same gate.", "rate": 12 },
         { "type": "text", "who": "driver", "fa": "می‌گن قلبش بوده.", "en": "They say it was her heart.", "rate": 14 },
         { "type": "hide_text" },
@@ -265,6 +273,7 @@
     },
     {
       "id": "1.6",
+      "music": "music_lawyer",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
@@ -296,6 +305,7 @@
     },
     {
       "id": "1.7",
+      "music": "music_rooftops",
       "ambient": "amb_wind",
       "chapter": 1,
       "location": "Room",
@@ -318,6 +328,7 @@
     },
     {
       "id": "1.7.roof",
+      "music": "music_rooftops",
       "ambient": "amb_wind",
       "chapter": 1,
       "location": "FinalRoof",
@@ -344,6 +355,7 @@
     },
     {
       "id": "1.8",
+      "music": "music_stairwell",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Home",
@@ -379,7 +391,7 @@
     },
     {
       "id": "1.9",
-      "music": "music_setar",
+      "music": "music_ch1_end",
       "ambient": "amb_room",
       "chapter": 1,
       "location": "Room",

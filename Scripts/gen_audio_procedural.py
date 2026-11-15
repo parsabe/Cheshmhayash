@@ -292,13 +292,8 @@ def music_daf():
 
 
 def music_chase():
-    """Spotted: fast hands on the drum, nothing else."""
-    rng = random.Random(22)
-    drums = daf_loop(152, 8, ["DkktDkktDktkDtkt", "DkktDktkDDtkDtkk"], rng)
-    seconds = len(drums) / SR
-    pulse = pad([note(-12), note(0)], seconds, rng, 0.03, lambda t: 0.8)
-    track = [drums[i] + pulse[i] * 0.6 for i in range(len(drums))]
-    save("music_chase", loopable(track, 0.1), 0.85)
+    """Spotted / fight: heavy taiko + rapid daf + low brass blasts."""
+    dark_cue("music_chase", 22, 18.0, 0, (0, 6, 12), (13.5, 18.5, 20), None, taiko_bpm=148, daf_bpm=148, tick_bpm=148, swells=3, peak=0.92)
 
 
 def music_sunrise():
@@ -515,10 +510,306 @@ def main():
     for build in (music_setar, music_setar_resolved, music_daf, music_chase, music_sunrise,
                   amb_wind, amb_drone, amb_city, amb_room, loop_heartbeat, loop_engine,
                   sfx_type, sfx_knock, sfx_door, sfx_beep, sfx_static, sfx_shots, sfx_notify,
-                  sfx_bird, sfx_saved, sfx_caught):
+                  sfx_bird, sfx_saved, sfx_caught, build_thriller_cues, build_stingers):
         build()
     print("Done.")
 
+
+
+
+# ---------------------------------------------------------------------------------------------
+# UPDATE 02: dark thriller/horror score cues (sub-bass drones, low brass, dissonant strings,
+# taiko hits, ticking pulse, reversed swells, metallic hits + setar, kamancheh, ney, daf)
+# and stingers.
+# ---------------------------------------------------------------------------------------------
+
+def sub_drone(freq, seconds, pulse_hz=0.25):
+    count = int(seconds * SR)
+    out = [0.0] * count
+    p1 = 0.0
+    p2 = 0.0
+    for i in range(count):
+        t = i / SR
+        mod = 0.72 + 0.28 * math.sin(TWO_PI * pulse_hz * t)
+        p1 += TWO_PI * freq / SR
+        p2 += TWO_PI * (freq * 0.5) / SR
+        out[i] = (0.75 * math.sin(p1) + 0.55 * math.sin(p2) + 0.2 * math.sin(p1 * 1.5)) * mod
+    return out
+
+
+def taiko(rng, pitch=46.0, seconds=1.1):
+    """Deep heavy drum hit with sub drop and skin crack."""
+    count = int(seconds * SR)
+    out = [0.0] * count
+    phase = 0.0
+    for i in range(count):
+        t = i / SR
+        f = pitch * (1.0 + 2.2 * math.exp(-t * 28.0))
+        phase += TWO_PI * f / SR
+        out[i] = (math.sin(phase) + 0.35 * math.sin(phase * 2.0)) * math.exp(-t * 4.2)
+    crack = envelope(one_pole(noise(0.08, rng), 0.45), 0.0005, 3.5)
+    rumble = envelope(one_pole(noise(seconds * 0.7, rng), 0.03), 0.01, 2.2)
+    mix(out, crack, 0.0, 0.75)
+    mix(out, rumble, 0.02, 0.45)
+    return out
+
+
+def metal_hit(rng, base=310.0, seconds=1.8):
+    """Inharmonic metallic strike with long dark ring."""
+    ratios = (1.0, 1.41, 1.73, 2.19, 2.87, 3.54)
+    count = int(seconds * SR)
+    out = [0.0] * count
+    for r in ratios:
+        f = base * r * rng.uniform(0.99, 1.01)
+        decay = 2.2 + r * 1.1
+        for i in range(count):
+            t = i / SR
+            out[i] += math.sin(TWO_PI * f * t) * math.exp(-t * decay) / len(ratios)
+    burst = envelope(noise(0.035, rng), 0.0003, 3.0)
+    mix(out, burst, 0.0, 0.4)
+    return out
+
+
+def rev_swell(freq, seconds, rng):
+    """Reversed string/brass swell that rises exponentially and cuts off."""
+    count = int(seconds * SR)
+    raw = pad([freq, freq * 1.059, freq * 1.498], seconds, rng, 0.09, lambda t: (t ** 3.2))
+    for i in range(min(int(0.04 * SR), count)):
+        raw[-1 - i] *= i / (0.04 * SR)
+    return raw
+
+
+def kamancheh(freq, seconds, rng, mournful=True):
+    """Bowed spike fiddle: expressive wide vibrato and nasal resonance."""
+    count = int(seconds * SR)
+    out = [0.0] * count
+    phase = 0.0
+    for i in range(count):
+        t = i / SR
+        slide = 1.0 - (0.025 * math.exp(-t * 9.0) if mournful else 0.0)
+        vib = 1.0 + 0.009 * math.sin(TWO_PI * 5.6 * t) * min(1.0, t * 2.0)
+        phase += (freq * slide * vib) / SR
+        if phase >= 1.0:
+            phase -= 1.0
+        saw = 2.0 * phase - 1.0
+        env = min(1.0, t / 0.25) * min(1.0, max(0.0, (seconds - t) / 0.35))
+        out[i] = saw * env
+    return one_pole(out, 0.14)
+
+
+def tick_loop(bpm, seconds, rng, accent_every=4):
+    step = 60.0 / bpm / 2.0
+    track = silence(seconds)
+    t = 0.0
+    idx = 0
+    while t < seconds - 0.05:
+        hi = 0.7 if (idx % accent_every == 0) else 0.35
+        click = envelope(one_pole(noise(0.022, rng), 0.65), 0.0004, 4.0)
+        mix(track, click, t, hi)
+        t += step
+        idx += 1
+    return track
+
+
+def dark_cue(name, seed, seconds, drone_semi=0, brass_semis=(0, 7), diss_semis=(13.5, 20),
+             melody=None, instrument="setar", taiko_bpm=0, tick_bpm=0, daf_bpm=0, swells=0, peak=0.8):
+    rng = random.Random(seed)
+    track = sub_drone(note(drone_semi) * 0.5, seconds, rng.uniform(0.16, 0.32))
+    track = [v * 0.55 for v in track]
+    if brass_semis:
+        brass = pad([note(s) * 0.5 for s in brass_semis], seconds, rng, 0.035,
+                    lambda t: 0.5 + 0.5 * math.sin(math.pi * t))
+        mix(track, brass, 0.0, 0.65)
+    if diss_semis:
+        diss = pad([note(s) for s in diss_semis], seconds, rng, 0.075,
+                   lambda t: 0.35 + 0.65 * (0.5 - 0.5 * math.cos(TWO_PI * t * 2.0)))
+        mix(track, diss, 0.0, 0.45)
+    if taiko_bpm > 0:
+        beat = 60.0 / taiko_bpm
+        t = 0.2
+        k = 0
+        while t < seconds - 1.2:
+            mix(track, taiko(rng, 45.0 if k % 2 == 0 else 54.0, 1.0), t, 0.85 if k % 2 == 0 else 0.55)
+            if k % 4 == 3 and t + beat * 0.5 < seconds - 1.0:
+                mix(track, taiko(rng, 58.0, 0.6), t + beat * 0.5, 0.45)
+            t += beat * 2.0
+            k += 1
+    if tick_bpm > 0:
+        mix(track, tick_loop(tick_bpm, seconds, rng), 0.0, 0.45)
+    if daf_bpm > 0:
+        bars = max(2, int(seconds / (60.0 / daf_bpm * 4.0)))
+        drums = daf_loop(daf_bpm, bars, ["D.kt.kD.ktkk", "D.kt.kDktk.k"], rng)
+        mix(track, drums[:int(seconds * SR)], 0.0, 0.75)
+    for s in range(swells):
+        at = (s + 0.6) * (seconds / (swells + 1.0))
+        dur = min(2.6, seconds - at - 0.5)
+        if dur > 0.8:
+            mix(track, rev_swell(note(rng.choice((12, 13.5, 18.5, 20))), dur, rng), at, 0.55)
+            mix(track, metal_hit(rng, rng.uniform(240.0, 380.0), 1.6), min(seconds - 1.7, at + dur), 0.35)
+    if melody:
+        t = 0.8
+        for n_name, dur, trem in melody:
+            if t >= seconds - 1.5:
+                break
+            if n_name != "r":
+                sc = MAHUR if n_name in MAHUR and n_name not in SHUR else SHUR
+                f = note(sc[n_name])
+                if instrument == "kamancheh":
+                    mix(track, kamancheh(f * 2.0, dur, rng), t, 0.55)
+                elif instrument == "ney":
+                    mix(track, ney_note(f * 2.0, dur, rng), t, 0.42)
+                else:
+                    mix(track, setar_note(f, dur, rng, trem), t, 0.68)
+            t += dur
+    save(name, loopable(track[:int(seconds * SR)], 1.0), peak)
+
+
+def build_thriller_cues():
+    # Menu: sunrise over dark city - deep sub, low brass, kamancheh + ney
+    dark_cue("music_menu", 101, 28.0, 0, (0, 7, 12), (13.5, 19),
+             [("D", 3.5, True), ("r", 1.0, False), ("F", 2.5, False), ("G", 3.0, True),
+              ("Ak", 2.5, False), ("G", 2.5, False), ("F", 3.0, True), ("Ek", 3.5, True), ("D", 4.0, True)],
+             instrument="kamancheh", taiko_bpm=36, swells=2, peak=0.8)
+    # Poem card: solemn sub drone, reversed swells, sparse setar
+    dark_cue("music_poem", 102, 26.0, 0, (0, 7), (13.5, 20),
+             [("D", 3.0, True), ("r", 1.5, False), ("Ek", 3.0, True), ("r", 1.5, False),
+              ("F", 3.0, False), ("Ek", 3.5, True), ("D", 4.5, True)],
+             instrument="setar", swells=3, peak=0.75)
+    # Ch1 morning: fragile warm setar with an uneasy low cello shadow
+    dark_cue("music_ch1_morning", 103, 28.0, 0, (0, 7), (15,),
+             [(n, b * 0.9, tr) for n, b, tr in (MELODY_A + MELODY_B)],
+             instrument="setar", peak=0.72)
+    # Arrest video / 14:20: sharp horrifying dissonant strings, metallic hits, fast pulse
+    dark_cue("music_arrest", 104, 22.0, 1, (0, 6, 13), (13.5, 18.5, 20),
+             [("Bb", 1.5, True), ("Ak", 1.5, True), ("Ek", 2.5, True), ("r", 1.0, False),
+              ("Bb", 1.5, True), ("E" if "E" in SHUR else "Ek", 3.0, True)],
+             instrument="kamancheh", taiko_bpm=112, tick_bpm=112, swells=4, peak=0.88)
+    # Run to Vozara: urgent pulse, taiko heartbeat, tense strings
+    dark_cue("music_run", 105, 24.0, 0, (0, 7), (13.5, 19),
+             None, taiko_bpm=124, tick_bpm=124, daf_bpm=124, swells=2, peak=0.88)
+    # Vozara gate: cold oppressive drone, metallic resonance, detuned kamancheh
+    dark_cue("music_vozara", 106, 26.0, -2, (-2, 5), (13.5, 18.5),
+             [("Ek", 4.0, True), ("r", 2.5, False), ("D", 4.5, True), ("r", 3.0, False), ("A0", 5.0, True)],
+             instrument="kamancheh", swells=3, peak=0.78)
+    # Family table: grief, slow chamber strings and quiet setar
+    dark_cue("music_table", 107, 26.0, 0, (0, 7, 15), (13.5,),
+             [("G", 2.5, False), ("F", 2.5, False), ("Ek", 3.5, True), ("r", 2.0, False),
+              ("F", 2.5, False), ("Ek", 2.5, False), ("D", 4.5, True)],
+             instrument="setar", peak=0.7)
+    # Taxi after the alert: low creeping dread, reversed swells
+    dark_cue("music_taxi", 108, 24.0, -2, (-2, 4), (13.5, 20),
+             [("Ek", 4.5, True), ("r", 3.0, False), ("C0", 4.5, True)],
+             instrument="kamancheh", tick_bpm=64, swells=3, peak=0.78)
+    # Lawyer: hopeless cello & kamancheh duet over dark drone
+    dark_cue("music_lawyer", 109, 26.0, 0, (0, 7, 12), (13.5, 17),
+             [("F", 3.0, False), ("Ek", 3.0, False), ("D", 4.0, True), ("r", 1.5, False),
+              ("G", 2.5, False), ("F", 2.5, False), ("Ek", 4.5, True)],
+             instrument="kamancheh", peak=0.74)
+    # Rooftops: rising chilling brass & trembling strings + distant daf
+    dark_cue("music_rooftops", 110, 26.0, 0, (0, 7, 12), (13.5, 19, 22),
+             [("D", 3.0, True), ("F", 2.5, True), ("G", 2.5, True), ("Ak", 3.5, True), ("Bb", 4.0, True), ("D2", 4.5, True)],
+             instrument="kamancheh", taiko_bpm=68, daf_bpm=68, swells=3, peak=0.84)
+    # Stairwell: broken solitary setar, sparse detuned notes
+    dark_cue("music_stairwell", 111, 24.0, 0, (0,), (13.5,),
+             [("F", 3.5, False), ("r", 2.5, False), ("Ek", 4.0, False), ("r", 3.0, False), ("D", 5.0, False)],
+             instrument="setar", peak=0.68)
+    # Ch1 end: dark vow - setar joined by low brass and heavy taiko
+    dark_cue("music_ch1_end", 112, 26.0, 0, (0, 7, 12), (15, 19),
+             [(n, b * 0.9, True) for n, b, _ in MELODY_B],
+             instrument="setar", taiko_bpm=60, swells=2, peak=0.85)
+    # Ch2 university: tense hope - rhythmic daf, pulsing bass, setar
+    dark_cue("music_ch2_university", 113, 26.0, 0, (0, 7), (15, 19),
+             [("D", 1.5, False), ("F", 1.5, False), ("G", 2.0, True), ("Ak", 2.0, True), ("G", 1.5, False), ("F", 2.5, True)],
+             instrument="setar", daf_bpm=92, tick_bpm=92, peak=0.8)
+    # Siege (parking garage): horror stealth - deep sub pulses, ticking metal, dissonance
+    dark_cue("music_siege", 114, 26.0, -2, (-2, 4, 11), (13.5, 18.5, 20),
+             None, taiko_bpm=54, tick_bpm=108, swells=4, peak=0.84)
+    # Kian call: tender sad setar and warm strings
+    dark_cue("music_kian", 115, 26.0, 0, (0, 7, 15), None,
+             [(n, b * 1.0, tr) for n, b, tr in MELODY_A],
+             instrument="setar", peak=0.72)
+    # Night streets: dark pulsing stealth score
+    dark_cue("music_nightstreets", 116, 28.0, 0, (0, 7), (13.5, 19),
+             [("D", 2.5, True), ("r", 2.0, False), ("G", 2.5, True), ("F", 2.5, False), ("Ek", 3.5, True)],
+             instrument="kamancheh", taiko_bpm=76, daf_bpm=96, tick_bpm=96, swells=2, peak=0.84)
+    # Suspicion layer: fast ticking + rising dissonant tremolo + sub throb
+    dark_cue("music_suspicion", 117, 18.0, 1, (1, 7), (13.5, 18.5, 20),
+             None, taiko_bpm=104, tick_bpm=136, swells=3, peak=0.85)
+    # Mom's message: fragile kamancheh and setar harmonics
+    dark_cue("music_mom", 118, 26.0, 0, (0, 7, 15), None,
+             [("G", 3.0, False), ("F", 2.5, False), ("Ek", 3.5, True), ("D", 4.5, True), ("r", 1.5, False), ("A0", 4.0, True)],
+             instrument="kamancheh", peak=0.72)
+    # Last night (24 Mehr): epic tragic - heavy taiko + daf + soaring kamancheh + full brass
+    dark_cue("music_lastnight", 119, 28.0, 0, (0, 7, 12, 15), (13.5, 19, 22),
+             [("D", 1.5, True), ("F", 1.5, True), ("G", 2.0, True), ("Bb", 3.0, True), ("Ak", 1.5, True),
+              ("G", 1.5, True), ("F", 2.0, True), ("G", 1.5, True), ("D2", 4.0, True), ("C", 2.0, True), ("Bb", 3.5, True)],
+             instrument="kamancheh", taiko_bpm=116, daf_bpm=116, swells=3, peak=0.9)
+    # Ch3 prison gate: empty cold morning, distant ney
+    dark_cue("music_ch3_gate", 120, 26.0, 0, (0, 7), (15,),
+             [("A", 4.5, False), ("r", 3.0, False), ("G", 3.5, False), ("F", 4.0, False), ("D", 5.0, False)],
+             instrument="ney", peak=0.68)
+    # Letter: intimate setar and warm pad resolving gently
+    dark_cue("music_letter", 121, 28.0, 0, (0, 7, 15), None,
+             [(n, b * 1.0, tr) for n, b, tr in (MELODY_A + MELODY_HOME)],
+             instrument="setar", peak=0.74)
+    # News (years later): uneasy stillness, slow motif
+    dark_cue("music_news", 122, 24.0, 0, (0, 7, 12), (16,),
+             [("D", 3.5, False), ("r", 2.0, False), ("A", 3.5, True), ("G", 3.0, False), ("F#", 4.5, True)],
+             instrument="setar", peak=0.7)
+    # Cemetery: sorrow resolving to light in Mahur (ney + setar)
+    dark_cue("music_cemetery", 123, 28.0, 0, (0, 7, 12, 16), None,
+             [("D", 3.0, False), ("E", 2.0, False), ("F#", 3.5, True), ("G", 2.5, False), ("A", 4.5, True),
+              ("F#", 2.5, False), ("E", 2.0, False), ("D", 5.0, True)],
+             instrument="ney", peak=0.76)
+    # Final song for his name & credits: the main theme in full (setar + kamancheh + ney + gentle daf)
+    dark_cue("music_final", 124, 34.0, 0, (0, 7, 12, 15), None,
+             [(n, b * 1.05, tr) for n, b, tr in (MELODY_A + MELODY_B + MELODY_HOME)],
+             instrument="setar", taiko_bpm=48, daf_bpm=72, peak=0.82)
+
+
+def build_stingers():
+    rng = random.Random(201)
+    # The green van: low brass/sub drop + metallic shudder
+    van = silence(2.6)
+    mix(van, taiko(rng, 38.0, 1.8), 0.0, 1.0)
+    mix(van, metal_hit(rng, 210.0, 2.2), 0.04, 0.65)
+    mix(van, pad([note(-12), note(-5), note(1.5)], 2.4, rng, 0.05, lambda t: (1.0 - t) ** 1.6), 0.0, 0.8)
+    save("sfx_sting_van", van, 0.9)
+
+    # 14:20 message: sharp string stab + sub thump
+    msg = silence(2.2)
+    mix(msg, taiko(rng, 48.0, 1.2), 0.0, 0.95)
+    mix(msg, metal_hit(rng, 420.0, 1.8), 0.0, 0.7)
+    mix(msg, pad([note(12), note(13.5), note(18.5), note(24)], 2.0, rng, 0.12, lambda t: (1.0 - t) ** 2.2), 0.0, 0.85)
+    save("sfx_sting_message", msg, 0.9)
+
+    # News alert: після 5s silence, a hollow deep toll that sinks
+    al = silence(3.2)
+    mix(al, taiko(rng, 36.0, 2.4), 0.0, 0.9)
+    mix(al, metal_hit(rng, 165.0, 3.0), 0.02, 0.5)
+    mix(al, pad([note(-12), note(0), note(1.5)], 3.0, rng, 0.035, lambda t: min(1.0, t * 4.0) * ((1.0 - t) ** 1.5)), 0.0, 0.85)
+    save("sfx_sting_alert", al, 0.85)
+
+    # Spotted by a guard: screeching dissonant cluster + taiko slam
+    sp = silence(1.8)
+    mix(sp, taiko(rng, 52.0, 1.1), 0.0, 1.0)
+    mix(sp, metal_hit(rng, 520.0, 1.4), 0.0, 0.8)
+    mix(sp, pad([note(13.5), note(19), note(20), note(25.5)], 1.5, rng, 0.16, lambda t: (1.0 - t) ** 2.5), 0.0, 0.9)
+    save("sfx_sting_spotted", sp, 0.92)
+
+    # The shot on the rooftop: one deafening crack + sub shockwave that cuts off into silence
+    sh = silence(1.2)
+    crack = envelope(noise(0.06, rng), 0.0002, 2.2)
+    boom = taiko(rng, 34.0, 0.9)
+    ring = metal_hit(rng, 680.0, 0.8)
+    mix(sh, crack, 0.0, 1.0)
+    mix(sh, boom, 0.0, 1.0)
+    mix(sh, ring, 0.0, 0.45)
+    # hard cut at 0.85 s so the silence hits like a wall
+    cut = int(0.85 * SR)
+    for i in range(cut, len(sh)):
+        sh[i] = 0.0
+    save("sfx_sting_shot", sh, 0.98)
 
 if __name__ == "__main__":
     main()

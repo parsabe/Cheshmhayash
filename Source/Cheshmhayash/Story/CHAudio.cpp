@@ -1,4 +1,4 @@
-// Cheshm Hayash - sound.
+﻿// Cheshm Hayash - sound.
 
 #include "Story/CHAudio.h"
 #include "Cheshmhayash.h"
@@ -102,7 +102,10 @@ void UCHAudio::Cut(float Fade)
 	Retire(Music, Fade);
 	Retire(Ambient, Fade);
 	Retire(Heart, Fade);
+	Retire(SuspicionLayer, Fade);
 	Retire(Chase, Fade);
+	bWasNearVan = false;
+	bWasChased = false;
 	MusicName.Reset();
 	AmbientName.Reset();
 }
@@ -131,7 +134,7 @@ void UCHAudio::TypeTick(const UObject* WorldContext, bool bPhone)
 	PlaySfx(WorldContext, FString::Printf(TEXT("sfx_type%d"), TypeIndex + 1), bPhone ? 0.35f : 0.5f);
 }
 
-void UCHAudio::Update(const UObject* WorldContext, bool bNearVan, bool bChased)
+void UCHAudio::Update(const UObject* WorldContext, bool bNearVan, float Suspicion, bool bChased)
 {
 	for (int32 Index = Retired.Num() - 1; Index >= 0; --Index)
 	{
@@ -140,6 +143,18 @@ void UCHAudio::Update(const UObject* WorldContext, bool bNearVan, bool bChased)
 			Retired.RemoveAtSwap(Index);
 		}
 	}
+
+	// stingers on entering a van zone or being spotted
+	if (bNearVan && !bWasNearVan)
+	{
+		PlaySfx(WorldContext, TEXT("sfx_sting_van"), 0.75f);
+	}
+	if (bChased && !bWasChased)
+	{
+		PlaySfx(WorldContext, TEXT("sfx_sting_spotted"), 0.85f);
+	}
+	bWasNearVan = bNearVan;
+	bWasChased = bChased;
 
 	// near the van the score stops; only his heart
 	if (bNearVan && !Heart)
@@ -151,18 +166,29 @@ void UCHAudio::Update(const UObject* WorldContext, bool bNearVan, bool bChased)
 		Retire(Heart, 1.2f);
 	}
 
-	// spotted: fast hands on the drum
+	// suspicion: ticking pulse + dissonant strings before he is fully seen
+	const bool bWantSuspicion = Suspicion > 0.12f && !bChased && !bNearVan;
+	if (bWantSuspicion && !SuspicionLayer)
+	{
+		SuspicionLayer = Start(WorldContext, TEXT("music_suspicion"), 0.65f, 0.5f);
+	}
+	else if (!bWantSuspicion && SuspicionLayer)
+	{
+		Retire(SuspicionLayer, 1.4f);
+	}
+
+	// spotted / fight: heavy taiko drums and rapid daf
 	const bool bWantChase = bChased && !bNearVan;
 	if (bWantChase && !Chase)
 	{
-		Chase = Start(WorldContext, TEXT("music_chase"), 0.75f, 0.4f);
+		Chase = Start(WorldContext, TEXT("music_chase"), 0.85f, 0.35f);
 	}
 	else if (!bWantChase && Chase)
 	{
 		Retire(Chase, 2.f);
 	}
 
-	const float Duck = bNearVan ? 0.f : (bWantChase ? 0.3f : 1.f);
+	const float Duck = bNearVan ? 0.f : (bWantChase ? 0.25f : (bWantSuspicion ? 0.55f : 1.f));
 	if (!FMath::IsNearlyEqual(Duck, MusicDuck))
 	{
 		MusicDuck = Duck;

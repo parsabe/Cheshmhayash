@@ -28,6 +28,8 @@ public:
 	float MouseSensitivity = 1.f;
 
 private:
+	void UpdateCursorMode(bool bWantCursor);
+	bool bCursorOn = false;
 	void UpdateShake(float DeltaTime);
 
 	float ShakeTime = 0.f;

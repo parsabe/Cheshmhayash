@@ -145,7 +145,7 @@ Biggest street yet; singing; text slogans fill the crowd. For a few minutes, win
 Then: shots, smoke, chase. GAMEPLAY: longest run — alleys, walls, rooftops — until just before dawn.
 Rooftop at the city's edge facing east toward the mountains. He sits, films the orange sky:
 - نگاه کن… داره میاد بالا / Look… it's coming up.
-DEATH (no gore): sound cuts; RIGHT half of screen goes dark (his right eye) (one eye closing); phone falls on its side, image tilts; REC keeps blinking.
+DEATH (no gore): sound cuts; LEFT half of screen goes dark (his left eye, as in the opening poem) (one eye closing); phone falls on its side, image tilts; REC keeps blinking.
 LAST SHOT: he lies facing east, wounded side in shadow. Sun rises over Damavand; light crosses rooftops, reaches his face, stays. Long hold — wind, one bird. Then Ch1 setar melody, very soft.
 If `window_seat == A`: on the fallen phone, from Kian: "Window seat booked. Next time, right?" — unread.
 CUT TO: DIRECTOR'S CUT montage — every clip the player filmed, in order, Shahrivar → that morning. Last clip: sunrise, frozen.
