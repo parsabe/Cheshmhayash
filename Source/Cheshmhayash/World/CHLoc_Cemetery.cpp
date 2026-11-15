@@ -137,29 +137,6 @@ void ACHLoc_Cemetery::Build(const FString& InVariant)
 		SpawnNpc(FString::Printf(TEXT("mourner%d"), Index), Index == 3 ? TEXT("oldwoman") : TEXT("chador"), Mourners[Index], Rng.FRandRange(0.f, 360.f), 900 + Index);
 	}
 
-	// keep her on the middle path: open only toward his grave
-	{
-		const float West = -1500.f;
-		const float East = 2000.f;
-		UStaticMeshComponent* Walls[] = {
-			BoxAt(West, -130.f, 0.f, East - West, 30.f, 300.f, nullptr),
-			BoxAt(West, 100.f, 0.f, (Grave.X - 100.f) - West, 30.f, 300.f, nullptr),
-			BoxAt(Grave.X + 100.f, 100.f, 0.f, East - (Grave.X + 100.f), 30.f, 300.f, nullptr),
-			BoxAt(Grave.X - 130.f, 100.f, 0.f, 30.f, Grave.Y, 300.f, nullptr),
-			BoxAt(Grave.X + 100.f, 100.f, 0.f, 30.f, Grave.Y, 300.f, nullptr),
-			BoxAt(Grave.X - 130.f, Grave.Y + 100.f, 0.f, 260.f, 30.f, 300.f, nullptr),
-			BoxAt(West - 30.f, -130.f, 0.f, 30.f, 260.f, 300.f, nullptr),
-			BoxAt(East, -130.f, 0.f, 30.f, 260.f, 300.f, nullptr) };
-		for (UStaticMeshComponent* Wall : Walls)
-		{
-			Wall->SetVisibility(false);
-			Wall->SetCastShadow(false);
-			// invisible to the camera arm and to traces: they only stop her feet
-			Wall->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-			Wall->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-		}
-	}
-
 	// his stone: the epitaph cut into it; the name under rose petals
 	Stone = Box(Grave + FVector(0.f, 0.f, StoneSize.Z * 0.5f), StoneSize, nullptr, true, FRotator::ZeroRotator, true);
 	StoneMaterial = CHLooks::MakeLit(this, DustyStone, 0.75f);
@@ -337,31 +314,32 @@ void ACHLoc_Cemetery::SetSun(float Elevation)
 	{
 		return;
 	}
-	// 0 before the sun clears the horizon .. 1 when it stands over the mountains
+	const float SafeElev = FMath::Max(Elevation, 14.f);
 	const float Up = FMath::Clamp((Elevation + 1.f) / 11.f, 0.f, 1.f);
 	const float Smooth = FMath::SmoothStep(0.f, 1.f, Up);
-	Sun->SetWorldRotation(FRotator(-Elevation, SunAzimuth + 180.f, 0.f));
-	Sun->SetIntensity(FMath::Lerp(8.f, 12.f, Smooth));
-	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.42f, 0.16f), FLinearColor(1.f, 0.80f, 0.58f), Smooth));
+	Sun->SetWorldRotation(FRotator(-SafeElev, SunAzimuth + 180.f, 0.f));
+	Sun->SetIntensity(FMath::Lerp(10.f, 14.f, Smooth));
+	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.65f, 0.42f), FLinearColor(1.f, 0.85f, 0.64f), Smooth));
 	if (SkyLight)
 	{
-		SkyLight->SetIntensity(FMath::Lerp(3.f, 1.2f, Smooth));
+		SkyLight->SetIntensity(FMath::Lerp(2.8f, 2.2f, Smooth));
 	}
-	const float EV = FMath::Lerp(-2.4f, 1.0f, Smooth);
+	const float EV = FMath::Lerp(-0.4f, 0.2f, Smooth);
 	CHLight::SetExposure(EV);
 	if (PostProcess)
 	{
 		FPostProcessSettings& S = PostProcess->Settings;
 		S.AutoExposureMinBrightness = EV;
 		S.AutoExposureMaxBrightness = EV;
+		S.AutoExposureBias = 1.15f;
 		S.WhiteTemp = FMath::Lerp(6400.f, 7200.f, Smooth);
 		S.BloomIntensity = FMath::Lerp(0.8f, 1.2f, Smooth);
 	}
 	if (Fog)
 	{
-		Fog->SetFogDensity(FMath::Lerp(0.014f, 0.006f, Smooth));
-		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.05f, 0.05f, 0.07f), FLinearColor(0.09f, 0.06f, 0.045f), Smooth));
-		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.25f, 0.10f, 0.04f), FLinearColor(0.65f, 0.35f, 0.15f), Smooth));
+		Fog->SetFogDensity(FMath::Lerp(0.005f, 0.003f, Smooth));
+		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.14f, 0.14f, 0.20f), FLinearColor(0.22f, 0.16f, 0.12f), Smooth));
+		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.35f, 0.20f, 0.12f), FLinearColor(0.65f, 0.35f, 0.15f), Smooth));
 	}
 }
 

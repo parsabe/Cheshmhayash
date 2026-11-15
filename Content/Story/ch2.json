@@ -373,21 +373,19 @@
       "chapter": 2,
       "location": "FinalRoof",
       "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
         { "type": "rec", "on": true },
-        { "type": "camera", "mark": "Wide" },
-        { "type": "caption", "fa": "کمی پیش از طلوع", "en": "JUST BEFORE DAWN", "de": "KURZ VOR SONNENAUFGANG" },
-        { "type": "fade", "to": 0, "time": 3.0 },
-        { "type": "silence", "seconds": 4.0 },
-        {
-          "type": "gameplay",
-          "segment": "roofs",
-          "blend": 2.5,
-          "controls": false,
-          "film": false,
-          "hint_fa": "به لبه‌ی شهر برو. رو به کوه.",
-          "hint_en": "Go to the edge of the city. Face the mountains.",
-          "hint_de": "Geh an den Rand der Stadt. Blicke zu den Bergen."
-        }
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "RoofWalkStart" },
+        { "type": "camera", "mark": "WalkCam1" },
+        { "type": "caption", "fa": "کمی پیش از طلوع · رو به کوه", "en": "JUST BEFORE DAWN · FACING THE MOUNTAINS", "de": "KURZ VOR SONNENAUFGANG · BLICK ZU DEN BERGEN" },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RoofWalkMid", "speed": 145 },
+        { "type": "camera", "mark": "WalkCam2", "blend": 2.2 },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RoofEdge", "speed": 135 },
+        { "type": "npc", "name": "he", "action": "pose", "pose": "sit_floor" },
+        { "type": "camera", "mark": "MountainWide", "blend": 2.5 },
+        { "type": "silence", "seconds": 3.0 }
       ]
     },
     {
@@ -401,17 +399,10 @@
         { "type": "place", "mark": "Body", "hidden": true },
         { "type": "camera", "mark": "PhoneView", "blend": 2.5 },
         { "type": "fade", "to": 0, "time": 1.0, "wait": false },
-        { "type": "silence", "seconds": 2.6 },
-        {
-          "type": "gameplay",
-          "segment": "film",
-          "move": false,
-          "keep_camera": true,
-          "controls": false,
-          "hint_fa": "از طلوع فیلم بگیر.",
-          "hint_en": "Film the sunrise.",
-          "hint_de": "Filme den Sonnenaufgang."
-        },
+        { "type": "event", "name": "sunrise", "to": 18, "time": 12 },
+        { "type": "silence", "seconds": 3.5 },
+        { "type": "clip", "id": "sunrise", "fa": "نگاه کن… داره میاد بالا", "en": "Look... it's coming up", "de": "Sieh nur... sie geht auf" },
+        { "type": "toast", "fa": "ثبت شد", "en": "SAVED", "de": "GESPEICHERT", "seconds": 2.0 },
         { "type": "text", "who": "he", "fa": "نگاه کن… داره میاد بالا.", "en": "Look… it's coming up.", "de": "Sieh nur… sie geht auf.", "rate": 16, "auto": 2.8 },
         { "type": "hide_text" },
         { "type": "silence", "seconds": 1.4 },

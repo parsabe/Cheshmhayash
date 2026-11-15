@@ -160,20 +160,16 @@
       "variant": "day",
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
-        { "type": "place", "mark": "PlayerStart", "hidden": false },
-        { "type": "camera", "mark": "Establish" },
-        { "type": "fade", "to": 0, "time": 0.8 },
-        {
-          "type": "gameplay",
-          "segment": "run",
-          "blend": 0.8,
-          "film": false,
-          "hint_fa": "بدو. خیابان وزرا.",
-          "hint_en": "Run. Vozara Street.",
-          "hint_de": "Renn. Vozara-Straße."
-        },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "RunStart" },
+        { "type": "camera", "mark": "RunCam1" },
+        { "type": "caption", "fa": "خیابان انقلاب به سمت وزرا", "en": "ENGHELAB AVENUE · TOWARD VOZARA STREET", "de": "ENGHELAB-STRASSE · RICHTUNG VOZARA-STRASSE" },
+        { "type": "fade", "to": 0, "time": 0.8, "wait": false },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RunMid", "speed": 420 },
+        { "type": "camera", "mark": "RunCam2", "blend": 1.6 },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RunEnd", "speed": 440 },
         { "type": "fade", "to": 1, "time": 0.8 },
-        { "type": "silence", "seconds": 0.8 }
+        { "type": "silence", "seconds": 0.6 }
       ]
     },
     {
@@ -436,21 +432,21 @@
       "variant": "night",
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
-        { "type": "camera", "mark": "Climb" },
-        { "type": "fade", "to": 0, "time": 3.0, "wait": false },
-        { "type": "caption", "fa": "پشت‌بام", "en": "THE ROOF", "de": "DAS DACH" },
-        { "type": "silence", "seconds": 4.0 },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "RoofWalkStart" },
+        { "type": "camera", "mark": "WalkCam1" },
+        { "type": "fade", "to": 0, "time": 2.2, "wait": false },
+        { "type": "caption", "fa": "پشت‌بام · رو به کوه", "en": "THE ROOFTOP · FACING THE MOUNTAINS", "de": "DAS DACH · BLICK ZU DEN BERGEN" },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RoofWalkMid", "speed": 170 },
+        { "type": "camera", "mark": "WalkCam2", "blend": 2.0 },
+        { "type": "npc", "name": "he", "action": "walk", "mark": "RoofEdge", "speed": 165 },
+        { "type": "npc", "name": "he", "action": "pose", "pose": "phone" },
         { "type": "rec", "on": true },
-        { "type": "silence", "seconds": 1.5 },
-        {
-          "type": "gameplay",
-          "segment": "firstfilm",
-          "blend": 2.0,
-          "hint_fa": "از شهر فیلم بگیر. کلیک راست را نگه دار.",
-          "hint_en": "Film the city. Hold the right mouse button.",
-          "hint_de": "Filme die Stadt. Halte die rechte Maustaste gedrückt."
-        },
-        { "type": "silence", "seconds": 2.5 },
+        { "type": "camera", "mark": "MountainWide", "blend": 2.2 },
+        { "type": "silence", "seconds": 3.5 },
+        { "type": "clip", "id": "city", "fa": "شهرِ تاریک، پر از صدا", "en": "The dark city, full of voices", "de": "Die dunkle Stadt, voller Stimmen" },
+        { "type": "toast", "fa": "ثبت شد", "en": "SAVED", "de": "GESPEICHERT", "seconds": 2.0 },
+        { "type": "silence", "seconds": 2.0 },
         { "type": "fade", "to": 1, "time": 2.5 },
         { "type": "silence", "seconds": 1.0 }
       ]

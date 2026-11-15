@@ -18,6 +18,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
+if exist "%CH_ROOT%\Build\Windows\Application.ico" copy /Y "%CH_ROOT%\Build\Windows\Application.ico" "%CH_OUT%\Windows\Application.ico" >nul
+if exist "%CH_ROOT%\Build\Windows\Logo.png" copy /Y "%CH_ROOT%\Build\Windows\Logo.png" "%CH_OUT%\Windows\Logo.png" >nul
 if exist "%CH_OUT%\CheshmHayash-Win64.zip" del "%CH_OUT%\CheshmHayash-Win64.zip"
 powershell -NoProfile -Command "Compress-Archive -Path '%CH_OUT%\Windows\*' -DestinationPath '%CH_OUT%\CheshmHayash-Win64.zip'"
 echo.

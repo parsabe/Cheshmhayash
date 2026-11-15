@@ -127,6 +127,11 @@ void ACHLoc_Streets::BuildDay()
 
 	Mark(TEXT("PlayerStart"), FVector(-300.f, DayRoad * 0.5f + 200.f, 14.f), FRotator(0.f, 0.f, 0.f));
 	MarkLookAt(TEXT("Establish"), FVector(-500.f, DayRoad * 0.5f + 60.f, 210.f), FVector(2500.f, 100.f, 260.f), 66.f);
+	Mark(TEXT("RunStart"), FVector(-200.f, DayRoad * 0.5f + 160.f, 14.f), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("RunMid"), FVector(1600.f, DayRoad * 0.5f + 160.f, 14.f), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("RunEnd"), FVector(3400.f, DayRoad * 0.5f + 160.f, 14.f), FRotator(0.f, 0.f, 0.f));
+	MarkLookAt(TEXT("RunCam1"), FVector(-480.f, DayRoad * 0.5f + 60.f, 165.f), FVector(1800.f, DayRoad * 0.5f + 140.f, 130.f), 58.f);
+	MarkLookAt(TEXT("RunCam2"), FVector(1900.f, DayRoad * 0.5f - 120.f, 155.f), FVector(3600.f, DayRoad * 0.5f + 140.f, 135.f), 54.f);
 	// 1.2.video: Mina's handheld phone view of the morality police van by the metro
 	Mark(TEXT("VanDoor"), FVector(10020.f, 120.f, 14.f), FRotator(0.f, 180.f, 0.f));
 	Mark(TEXT("VanArrestSister"), FVector(9920.f, 120.f, 14.f), FRotator(0.f, 180.f, 0.f));
@@ -139,7 +144,7 @@ void ACHLoc_Streets::BuildDay()
 	Mark(TEXT("Taxi"), FVector(-200.f, -150.f, 128.f), FRotator(-1.f, 24.f, 0.f), 62.f);
 	if (Segment)
 	{
-		Segment->AddExit(FBox(FVector(9700.f, -DayEdge, -100.f), FVector(10100.f, DayEdge, 600.f)), TEXT("end"));
+		Segment->AddExit(FBox(FVector(1200.f, -DayEdge - 500.f, -100.f), FVector(10500.f, DayEdge + 500.f, 600.f)), TEXT("end"));
 	}
 }
 

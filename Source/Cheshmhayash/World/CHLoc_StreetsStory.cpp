@@ -94,18 +94,18 @@ void ACHLoc_Streets::BuildNights()
 	Block(5150.f, 7400.f, 6850.f, 8900.f, 6, 4, 4, 21);
 	Block(-2100.f, -Edge - 1500.f, -600.f, Edge + 1500.f, 6, 2, 0, 22);
 
-	// lamps, several dead
+	// lamps lit along the streets
 	int32 LampIndex = 0;
 	for (float X = 200.f; X < 5000.f; X += 1300.f, ++LampIndex)
 	{
 		const bool bNorth = (LampIndex % 2) == 0;
-		Lamp(FVector(X, bNorth ? Edge - 70.f : -Edge + 70.f, 14.f), bNorth ? -90.f : 90.f, LampIndex != 1 && LampIndex != 3, LampIndex == 2);
+		Lamp(FVector(X, bNorth ? Edge - 70.f : -Edge + 70.f, 14.f), bNorth ? -90.f : 90.f, true, false);
 	}
 	LampIndex = 0;
 	for (float Y = 1300.f; Y < 7200.f; Y += 1300.f, ++LampIndex)
 	{
 		const bool bWest = (LampIndex % 2) == 0;
-		Lamp(FVector(bWest ? 6000.f - Edge + 70.f : 6000.f + Edge - 70.f, Y, 14.f), bWest ? 0.f : 180.f, LampIndex != 2, LampIndex == 3);
+		Lamp(FVector(bWest ? 6000.f - Edge + 70.f : 6000.f + Edge - 70.f, Y, 14.f), bWest ? 0.f : 180.f, true, false);
 	}
 	for (float X = 700.f; X < 5000.f; X += 1900.f)
 	{
@@ -292,24 +292,23 @@ void ACHLoc_Streets::BuildLastNight()
 	Block(1000.f, AlleyY0, AlleyX0, 5400.f, 5, 2, 0, 11);
 	Block(AlleyX1, AlleyY0, 4800.f, 5400.f, 5, 1, 0, 12);
 	BoxAt(AlleyX0, 5400.f, -20.f, AlleyX1 - AlleyX0, 300.f, 900.f, MFacades[1]);
-	// the wall across the alley, crates to climb
-	BoxAt(AlleyX0, 3600.f, -20.f, AlleyX1 - AlleyX0, 40.f, 230.f, MFacades[2]);
+	// crates along the side of the alley (open passage, no blocking wall)
 	UMaterialInterface* Crate = Lit(FLinearColor(0.16f, 0.11f, 0.06f), 0.9f, 0.6f);
-	Box(FVector(2700.f, 3530.f, 45.f), FVector(110.f, 100.f, 90.f), Crate, true);
-	Box(FVector(2860.f, 3480.f, 40.f), FVector(100.f, 100.f, 80.f), Crate, true, FRotator(0.f, 12.f, 0.f));
-	Box(FVector(2720.f, 3420.f, 30.f), FVector(90.f, 90.f, 60.f), Crate, true, FRotator(0.f, -8.f, 0.f));
+	Box(FVector(2660.f, 3530.f, 45.f), FVector(90.f, 90.f, 90.f), Crate, false);
+	Box(FVector(2940.f, 3480.f, 40.f), FVector(90.f, 90.f, 80.f), Crate, false, FRotator(0.f, 12.f, 0.f));
 	// the stairwell door at the end
 	Box(FVector(2800.f, 5398.f, 115.f), FVector(150.f, 6.f, 230.f), Emissive(FLinearColor(1.f, 0.6f, 0.3f), CHLight::Emissive(0.8f), FLinearColor(0.02f, 0.015f, 0.01f)), false);
-	PointLight(FVector(2800.f, 5300.f, 250.f), FLinearColor(1.f, 0.65f, 0.35f), 10.f, 600.f, false, 0.8f);
-	Lamp(FVector(2620.f, 4300.f, 0.f), 0.f, true, true);
+	PointLight(FVector(2800.f, 5300.f, 250.f), FLinearColor(1.f, 0.65f, 0.35f), 14.f, 900.f, false, 0.8f);
+	Lamp(FVector(2620.f, 3200.f, 0.f), 0.f, true, false);
+	Lamp(FVector(2620.f, 4300.f, 0.f), 0.f, true, false);
 	Dumpster(FVector(2900.f, 2900.f, 0.f), 90.f);
 
-	// lamps on the avenue; the far end is dark
+	// lamps lit along the avenue
 	int32 LampIndex = 0;
 	for (float X = 0.f; X < 7000.f; X += 1400.f, ++LampIndex)
 	{
-		Lamp(FVector(X, AvEdge - 80.f, 14.f), -90.f, LampIndex < 3, false);
-		Lamp(FVector(X + 700.f, -AvEdge + 80.f, 14.f), 90.f, LampIndex < 2, LampIndex == 1);
+		Lamp(FVector(X, AvEdge - 80.f, 14.f), -90.f, true, false);
+		Lamp(FVector(X + 700.f, -AvEdge + 80.f, 14.f), 90.f, true, false);
 	}
 	for (float X = 500.f; X < 7000.f; X += 2000.f)
 	{

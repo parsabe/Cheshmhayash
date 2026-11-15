@@ -102,6 +102,13 @@ void ACHLevelBuilder::Build(const FString& InVariant)
 	}
 	WidgetLitBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Materials/M_CH_Widget.M_CH_Widget"), nullptr, LOAD_NoWarn);
 	WidgetGlowBase = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Materials/M_CH_WidgetGlow.M_CH_WidgetGlow"), nullptr, LOAD_NoWarn);
+
+	// Wide safety floor at Z=0 so walking through any room/street wall never drops the player into the void.
+	if (UStaticMeshComponent* SafetyFloor = BoxAt(-50000.f, -50000.f, -35.f, 100000.f, 100000.f, 35.f, nullptr, true))
+	{
+		SafetyFloor->SetVisibility(false);
+		SafetyFloor->SetCastShadow(false);
+	}
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -517,7 +524,21 @@ UStaticMeshComponent* ACHLevelBuilder::AddMesh(UStaticMesh* Mesh, const FTransfo
 	{
 		Component->SetMaterial(0, Material);
 	}
-	Component->SetCollisionProfileName(bCollision ? UCollisionProfile::BlockAll_ProfileName : UCollisionProfile::NoCollision_ProfileName);
+	if (bCollision)
+	{
+		const FVector ApproxSize = Transform.GetScale3D() * 100.f;
+		const bool bIsFloorOrStep = (Mesh == CubeMesh) && (ApproxSize.Z <= 42.f || (ApproxSize.Z <= 110.f && Transform.GetLocation().Z <= 60.f && FMath::Min(ApproxSize.X, ApproxSize.Y) >= 65.f));
+		Component->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+		if (!bIsFloorOrStep)
+		{
+			Component->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+			Component->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+		}
+	}
+	else
+	{
+		Component->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	}
 	Component->SetCanEverAffectNavigation(false);
 	Component->SetupAttachment(Parent ? Parent : Root.Get());
 	Component->SetRelativeTransform(Transform);
@@ -641,6 +662,7 @@ USpotLightComponent* ACHLevelBuilder::SpotLight(const FVector& Location, const F
 
 void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 {
+	const float EffectiveEV = FMath::Min(Env.ExposureEV, -0.4f);
 	CHLight::SetExposure(Env.ExposureEV);
 
 	// --- sun
@@ -653,12 +675,17 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 		Sun->SetAtmosphereSunLightIndex(0);
 		Sun->RegisterComponent();
 	}
-	Sun->SetWorldRotation(Env.SunRotation);
-	Sun->SetIntensity(Env.SunIntensity);
+	FRotator SunRot = Env.SunRotation;
+	if (SunRot.Pitch > -12.f)
+	{
+		SunRot.Pitch = -18.f;
+	}
+	Sun->SetWorldRotation(SunRot);
+	Sun->SetIntensity(FMath::Max(Env.SunIntensity, 5.5f));
 	Sun->SetLightColor(Env.SunColor);
 	Sun->SetCastShadows(Env.bSunShadows);
 	Sun->SetVolumetricScatteringIntensity(Env.SunVolumetric);
-	Sun->SetLightingChannels(Env.bSunLightsWorld, false, false);
+	Sun->SetLightingChannels(true, false, false);
 
 	// --- moon / fill
 	if (Env.bMoon)
@@ -672,7 +699,7 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 			Moon->RegisterComponent();
 		}
 		Moon->SetWorldRotation(Env.MoonRotation);
-		Moon->SetIntensity(Env.MoonIntensity);
+		Moon->SetIntensity(FMath::Max(Env.MoonIntensity, 3.2f));
 		Moon->SetLightColor(Env.MoonColor);
 		Moon->SetCastShadows(true);
 		Moon->SetVisibility(true);
@@ -695,12 +722,11 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 		SkyLight = NewObject<USkyLightComponent>(this);
 		SkyLight->SetMobility(EComponentMobility::Movable);
 		SkyLight->SetupAttachment(Root);
-		// with no sky to capture the engine prints an on-screen warning: closed rooms go without
-		SkyLight->SetRealTimeCapture(Env.bAtmosphere);
+		SkyLight->SetRealTimeCapture(Env.bAtmosphere && Env.SunRotation.Pitch < -10.f);
 		SkyLight->bLowerHemisphereIsBlack = false;
 		SkyLight->RegisterComponent();
 	}
-	SkyLight->SetIntensity(Env.SkyLightIntensity);
+	SkyLight->SetIntensity(FMath::Max(Env.SkyLightIntensity, 2.4f));
 	SkyLight->SetLightColor(Env.SkyLightColor);
 
 	// --- fog
@@ -714,13 +740,16 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 			Fog->RegisterComponent();
 		}
 		Fog->SetWorldLocation(FVector(0.f, 0.f, Env.FogZ));
-		Fog->SetFogDensity(Env.FogDensity);
+		Fog->SetFogDensity(FMath::Min(Env.FogDensity, 0.012f));
 		Fog->SetFogHeightFalloff(Env.FogHeightFalloff);
-		Fog->SetFogInscatteringColor(Env.FogColor);
+		Fog->SetFogInscatteringColor(FLinearColor(
+			FMath::Max(Env.FogColor.R, 0.08f),
+			FMath::Max(Env.FogColor.G, 0.09f),
+			FMath::Max(Env.FogColor.B, 0.13f)));
 		Fog->SetStartDistance(Env.FogStartDistance);
 		Fog->SetFogMaxOpacity(Env.FogMaxOpacity);
 		Fog->SetVolumetricFog(Env.bVolumetricFog);
-		Fog->SetVolumetricFogExtinctionScale(Env.VolumetricExtinction);
+		Fog->SetVolumetricFogExtinctionScale(FMath::Min(Env.VolumetricExtinction, 0.5f));
 		Fog->SetVisibility(true);
 	}
 	else if (Fog)
@@ -743,10 +772,10 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 	S.AutoExposureMethod = AEM_Histogram;
 	S.bOverride_AutoExposureMinBrightness = true;
 	S.bOverride_AutoExposureMaxBrightness = true;
-	S.AutoExposureMinBrightness = Env.ExposureEV;
-	S.AutoExposureMaxBrightness = Env.ExposureEV;
+	S.AutoExposureMinBrightness = EffectiveEV;
+	S.AutoExposureMaxBrightness = EffectiveEV;
 	S.bOverride_AutoExposureBias = true;
-	S.AutoExposureBias = 0.f;
+	S.AutoExposureBias = Env.ExposureEV < -0.5f ? 1.35f : 0.45f;
 	S.bOverride_LocalExposureHighlightContrastScale = true;
 	S.LocalExposureHighlightContrastScale = 1.f;
 	S.bOverride_LocalExposureShadowContrastScale = true;
@@ -755,7 +784,7 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 	S.bOverride_FilmGrainIntensity = true;
 	S.FilmGrainIntensity = Env.Grain;
 	S.bOverride_VignetteIntensity = true;
-	S.VignetteIntensity = Env.Vignette;
+	S.VignetteIntensity = FMath::Min(Env.Vignette, 0.35f);
 	S.bOverride_SceneFringeIntensity = true;
 	S.SceneFringeIntensity = Env.Fringe;
 	S.bOverride_BloomIntensity = true;
@@ -777,41 +806,51 @@ void ACHLevelBuilder::ApplyEnv(const FCHEnv& Env)
 
 void ACHLevelBuilder::BuildAlborz(float YawDegrees, const FLinearColor& RockColor, const FLinearColor& SnowColor, float Distance, bool bLit)
 {
-	const FLinearColor FarColor = RockColor * 1.25f + FLinearColor(0.004f, 0.006f, 0.010f);
-	UMaterialInterface* Rock = bLit ? Lit(RockColor, 0.95f, 0.f) : Unlit(RockColor);
-	UMaterialInterface* RockFar = bLit ? Lit(FarColor, 0.95f, 0.f) : Unlit(FarColor);
-	UMaterialInterface* Snow = bLit ? Lit(SnowColor, 0.6f, 0.f) : Unlit(SnowColor);
+	// Keep the Alborz range & Mount Damavand close and clearly visible on the horizon.
+	const float CloseDist = FMath::Min(Distance, 180000.f);
+	const FLinearColor BrightRock(
+		FMath::Max(RockColor.R, 0.24f),
+		FMath::Max(RockColor.G, 0.26f),
+		FMath::Max(RockColor.B, 0.34f));
+	const FLinearColor BrightSnow(
+		FMath::Max(SnowColor.R, 0.82f),
+		FMath::Max(SnowColor.G, 0.84f),
+		FMath::Max(SnowColor.B, 0.90f));
+	const FLinearColor FarColor = BrightRock * 1.25f + FLinearColor(0.02f, 0.03f, 0.05f);
+	UMaterialInterface* Rock = bLit ? Lit(BrightRock, 0.85f, 0.f) : Unlit(BrightRock);
+	UMaterialInterface* RockFar = bLit ? Lit(FarColor, 0.85f, 0.f) : Unlit(FarColor);
+	UMaterialInterface* Snow = bLit ? Lit(BrightSnow, 0.5f, 0.f) : Unlit(BrightSnow);
 
-	const float BaseZ = -0.02f * Distance;
+	const float BaseZ = -0.015f * CloseDist;
 	auto Peak = [&](float OffsetDegrees, float DistanceScale, float Radius, float Height, UMaterialInterface* Material)
 	{
 		const FVector Direction = FRotator(0.f, YawDegrees + OffsetDegrees, 0.f).Vector();
-		const FVector Base = Direction * Distance * DistanceScale;
+		const FVector Base = Direction * CloseDist * DistanceScale;
 		UStaticMeshComponent* Mesh = Cone(FVector(Base.X, Base.Y, BaseZ + Height * 0.5f), Radius, Height, Material, false);
 		Mesh->SetCastShadow(false);
 		return Base;
 	};
 
 	// Damavand: a broad, almost symmetric volcano with a snow cap
-	const float DamavandHeight = 0.17f * Distance;
-	const float DamavandRadius = 0.31f * Distance;
+	const float DamavandHeight = 0.22f * CloseDist;
+	const float DamavandRadius = 0.34f * CloseDist;
 	const FVector DamavandBase = Peak(0.f, 1.f, DamavandRadius, DamavandHeight, Rock);
 	{
-		const float CapFraction = 0.36f;
+		const float CapFraction = 0.38f;
 		const float CapHeight = DamavandHeight * CapFraction;
 		UStaticMeshComponent* Cap = Cone(
 			FVector(DamavandBase.X, DamavandBase.Y, BaseZ + DamavandHeight - CapHeight * 0.5f + DamavandHeight * 0.006f),
-			DamavandRadius * CapFraction * 1.05f, CapHeight, Snow, false);
+			DamavandRadius * CapFraction * 1.06f, CapHeight, Snow, false);
 		Cap->SetCastShadow(false);
 	}
 
 	// the range to both sides, lower and further back
 	const float Offsets[] = { -78.f, -61.f, -47.f, -34.f, -22.f, -11.f, 12.f, 24.f, 37.f, 50.f, 64.f, 80.f };
-	const float Heights[] = { 0.050f, 0.074f, 0.060f, 0.088f, 0.066f, 0.094f, 0.082f, 0.058f, 0.090f, 0.064f, 0.078f, 0.052f };
+	const float Heights[] = { 0.070f, 0.098f, 0.082f, 0.115f, 0.090f, 0.125f, 0.110f, 0.080f, 0.118f, 0.086f, 0.102f, 0.072f };
 	const float Radii[] = { 0.30f, 0.34f, 0.26f, 0.36f, 0.28f, 0.33f, 0.31f, 0.27f, 0.37f, 0.29f, 0.35f, 0.30f };
 	for (int32 i = 0; i < UE_ARRAY_COUNT(Offsets); ++i)
 	{
-		Peak(Offsets[i], (i % 2 == 0) ? 1.12f : 1.04f, Radii[i] * Distance, Heights[i] * Distance, (i % 2 == 0) ? RockFar : Rock);
+		Peak(Offsets[i], (i % 2 == 0) ? 1.12f : 1.04f, Radii[i] * CloseDist, Heights[i] * CloseDist, (i % 2 == 0) ? RockFar : Rock);
 	}
 }
 

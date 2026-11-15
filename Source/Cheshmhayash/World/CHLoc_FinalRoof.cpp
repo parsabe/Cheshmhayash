@@ -40,103 +40,116 @@ namespace
 void ACHLoc_FinalRoof::Build(const FString& InVariant)
 {
 	Super::Build(InVariant);
-	InitCity(true, -1.6f);
+	InitCity(true, -0.4f);
 
 	PlayerBoomLength = 300.f;
 	PlayerBoomOffset = FVector(0.f, 50.f, 70.f);
 
-	// ---- the sky before dawn
+	// ---- the sky before dawn (bright and clear so the rooftops and Alborz mountains are fully visible)
 	FCHEnv Env;
 	Env.bSunLightsWorld = true;
 	Env.bSunShadows = true;
-	Env.SunVolumetric = 1.8f;
-	Env.SkyLightIntensity = 1.3f;
+	Env.SunVolumetric = 1.6f;
+	Env.SkyLightIntensity = 2.8f;
+	Env.SkyLightColor = FLinearColor(0.75f, 0.80f, 0.95f);
 	Env.bFog = true;
-	Env.FogDensity = 0.012f;
-	Env.FogHeightFalloff = 0.045f;
-	Env.FogColor = FLinearColor(0.03f, 0.04f, 0.07f);
+	Env.FogDensity = 0.005f;
+	Env.FogHeightFalloff = 0.04f;
+	Env.FogColor = FLinearColor(0.12f, 0.14f, 0.22f);
 	Env.bVolumetricFog = true;
-	Env.VolumetricExtinction = 0.4f;
-	Env.ExposureEV = -1.6f;
-	Env.Grain = 0.3f;
-	Env.Vignette = 0.45f;
-	Env.Fringe = 0.3f;
+	Env.VolumetricExtinction = 0.25f;
+	Env.ExposureEV = -0.5f;
+	Env.Grain = 0.18f;
+	Env.Vignette = 0.28f;
+	Env.Fringe = 0.18f;
 	Env.Bloom = 0.9f;
-	Env.Saturation = 1.f;
-	Env.Contrast = 1.05f;
+	Env.Saturation = 1.05f;
+	Env.Contrast = 1.04f;
 	Env.Temperature = 6400.f;
 	ApplyEnv(Env);
-	// "night": the first night he climbs up here (1.7); the city is dark and loud
+	// "night": the first night he climbs up here (1.7); warm dawn light in 2.6
 	const bool bFirstNight = Variant == TEXT("night");
-	SetSun(bFirstNight ? -16.f : -4.f, 0.f);
+	SetSun(bFirstNight ? 12.f : 16.f, 0.f);
 
-	// ---- three roofs to cross; the last one is the edge of the city
-	BuildRoof(-1800.f, -600.f, 1200.f, 1200.f, 1250.f, 2, 11);
-	BuildRoof(-450.f, -700.f, 1150.f, 1200.f, 1180.f, 1 | 2, 12);
-	BuildRoof(880.f, -550.f, 1120.f, 1200.f, RoofC, 1 | 2, 13);
-
-	// a board over the second gap
+	// Continuous solid floor slab at RoofC across the entire rooftop and beyond so nobody can ever fall or be blocked
+	if (UStaticMeshComponent* RoofFloor = BoxAt(-6000.f, -6000.f, RoofC - 28.f, 16000.f, 12000.f, 28.f, MRoof, true))
 	{
-		const FVector From(650.f, 130.f, 1180.f + 47.f);
-		const FVector To(930.f, 130.f, RoofC + 47.f);
-		const FVector Delta = To - From;
-		Box((From + To) * 0.5f, FVector(Delta.Size() + 40.f, 48.f, 6.f), Lit(FLinearColor(0.16f, 0.11f, 0.07f), 0.9f, 0.5f), true, Delta.Rotation());
+		RoofFloor->SetVisibility(false);
+		RoofFloor->SetCastShadow(false);
+	}
+
+	// ---- three connected roofs at the same level RoofC
+	BuildRoof(-1800.f, -600.f, 1350.f, 1200.f, RoofC, 1 | 2 | 4 | 8, 11);
+	BuildRoof(-450.f, -700.f, 1330.f, 1200.f, RoofC, 1 | 2 | 4 | 8, 12);
+	BuildRoof(880.f, -550.f, 1120.f, 1200.f, RoofC, 1 | 2 | 4 | 8, 13);
+
+	// Warm rooftop lights along his path so everything is clearly lit
+	for (float LX = -1300.f; LX <= 1800.f; LX += 620.f)
+	{
+		PointLight(FVector(LX, 60.f, RoofC + 260.f), FLinearColor(1.f, 0.78f, 0.52f), 14.f, 1400.f, false, 0.4f);
 	}
 
 	// the stair head he came up through, its door open
 	{
 		UMaterialInterface* Wall = MFacades.Num() > 2 ? MFacades[2] : MBand;
-		BoxAt(-1780.f, -170.f, 1250.f, 260.f, 340.f, 250.f, Wall);
-		Box(FVector(-1519.f, 0.f, 1250.f + 105.f), FVector(3.f, 100.f, 210.f), Emissive(FLinearColor(1.f, 0.6f, 0.3f), CHLight::Emissive(0.6f), FLinearColor(0.02f, 0.015f, 0.01f)), false);
+		BoxAt(-1780.f, -170.f, RoofC, 260.f, 340.f, 250.f, Wall, false);
+		Box(FVector(-1519.f, 0.f, RoofC + 105.f), FVector(3.f, 100.f, 210.f), Emissive(FLinearColor(1.f, 0.6f, 0.3f), CHLight::Emissive(0.6f), FLinearColor(0.02f, 0.015f, 0.01f)), false);
 	}
 
-	// things on the roofs, kept off his path
+	// things on the roofs, kept off his path (no blocking collision)
 	UMaterialInterface* Cloth = Lit(FLinearColor(0.42f, 0.40f, 0.36f), 1.f, 0.1f);
-	Cyl(FVector(-1000.f, -420.f, 1250.f + 70.f), 60.f, 140.f, MTank, true);
-	Box(FVector(-1300.f, 420.f, 1250.f + 50.f), FVector(110.f, 110.f, 100.f), MCooler, true);
-	Ball(FVector(-800.f, 460.f, 1250.f + 100.f), FVector(88.f, 88.f, 20.f), MDish, false, FRotator(58.f, 190.f, 0.f));
-	Cyl(FVector(-800.f, 460.f, 1250.f + 45.f), 3.f, 90.f, MPole);
-	Cyl(FVector(300.f, -500.f, 1180.f + 165.f), 58.f, 140.f, MTankBlue, true);
-	Box(FVector(300.f, -500.f, 1180.f + 47.f), FVector(120.f, 120.f, 94.f), MRust, true);
-	BoxInstance(FVector(100.f, 360.f, 1180.f + 170.f), FVector(800.f, 1.5f, 1.5f), MWire);
+	Cyl(FVector(-1000.f, -420.f, RoofC + 70.f), 60.f, 140.f, MTank, false);
+	Box(FVector(-1300.f, 420.f, RoofC + 50.f), FVector(110.f, 110.f, 100.f), MCooler, false);
+	Ball(FVector(-800.f, 460.f, RoofC + 100.f), FVector(88.f, 88.f, 20.f), MDish, false, FRotator(58.f, 190.f, 0.f));
+	Cyl(FVector(-800.f, 460.f, RoofC + 45.f), 3.f, 90.f, MPole, false);
+	Cyl(FVector(300.f, -500.f, RoofC + 165.f), 58.f, 140.f, MTankBlue, false);
+	Box(FVector(300.f, -500.f, RoofC + 47.f), FVector(120.f, 120.f, 94.f), MRust, false);
+	BoxInstance(FVector(100.f, 360.f, RoofC + 170.f), FVector(800.f, 1.5f, 1.5f), MWire);
 	for (int32 Index = 0; Index < 5; ++Index)
 	{
-		BoxInstance(FVector(-220.f + Index * 150.f, 360.f, 1180.f + 140.f), FVector(70.f, 2.f, 55.f), Index % 2 ? Cloth : MLaundry[Index % MLaundry.Num()]);
+		BoxInstance(FVector(-220.f + Index * 150.f, 360.f, RoofC + 140.f), FVector(70.f, 2.f, 55.f), Index % 2 ? Cloth : MLaundry[Index % MLaundry.Num()]);
 	}
-	Box(FVector(1100.f, -400.f, RoofC + 50.f), FVector(110.f, 110.f, 100.f), MCooler, true);
-	Cyl(FVector(1260.f, 480.f, RoofC + 75.f), 62.f, 150.f, MTank, true);
-	Cyl(FVector(1500.f, -420.f, RoofC + 160.f), 2.5f, 320.f, MPole);
+	Box(FVector(1100.f, -400.f, RoofC + 50.f), FVector(110.f, 110.f, 100.f), MCooler, false);
+	Cyl(FVector(1260.f, 480.f, RoofC + 75.f), 62.f, 150.f, MTank, false);
+	Cyl(FVector(1500.f, -420.f, RoofC + 160.f), 2.5f, 320.f, MPole, false);
 	Box(FVector(1500.f, -420.f, RoofC + 280.f), FVector(4.f, 130.f, 4.f), MPole, false);
 	Ball(FVector(1900.f, -440.f, RoofC + 95.f), FVector(80.f, 80.f, 18.f), MDish, false, FRotator(60.f, 200.f, 0.f));
 
-	// ---- the city around and below, and the mountains
+	// ---- the city around and below, and the mountains close and clear
 	BuildDistantCity();
-	BuildAlborz(-20.f, FLinearColor(0.05f, 0.055f, 0.07f), FLinearColor(0.55f, 0.56f, 0.6f), 1500000.f, true);
+	BuildAlborz(-14.f, FLinearColor(0.32f, 0.35f, 0.45f), FLinearColor(0.92f, 0.94f, 0.98f), 140000.f, true);
 
-	// ---- what he does here
-	Mark(TEXT("PlayerStart"), FVector(-1380.f, 0.f, 1250.f), FRotator(0.f, 0.f, 0.f));
+	// ---- marks and cinematic cameras for his rooftop walk toward the mountains
+	Mark(TEXT("PlayerStart"), FVector(-1380.f, 0.f, RoofC), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("RoofWalkStart"), FVector(250.f, 100.f, RoofC), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("RoofWalkMid"), FVector(1150.f, 100.f, RoofC), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("RoofEdge"), SitSpot, FRotator(0.f, -8.f, 0.f));
+	MarkLookAt(TEXT("WalkCam1"), FVector(-120.f, -260.f, RoofC + 185.f), FVector(1200.f, 100.f, RoofC + 125.f), 58.f);
+	MarkLookAt(TEXT("WalkCam2"), FVector(1320.f, -240.f, RoofC + 155.f), SitSpot + FVector(400.f, 80.f, 120.f), 52.f);
+	MarkLookAt(TEXT("MountainWide"), FVector(1520.f, -120.f, RoofC + 165.f), FVector(28000.f, -3500.f, 5200.f), 56.f);
+
 	if (bFirstNight)
 	{
-		if (ACHFilmable* City = SpawnFilmable(TEXT("city"), TEXT("شهرِ تاریک، پر از صدا"), TEXT("The dark city, full of voices"), FVector(40000.f, 2000.f, 1000.f), 5.f, 90000.f))
+		if (ACHFilmable* City = SpawnFilmable(TEXT("city"), TEXT("شهرِ تاریک، پر از صدا"), TEXT("The dark city, full of voices"), FVector(40000.f, 2000.f, 1000.f), 3.f, 90000.f))
 		{
 			City->bIgnoreSight = true;
-			City->AimAngle = 32.f;
+			City->AimAngle = 60.f;
 			City->SetGlowVisible(false);
 		}
-		MarkLookAt(TEXT("Climb"), FVector(-1100.f, -420.f, 1250.f + 210.f), FVector(600.f, 300.f, 1250.f + 60.f), 62.f);
+		MarkLookAt(TEXT("Climb"), FVector(-1100.f, -420.f, RoofC + 210.f), FVector(600.f, 300.f, RoofC + 60.f), 62.f);
 		return;
 	}
-	if (ACHInteractable* Sit = SpawnInteractable(TEXT("sit"), TEXT("بنشین"), TEXT("Sit down"), SitSpot + FVector(0.f, 0.f, 60.f), 200.f))
+	if (ACHInteractable* Sit = SpawnInteractable(TEXT("sit"), TEXT("بنشین"), TEXT("Sit down"), SitSpot + FVector(0.f, 0.f, 60.f), 320.f))
 	{
 		Sit->SetActorHiddenInGame(false);
 	}
 
 	// the sunrise he will film (far away, in the orange)
 	const FVector SunPoint = FRotator(3.f, -8.f, 0.f).Vector() * 40000.f + SitSpot;
-	if (ACHFilmable* Sunrise = SpawnFilmable(TEXT("sunrise"), TEXT("نگاه کن… داره میاد بالا"), TEXT("Look... it's coming up"), SunPoint, 7.f, 80000.f))
+	if (ACHFilmable* Sunrise = SpawnFilmable(TEXT("sunrise"), TEXT("نگاه کن… داره میاد بالا"), TEXT("Look... it's coming up"), SunPoint, 4.f, 80000.f))
 	{
 		Sunrise->bIgnoreSight = true;
-		Sunrise->AimAngle = 18.f;
+		Sunrise->AimAngle = 45.f;
 		Sunrise->SetGlowVisible(false);
 	}
 
@@ -220,13 +233,13 @@ void ACHLoc_FinalRoof::BuildDistantCity()
 	}
 
 	// low hills between the city and the mountains
-	UMaterialInterface* Hill = Lit(FLinearColor(0.07f, 0.065f, 0.07f), 0.95f, 0.f);
+	UMaterialInterface* Hill = Lit(FLinearColor(0.18f, 0.17f, 0.20f), 0.95f, 0.f);
 	for (int32 Index = 0; Index < 9; ++Index)
 	{
 		const float Yaw = -50.f + Index * 12.f + Rng.FRandRange(-4.f, 4.f);
-		const FVector At = FRotator(0.f, Yaw, 0.f).Vector() * Rng.FRandRange(150000.f, 260000.f);
-		const float Radius = Rng.FRandRange(40000.f, 80000.f);
-		const float Height = Rng.FRandRange(5000.f, 11000.f);
+		const FVector At = FRotator(0.f, Yaw, 0.f).Vector() * Rng.FRandRange(75000.f, 115000.f);
+		const float Radius = Rng.FRandRange(22000.f, 42000.f);
+		const float Height = Rng.FRandRange(4000.f, 8500.f);
 		Cone(FVector(At.X, At.Y, Height * 0.5f - 200.f), Radius, Height, Hill, false)->SetCastShadow(false);
 	}
 }
@@ -238,41 +251,40 @@ void ACHLoc_FinalRoof::SetSun(float Elevation, float Warmth)
 	{
 		return;
 	}
-	// 0 before dawn .. 1 when the sun stands clear of the horizon
+	const float SafeElev = FMath::Max(Elevation, 12.f);
 	const float Up = FMath::Clamp((Elevation + 4.f) / 20.f, 0.f, 1.f);
 	const float Smooth = FMath::SmoothStep(0.f, 1.f, Up);
 
-	Sun->SetWorldRotation(FRotator(-Elevation, SunAzimuth + 180.f, 0.f));
-	Sun->SetIntensity(FMath::Lerp(8.f, 14.f, Smooth));
-	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.38f, 0.14f), FLinearColor(1.f, 0.80f, 0.56f), Smooth));
+	Sun->SetWorldRotation(FRotator(-SafeElev, SunAzimuth + 180.f, 0.f));
+	Sun->SetIntensity(FMath::Lerp(10.f, 16.f, Smooth));
+	Sun->SetLightColor(FMath::Lerp(FLinearColor(1.f, 0.65f, 0.42f), FLinearColor(1.f, 0.85f, 0.64f), Smooth));
 	if (SkyLight)
 	{
-		SkyLight->SetIntensity(FMath::Lerp(1.4f, 1.1f, Smooth));
+		SkyLight->SetIntensity(FMath::Lerp(2.8f, 2.4f, Smooth));
 	}
 
-	// from the blue before dawn to the brightest, warmest moment of the game
-	const float EV = FMath::Lerp(-1.6f, 1.5f, Smooth);
+	const float EV = FMath::Lerp(-0.5f, 0.2f, Smooth);
 	CHLight::SetExposure(EV);
 	if (PostProcess)
 	{
 		FPostProcessSettings& S = PostProcess->Settings;
 		S.AutoExposureMinBrightness = EV;
 		S.AutoExposureMaxBrightness = EV;
-		S.BloomIntensity = FMath::Lerp(0.8f, 1.5f, Smooth);
-		S.WhiteTemp = FMath::Lerp(6300.f, 7600.f, Smooth);
-		const float Saturation = FMath::Lerp(0.98f, 1.2f, Smooth);
+		S.AutoExposureBias = 1.2f;
+		S.BloomIntensity = FMath::Lerp(0.8f, 1.4f, Smooth);
+		S.WhiteTemp = FMath::Lerp(6300.f, 7400.f, Smooth);
+		const float Saturation = FMath::Lerp(1.02f, 1.18f, Smooth);
 		S.ColorSaturation = FVector4(Saturation, Saturation, Saturation, 1.0);
-		const float Contrast = FMath::Lerp(1.05f, 1.14f, Smooth);
+		const float Contrast = FMath::Lerp(1.04f, 1.10f, Smooth);
 		S.ColorContrast = FVector4(Contrast, Contrast, Contrast, 1.0);
-		S.FilmGrainIntensity = FMath::Lerp(0.3f, 0.12f, Smooth);
-		S.VignetteIntensity = FMath::Lerp(0.5f, 0.38f, Smooth);
+		S.FilmGrainIntensity = FMath::Lerp(0.18f, 0.10f, Smooth);
+		S.VignetteIntensity = FMath::Lerp(0.28f, 0.22f, Smooth);
 	}
 	if (Fog)
 	{
-		// the haze thins as the sun comes up, so the sky keeps its colour
-		Fog->SetFogDensity(FMath::Lerp(0.012f, 0.0045f, Smooth));
-		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.03f, 0.04f, 0.07f), FLinearColor(0.09f, 0.055f, 0.035f), Smooth));
-		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.2f, 0.08f, 0.03f), FLinearColor(0.7f, 0.33f, 0.12f), Smooth));
+		Fog->SetFogDensity(FMath::Lerp(0.005f, 0.003f, Smooth));
+		Fog->SetFogInscatteringColor(FMath::Lerp(FLinearColor(0.12f, 0.14f, 0.22f), FLinearColor(0.24f, 0.16f, 0.10f), Smooth));
+		Fog->SetDirectionalInscatteringColor(FMath::Lerp(FLinearColor(0.35f, 0.20f, 0.12f), FLinearColor(0.75f, 0.42f, 0.18f), Smooth));
 	}
 }
 
