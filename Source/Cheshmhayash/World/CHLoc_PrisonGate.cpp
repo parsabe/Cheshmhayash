@@ -69,10 +69,6 @@ void ACHLoc_PrisonGate::Build(const FString& InVariant)
 	BoxAt(0.f, WallY + 40.f, 0.f, 120.f, 8.f, 520.f, Steel);
 	BoxAt(220.f, WallY + 40.f, 0.f, 100.f, 8.f, 520.f, Steel);
 	BoxAt(120.f, WallY + 40.f, 210.f, 100.f, 8.f, 310.f, Steel);
-	for (float Z = 60.f; Z < 520.f; Z += 90.f)
-	{
-		BoxInstance(FVector(0.f, WallY + 36.f, Z), FVector(640.f, 3.f, 8.f), Wire);
-	}
 	DoorPivot = Pivot(FVector(220.f, WallY + 44.f, 0.f));
 	BoxOn(DoorPivot, FVector(-50.f, 0.f, 105.f), FVector(100.f, 7.f, 210.f), Steel, true);
 	BoxOn(DoorPivot, FVector(-88.f, -6.f, 105.f), FVector(4.f, 5.f, 14.f), Wire, false);
