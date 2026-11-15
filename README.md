@@ -1,16 +1,23 @@
 # چشم‌هایش · Cheshm Hayash: website
 
+[![Cheshm Hayash: watch the trailer](https://img.youtube.com/vi/drZl6DR5eMI/maxresdefault.jpg)](https://youtu.be/drZl6DR5eMI)
+
+**[▶ Trailer](https://youtu.be/drZl6DR5eMI)** ·
+**[Live site](https://parsabe.github.io/Cheshmhayash/)** ·
+**[About the game (`master`)](https://github.com/parsabe/Cheshmhayash/tree/master)** ·
+**[Source code (`game`)](https://github.com/parsabe/Cheshmhayash/tree/game)** ·
+**[Jam version (`jam-submission`)](https://github.com/parsabe/Cheshmhayash/tree/jam-submission)**
+
 The promotional site for the game. Plain HTML, CSS and JavaScript: no framework, no build step,
 no tracking, no cookies. Open `index.html` directly, or host the folder anywhere static.
 
-The game itself lives on the `game` branch; the version submitted to the Epic AI MegaJam 2026 is
-the tag `jam-submission`.
+## One placeholder left
 
-## Before publishing, replace two placeholders
-
-- **Trailer:** in `index.html`, `data-youtube="YOUTUBE_VIDEO_ID"` → the YouTube video id
-  (the part after `watch?v=`). The video only loads after a click, from `youtube-nocookie.com`.
 - **itch.io:** in `index.html`, `https://YOUR-NAME.itch.io/cheshm-hayash` → the real page.
+  Until then the button reads "Coming soon to itch.io".
+
+The trailer (`data-youtube="drZl6DR5eMI"` in `index.html`) only loads after a click, from
+`youtube-nocookie.com`.
 
 ## Files
 
