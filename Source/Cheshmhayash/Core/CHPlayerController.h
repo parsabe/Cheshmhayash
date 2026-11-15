@@ -29,7 +29,12 @@ public:
 
 private:
 	void UpdateCursorMode(bool bWantCursor);
-	bool bCursorOn = false;
+	int8 CursorState = -1;
+	bool bHasLastCursor = false;
+	FVector2D LastCursorPos = FVector2D::ZeroVector;
+	TWeakObjectPtr<AActor> ActiveSceneCamera;
+	FRotator SceneCameraBaseRot = FRotator::ZeroRotator;
+	FRotator SceneLookOffset = FRotator::ZeroRotator;
 	void UpdateShake(float DeltaTime);
 
 	float ShakeTime = 0.f;

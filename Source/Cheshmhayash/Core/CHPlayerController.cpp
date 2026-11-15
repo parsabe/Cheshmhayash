@@ -1,8 +1,11 @@
-﻿// Cheshm Hayash - player controller.
+// Cheshm Hayash - player controller.
 
 #include "Core/CHPlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Core/CHPlayerCharacter.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/World.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Game/CHSegment.h"
 #include "InputCoreTypes.h"
 #include "Story/CHSave.h"
@@ -19,7 +22,9 @@ void ACHPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetInputMode(FInputModeGameOnly());
+	CursorState = -1;
+	bHasLastCursor = false;
+	UpdateCursorMode(false);
 
 	if (PlayerCameraManager)
 	{
@@ -30,6 +35,17 @@ void ACHPlayerController::BeginPlay()
 
 void ACHPlayerController::SetSceneCamera(AActor* Camera, float BlendTime)
 {
+	if (ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn())
+	{
+		ActiveSceneCamera->SetActorRotation(SceneCameraBaseRot);
+	}
+	ActiveSceneCamera = Camera;
+	SceneLookOffset = FRotator::ZeroRotator;
+	if (Camera && Camera != GetPawn())
+	{
+		SceneCameraBaseRot = Camera->GetActorRotation();
+	}
+
 	AActor* Target = Camera ? Camera : static_cast<AActor*>(GetPawn());
 	if (!Target)
 	{
@@ -75,6 +91,10 @@ void ACHPlayerController::UpdateShake(float DeltaTime)
 	// apply only the change, so the offset never accumulates
 	SetControlRotation(GetControlRotation() + (NewOffset - ShakeOffset));
 	ShakeOffset = NewOffset;
+	if (ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn())
+	{
+		ActiveSceneCamera->SetActorRotation(SceneCameraBaseRot + SceneLookOffset + ShakeOffset);
+	}
 }
 
 void ACHPlayerController::PlayerTick(float DeltaTime)
@@ -145,6 +165,54 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 		}
 	}
 
+	// ---- mouse camera look: active in all 3D views (both first-person pawn and scene cameras) whenever no menu cursor is up
+	const bool bWantCursor = Director->WantsCursor();
+	if (!bWantCursor && !IsPaused())
+	{
+		float MouseX = 0.f;
+		float MouseY = 0.f;
+		GetInputMouseDelta(MouseX, MouseY);
+
+		if (FSlateApplication::IsInitialized())
+		{
+			const FVector2D CurPos = FSlateApplication::Get().GetCursorPos();
+			if (bHasLastCursor && FMath::IsNearlyZero(MouseX, 1e-4f) && FMath::IsNearlyZero(MouseY, 1e-4f))
+			{
+				const FVector2D Delta = CurPos - LastCursorPos;
+				MouseX = Delta.X * 0.14f;
+				MouseY = -Delta.Y * 0.14f;
+			}
+			LastCursorPos = CurPos;
+			bHasLastCursor = true;
+		}
+
+		if (!FMath::IsNearlyZero(MouseX, 1e-5f) || !FMath::IsNearlyZero(MouseY, 1e-5f))
+		{
+			const float Sens = 1.65f * MouseSensitivity * CHSettings::GetSensitivity();
+			const float YawDelta = MouseX * Sens;
+			const float PitchDelta = MouseY * Sens * (CHSettings::GetInvertY() ? -1.f : 1.f);
+
+			if (ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn() && GetViewTarget() == ActiveSceneCamera.Get())
+			{
+				SceneLookOffset.Yaw = FMath::Clamp(SceneLookOffset.Yaw + YawDelta, -85.f, 85.f);
+				SceneLookOffset.Pitch = FMath::Clamp(SceneLookOffset.Pitch + PitchDelta, -55.f, 55.f);
+				ActiveSceneCamera->SetActorRotation(SceneCameraBaseRot + SceneLookOffset + ShakeOffset);
+			}
+			else
+			{
+				FRotator ControlRot = GetControlRotation();
+				ControlRot.Yaw = FRotator::NormalizeAxis(ControlRot.Yaw + YawDelta);
+				ControlRot.Pitch = FMath::Clamp(FRotator::NormalizeAxis(ControlRot.Pitch) + PitchDelta, -80.f, 80.f);
+				ControlRot.Roll = 0.f;
+				SetControlRotation(ControlRot);
+			}
+		}
+	}
+	else
+	{
+		bHasLastCursor = false;
+	}
+
 	// ---- moving, looking, filming, using things
 	ACHPlayerCharacter* Hero = Cast<ACHPlayerCharacter>(GetPawn());
 	UCHSegmentSubsystem* Segment = UCHSegmentSubsystem::Get(this);
@@ -164,13 +232,6 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 	{
 		return;
 	}
-
-	float MouseX = 0.f;
-	float MouseY = 0.f;
-	GetInputMouseDelta(MouseX, MouseY);
-	const float Sens = MouseSensitivity * CHSettings::GetSensitivity();
-	AddYawInput(MouseX * Sens);
-	AddPitchInput(-MouseY * Sens * (CHSettings::GetInvertY() ? -1.f : 1.f));
 
 	FVector2D Move(0.f, 0.f);
 	if (IsInputKeyDown(EKeys::W) || IsInputKeyDown(EKeys::Up))
@@ -211,11 +272,14 @@ void ACHPlayerController::PlayerTick(float DeltaTime)
 
 void ACHPlayerController::UpdateCursorMode(bool bWantCursor)
 {
-	if (bWantCursor == bCursorOn)
+	const int8 Desired = bWantCursor ? 1 : 0;
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+	const bool bNeedsCaptureFix = (!bWantCursor && Viewport && Viewport->GetMouseCaptureMode() != EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
+	if (Desired == CursorState && !bNeedsCaptureFix)
 	{
 		return;
 	}
-	bCursorOn = bWantCursor;
+	CursorState = Desired;
 	bShowMouseCursor = bWantCursor;
 	if (bWantCursor)
 	{
@@ -226,6 +290,18 @@ void ACHPlayerController::UpdateCursorMode(bool bWantCursor)
 	}
 	else
 	{
-		SetInputMode(FInputModeGameOnly());
+		FInputModeGameOnly Mode;
+		Mode.SetConsumeCaptureMouseDown(false);
+		SetInputMode(Mode);
+		if (Viewport)
+		{
+			Viewport->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
+			Viewport->SetMouseLockMode(EMouseLockMode::LockAlways);
+			Viewport->SetHideCursorDuringCapture(true);
+		}
+		if (FSlateApplication::IsInitialized())
+		{
+			FSlateApplication::Get().SetAllUserFocusToGameViewport();
+		}
 	}
 }

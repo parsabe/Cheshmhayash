@@ -12,13 +12,40 @@
           "fa": ["ستم پایدار نمی‌ماند"],
           "en": ["Oppression does not last."],
           "de": ["Unterdrückung währt nicht ewig."],
-          "hold": 6.0,
+          "hold": 5.0,
           "fa_size": 46,
           "en_size": 24,
           "skippable": false
         },
+        {
+          "type": "card",
+          "style": "opening",
+          "fa": [
+            "باز مونده شد که با یک چشم خونین",
+            "مادرش بلند کرد جسم بی روحش با کلی سبد لاله ی جوان",
+            "قطره اشکاش بود زمین رو شکافت",
+            "از سینه آه کشید",
+            "آهی که ظالم رو کاملا از صفحه روزگار محو کرد"
+          ],
+          "en": [
+            "Left behind with one bloodied eye,",
+            "His mother lifted his lifeless body among baskets of young tulips,",
+            "It was the drops of her tears that split the earth apart,",
+            "From her chest she drew a sigh,",
+            "A sigh that wiped the tyrant completely from the face of time."
+          ],
+          "de": [
+            "Zurückgeblieben mit einem blutigen Auge,",
+            "Seine Mutter hob seinen leblosen Körper zwischen Körben junger Tulpen empor,",
+            "Es waren ihre Tränentropfen, die die Erde spalteten,",
+            "Aus ihrer Brust stieß sie einen Seufzer aus,",
+            "Einen Seufzer, der den Tyrannen vollständig vom Antlitz der Zeit tilgte."
+          ],
+          "hold": 6.5,
+          "skippable": false
+        },
         { "type": "audio", "cut": true },
-        { "type": "silence", "seconds": 5.0 },
+        { "type": "silence", "seconds": 3.5 },
         { "type": "memorial", "on": true },
         { "type": "silence", "seconds": 21.0 },
         { "type": "audio", "music": "music_final", "fade": 4.0, "volume": 0.7 },
