@@ -1,6 +1,6 @@
 # چشم‌هایش · Cheshm Hayash: website
 
-[![Cheshm Hayash: watch the trailer](https://img.youtube.com/vi/drZl6DR5eMI/maxresdefault.jpg)](https://youtu.be/drZl6DR5eMI)
+[![Cheshm Hayash: watch the trailer](https://raw.githubusercontent.com/parsabe/Cheshmhayash/master/thumbnail.jpg)](https://youtu.be/drZl6DR5eMI)
 
 **[▶ Trailer](https://youtu.be/drZl6DR5eMI)** ·
 **[Live site](https://parsabe.github.io/Cheshmhayash/)** ·
