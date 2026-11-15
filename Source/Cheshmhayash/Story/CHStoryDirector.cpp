@@ -1,4 +1,4 @@
-﻿// Cheshm Hayash - the story director.
+// Cheshm Hayash - the story director.
 
 #include "Story/CHStoryDirector.h"
 #include "Cheshmhayash.h"
