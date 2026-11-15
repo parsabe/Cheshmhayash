@@ -164,6 +164,14 @@
     });
   }
 
+  /* ---------------- itch.io button: until the real link is in, say "coming soon" ---------------- */
+  var playLink = $(".play-button");
+  if (playLink && /YOUR-NAME/.test(playLink.getAttribute("href") || "")) {
+    playLink.removeAttribute("href");
+    playLink.classList.add("soon");
+    playLink.innerHTML = '<span class="t-fa">به‌زودی در <bdi>itch.io</bdi></span><span class="t-en">Coming soon to itch.io</span>';
+  }
+
   /* ---------------- scroll-driven scenes ---------------- */
   var vw = window.innerWidth, vh = window.innerHeight;
   var hero = $("#hero"), heroBg = $(".hero-bg"), eye = $(".eye"), heroTitle = $(".hero-title"),
