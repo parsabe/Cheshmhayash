@@ -101,6 +101,19 @@ void SCHRootOverlay::Construct(const FArguments& InArgs)
 			SAssignNew(Menu, SCHChoiceList)
 		]
 
+		// paused
+		+ SOverlay::Slot()
+		[
+			SNew(SImage)
+			.Image(CH::WhiteBrush())
+			.Visibility(EVisibility::HitTestInvisible)
+			.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.72f * PauseDim)); })
+		]
+		+ SOverlay::Slot()
+		[
+			SAssignNew(PauseMenu, SCHChoiceList)
+		]
+
 		// developer notice
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Left)
@@ -129,6 +142,12 @@ void SCHRootOverlay::Advance(float DeltaTime)
 	Slogans->Advance(DeltaTime);
 	FlashAlpha = FMath::Max(0.f, FlashAlpha - DeltaTime * FlashRate);
 	EyeClose = FMath::FInterpConstantTo(EyeClose, EyeTarget, DeltaTime, EyeRate);
+}
+
+void SCHRootOverlay::AdvancePause(float DeltaTime)
+{
+	PauseMenu->Advance(DeltaTime);
+	PauseDim = FMath::FInterpConstantTo(PauseDim, PauseDimTarget, DeltaTime, 4.f);
 }
 
 void SCHRootOverlay::Flash(const FLinearColor& Color, float Seconds)

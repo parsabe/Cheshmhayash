@@ -75,7 +75,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual ETickableTickType GetTickableTickType() const override;
 	virtual bool IsTickable() const override;
-	virtual bool IsTickableWhenPaused() const override { return false; }
+	virtual bool IsTickableWhenPaused() const override { return true; }
 	virtual TStatId GetStatId() const override;
 	virtual UWorld* GetTickableGameObjectWorld() const override;
 
@@ -92,7 +92,7 @@ public:
 	void InputChoice(int32 Index) { DirectChoice = Index; }
 	void InputPause();
 	void DevSkipScene();
-	bool IsPlayerControlEnabled() const { return bPlayerControl && !bTraveling; }
+	bool IsPlayerControlEnabled() const { return bPlayerControl && !bTraveling && !bPauseMenu; }
 	/** false in segments where he may film or use things but not walk (the final rooftop). */
 	bool IsMoveAllowed() const { return bMoveAllowed; }
 
@@ -156,6 +156,12 @@ private:
 	void OnTypeTick(bool bPhone);
 
 	void EnsureUI();
+	void SetPaused(bool bInPaused);
+	void UpdatePause();
+	/** Clears every overlay: cards, text, phone, letter, montage. */
+	void ClearScreen();
+	bool bPauseMenu = false;
+	float DevPauseAt = 0.f;
 	void UpdateFade(float DeltaTime);
 	void SetFade(float Target, float Time, const FLinearColor& Color);
 	ACHPlayerController* GetController() const;

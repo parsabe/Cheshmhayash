@@ -628,6 +628,16 @@ void UCHStoryDirector::Tick(float DeltaTime)
 
 	if (UI.IsValid())
 	{
+		UI->AdvancePause(FMath::Min(0.1f, static_cast<float>(FApp::GetDeltaTime())));
+		if (bPauseMenu)
+		{
+			UpdatePause();
+			return;
+		}
+	}
+
+	if (UI.IsValid())
+	{
 		UpdateFade(DeltaTime);
 		if (bRec)
 		{
@@ -1563,6 +1573,101 @@ FString UCHStoryDirector::GetFlag(const FString& Name) const
 
 void UCHStoryDirector::InputPause()
 {
+	// not on the title, not between locations
+	if (!UI.IsValid() || bTraveling || !Scenes.IsValidIndex(SceneIndex) || SceneIndex == 0)
+	{
+		return;
+	}
+	SetPaused(!bPauseMenu);
+}
+
+void UCHStoryDirector::SetPaused(bool bInPaused)
+{
+	bPauseMenu = bInPaused;
+	// the world all but stops (a true engine pause would stop this director ticking too)
+	UGameplayStatics::SetGlobalTimeDilation(this, bInPaused ? 0.0001f : 1.f);
+	bAdvancePressed = false;
+	NavInput = 0;
+	DirectChoice = INDEX_NONE;
+	if (!UI.IsValid())
+	{
+		return;
+	}
+	UI->PauseDimTarget = bInPaused ? 1.f : 0.f;
+	if (bInPaused)
+	{
+		TArray<FCHOption> Options;
+		Options.Emplace(TEXT("ادامه"), TEXT("Resume"));
+		Options.Emplace(TEXT("بازگشت به صفحه‌ی اول"), TEXT("Back to the title"));
+		Options.Emplace(TEXT("خروج"), TEXT("Quit"));
+		UI->PauseMenu->Show(Options, VAlign_Center, FMargin(0.f), 30.f, 16.f);
+	}
+	else
+	{
+		UI->PauseMenu->Hide();
+	}
+}
+
+void UCHStoryDirector::UpdatePause()
+{
+	if (NavInput != 0)
+	{
+		UI->PauseMenu->Move(NavInput > 0 ? 1 : -1);
+		NavInput = 0;
+	}
+	int32 Picked = INDEX_NONE;
+	if (UI->PauseMenu->IsReady())
+	{
+		if (DirectChoice != INDEX_NONE && DirectChoice < UI->PauseMenu->Num())
+		{
+			Picked = DirectChoice;
+		}
+		else if (ConsumeAdvance())
+		{
+			Picked = UI->PauseMenu->GetSelected();
+		}
+	}
+	DirectChoice = INDEX_NONE;
+	bAdvancePressed = false;
+	if (Picked == 0)
+	{
+		SetPaused(false);
+	}
+	else if (Picked == 1)
+	{
+		SetPaused(false);
+		ClearScreen();
+		if (Audio)
+		{
+			Audio->Cut(1.f);
+		}
+		Flags.Reset();
+		Clips.Reset();
+		bRec = false;
+		RecSeconds = 0.f;
+		StartScene(0);
+	}
+	else if (Picked == 2)
+	{
+		FPlatformMisc::RequestExit(false);
+	}
+}
+
+void UCHStoryDirector::ClearScreen()
+{
+	if (!UI.IsValid())
+	{
+		return;
+	}
+	UI->Cards->Clear();
+	UI->Captions->Clear();
+	UI->Menu->Hide();
+	UI->Dialogue->Hide();
+	UI->Phone->Close();
+	UI->Letter->Hide();
+	UI->Montage->Stop();
+	UI->Slogans->Stop(0.f);
+	UI->EyeTarget = UI->EyeClose = 0.f;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1600,6 +1705,7 @@ void UCHStoryDirector::ParseDevOptions()
 		}
 	}
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
+	FParse::Value(CommandLine, TEXT("chpause="), DevPauseAt);
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
 
 	FString Shots;
@@ -1618,7 +1724,17 @@ void UCHStoryDirector::ParseDevOptions()
 void UCHStoryDirector::DevTick()
 {
 	// -chinterlude=a,b : play encounters once a gameplay segment has been running for a moment
-	if (DevInterludes.Num() > 0 && bPlayerControl && !bInInterlude && !bTraveling && BeatTime > 3.f && Scenes.IsValidIndex(SceneIndex)
+	// -chpause=12 : open the pause menu after that many seconds (to look at it)
+	if (DevPauseAt > 0.f && FPlatformTime::Seconds() - DevStartSeconds >= DevPauseAt)
+	{
+		DevPauseAt = 0.f;
+		InputPause();
+	}
+	if (bPauseMenu)
+	{
+		// only the screenshots below
+	}
+	else if (DevInterludes.Num() > 0 && bPlayerControl && !bInInterlude && !bTraveling && BeatTime > 3.f && Scenes.IsValidIndex(SceneIndex)
 		&& Scenes[SceneIndex].Beats.IsValidIndex(BeatIndex) && JStr(*Scenes[SceneIndex].Beats[BeatIndex], TEXT("type")) == TEXT("gameplay"))
 	{
 		PlayInterlude(DevInterludes[0]);
@@ -1655,11 +1771,6 @@ void UCHStoryDirector::DevSkipScene()
 	{
 		return;
 	}
-	UI->Cards->Clear();
-	UI->Captions->Clear();
-	UI->Menu->Hide();
-	UI->Dialogue->Hide();
-	UI->Phone->Close();
-	UI->Slogans->Stop(0.f);
+	ClearScreen();
 	NextScene();
 }

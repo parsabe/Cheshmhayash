@@ -44,6 +44,11 @@ public:
 	TSharedPtr<SCHCardLayer> Cards;
 	TSharedPtr<SCHCardLayer> Captions;
 	TSharedPtr<SCHChoiceList> Menu;
+	/** The pause menu, over a darkened picture. */
+	TSharedPtr<SCHChoiceList> PauseMenu;
+	float PauseDim = 0.f;
+	float PauseDimTarget = 0.f;
+	void AdvancePause(float DeltaTime);
 	TSharedPtr<SCHDialogueOverlay> Dialogue;
 	TSharedPtr<SCHPhoneOverlay> Phone;
 	TSharedPtr<SCHHud> Hud;
