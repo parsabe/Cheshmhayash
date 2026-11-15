@@ -7,6 +7,8 @@ Cuts the jam trailer out of a screen recording of trailer mode.
   -Length     40 (default) or 55 seconds
   -Music      the score (default: Trailer\template_40.mp3 for 40 s, Trailer\template.mp3 for 55 s)
   -NoPan      open with a short fade from black instead of the Pan transition
+  -Vertical   the recording is 1080x1920 (render_trailer.ps1 -Vertical); writes ..._Trailer_Vertical.mp4, 30 fps
+  -FadeOut    seconds of fade at the end of the music (use 2 for a song that is cut off; default 0)
   -Team       your team name for the file name (default: TeamName)
   -GameVolume how loud the game's own sound stays under the music (default 0.14)
 
@@ -25,7 +27,7 @@ What it does:
      eased, with horizontal motion blur; the rest are short dissolves (a dip to black into the
      silence and into the title)
   4. lays the music over it, keeps a quiet layer of the game's ambient sound underneath
-  5. writes <Team>_CheshmHayash_Trailer.mp4 (the 55 s cut: ..._Trailer_55s.mp4): H.264 1080p,
+  5. writes <Team>_CheshmHayash_Trailer.mp4 (..._55s / ..._Vertical for those cuts): H.264 1080p,
      -preset veryfast -crf 20, AAC audio
 All Farsi text comes from the game itself (no ffmpeg drawtext).
 #>
@@ -34,6 +36,8 @@ param(
     [ValidateSet(40, 55)][int]$Length = 40,
     [string]$Music = "",
     [switch]$NoPan,
+    [switch]$Vertical,
+    [double]$FadeOut = 0,
     [string]$Team = "TeamName",
     [double]$GameVolume = 0.14,
     [string]$OutDir = ""
@@ -74,6 +78,9 @@ $Total = ($Durations | Measure-Object -Sum).Sum
 $Fade = 0.25          # dissolve between shots
 $Skip = 0.35          # skip the fade-in at the start of every shot
 $PanTime = 0.6        # the opening Pan transition
+$W = $(if ($Vertical) { 1080 } else { 1920 })
+$H = $(if ($Vertical) { 1920 } else { 1080 })
+$Fps = $(if ($Vertical) { 30 } else { 60 })
 
 $inv = [Globalization.CultureInfo]::InvariantCulture
 function F([double]$v) { return $v.ToString("0.000", $inv) }
@@ -113,15 +120,15 @@ for ($i = 0; $i -le $last; $i++) {
     if ($start + $len -gt $seg.End) {
         Write-Warning ("Shot {0} is only {1:0.00} s long; it needs {2:0.00} s. Its last frame will be held." -f ($shot + 1), ($seg.End - $start), $len)
     }
-    $filters.Add(("[0:v]trim=start={0}:duration={1},setpts=PTS-STARTPTS,fps=60,scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p,tpad=stop_mode=clone:stop_duration={1}[v{2}]" -f (F $start), (F $len), $i))
+    $filters.Add(("[0:v]trim=start={0}:duration={1},setpts=PTS-STARTPTS,fps={3},scale={4}:{5}:force_original_aspect_ratio=decrease,pad={4}:{5}:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p,tpad=stop_mode=clone:stop_duration={1}[v{2}]" -f (F $start), (F $len), $i, $Fps, $W, $H))
     if ($i -eq 0 -and -not $NoPan) {
         # the Pan transition: black and the first shot side by side, and the frame whips across from
         # the black to the shot (ease-in-out), blurred sideways while it moves fast
         $d = F $PanTime
         $ease = "if(gte(t,$d),1,if(lt(t/$d,0.5),4*pow(t/$d,3),1-pow(2-2*t/$d,3)/2))"
-        $filters.Add(("color=c=black:s=1920x1080:r=60:d={0},format=yuv420p[blk]" -f (F $len)))
+        $filters.Add(("color=c=black:s={1}x{2}:r={3}:d={0},format=yuv420p[blk]" -f (F $len), $W, $H, $Fps))
         $filters.Add(("[v0]trim=duration={0},setpts=PTS-STARTPTS[v0t]" -f (F $len)))
-        $filters.Add(("[blk][v0t]hstack=inputs=2,crop=1920:1080:x='1920*{0}':y=0,avgblur=sizeX=22:sizeY=1:enable='between(t,{1},{2})',avgblur=sizeX=22:sizeY=1:enable='between(t,{3},{4})'[w0]" -f $ease, (F ($PanTime * 0.12)), (F ($PanTime * 0.88)), (F ($PanTime * 0.25)), (F ($PanTime * 0.75))))
+        $filters.Add(("[blk][v0t]hstack=inputs=2,crop={5}:{6}:x='{5}*{0}':y=0,avgblur=sizeX=22:sizeY=1:enable='between(t,{1},{2})',avgblur=sizeX=22:sizeY=1:enable='between(t,{3},{4})'[w0]" -f $ease, (F ($PanTime * 0.12)), (F ($PanTime * 0.88)), (F ($PanTime * 0.25)), (F ($PanTime * 0.75)), $W, $H))
     } else {
         $filters.Add(("[v{0}]trim=duration={1},setpts=PTS-STARTPTS[w{0}]" -f $i, (F $len)))
     }
@@ -148,7 +155,8 @@ $opening = $(if ($NoPan) { ",fade=t=in:st=0:d=0.15" } else { "" })
 $filters.Add(("[{0}]trim=duration={1},setpts=PTS-STARTPTS{2}[vout]" -f $prev, (F $Total), $opening))
 
 # ---- 4. the music, with the game's sound quietly underneath ----------------------------------------
-$filters.Add("[1:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=duration=" + (F $Total) + ",asetpts=PTS-STARTPTS[music]")
+$musicFade = $(if ($FadeOut -gt 0) { ",afade=t=out:st=" + (F ($Total - $FadeOut)) + ":d=" + (F $FadeOut) } else { "" })
+$filters.Add("[1:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=duration=" + (F $Total) + ",asetpts=PTS-STARTPTS" + $musicFade + "[music]")
 if ($hasAudio) {
     $filters.Add(("[{0}]atrim=duration={2},asetpts=PTS-STARTPTS,volume={1}[game]" -f $prevA, (F $GameVolume), (F $Total)))
     $filters.Add("[music][game]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[aout]")
@@ -158,13 +166,13 @@ if ($hasAudio) {
 
 # ---- 5. render ----------------------------------------------------------------------------------------
 New-Item -ItemType Directory -Force $OutDir | Out-Null
-$out = Join-Path $OutDir ("{0}_CheshmHayash_Trailer{1}.mp4" -f $Team, $(if ($Length -eq 55) { "_55s" } else { "" }))
+$out = Join-Path $OutDir ("{0}_CheshmHayash_Trailer{1}{2}.mp4" -f $Team, $(if ($Length -eq 55) { "_55s" } else { "" }), $(if ($Vertical) { "_Vertical" } else { "" }))
 $graph = Join-Path ([IO.Path]::GetTempPath()) "ch_trailer_graph.txt"
 [IO.File]::WriteAllText($graph, ($filters -join ";`n"))
 Write-Host "Rendering $out ..."
 & ffmpeg -hide_banner -y -loglevel error -stats -i "$Recording" -i "$Music" -/filter_complex "$graph" `
     -map "[vout]" -map "[aout]" -t (F $Total) `
-    -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -r 60 `
+    -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -r $Fps `
     -c:a aac -b:a 192k -ar 48000 -movflags +faststart "$out"
 if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed (exit $LASTEXITCODE). The filter graph is in $graph" }
 $final = [double]::Parse((& ffprobe -v error -show_entries format=duration -of csv=p=0 "$out").Trim(), $inv)
