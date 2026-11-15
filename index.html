@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>چشم‌هایش · Cheshm Hayash</title>
+<meta name="description" content="Cheshm Hayash (His Eyes): a narrative stealth game about Tehran, 1401. There are no voices in this game. Made with Unreal Engine 5 for the Epic AI MegaJam 2026.">
+<meta name="theme-color" content="#070404">
+<meta property="og:type" content="website">
+<meta property="og:title" content="چشم‌هایش · Cheshm Hayash">
+<meta property="og:description" content="A narrative stealth game about Tehran, 1401. There are no voices in this game.">
+<meta property="og:image" content="assets/img/fire.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070404'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23e0251a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<noscript><style>.reveal,.poem-line,.dedication .line{opacity:1!important;transform:none!important}.hero{height:100vh}</style></noscript>
+<script defer src="main.js"></script>
+</head>
+<body>
+
+<!-- shared shapes: Damavand -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="damavand" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 420 L0 330 L180 280 L330 300 L520 236 L640 252 L736 150 L790 104 L820 92 L848 100 L900 146 L990 230 L1110 214 L1260 268 L1420 250 L1600 300 L1600 420 Z"/>
+      <path class="snow" d="M736 150 L790 104 L820 92 L848 100 L900 146 L872 140 L852 156 L826 134 L804 152 L780 140 L760 158 Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="rec" aria-hidden="true"><span class="rec-dot"></span><span class="rec-label">REC</span><span class="rec-time">00:00:00</span></div>
+  <button class="lang-toggle" type="button">
+    <span class="t-en" lang="fa">فارسی</span><span class="t-fa" lang="en">English</span>
+  </button>
+</header>
+
+<main>
+
+  <!-- HERO: zoom into the eye -->
+  <section id="hero" class="hero" aria-label="چشم‌هایش · Cheshm Hayash">
+    <div class="hero-stage">
+      <div class="hero-bg"><img src="assets/img/street.jpg" alt=""></div>
+      <div class="smoke smoke-a" aria-hidden="true"></div>
+      <div class="smoke smoke-b" aria-hidden="true"></div>
+
+      <svg class="eye" viewBox="0 0 1000 520" aria-hidden="true">
+        <defs>
+          <clipPath id="eyeClip"><path d="M40 260 C 250 30, 750 30, 960 260 C 750 490, 250 490, 40 260 Z"/></clipPath>
+          <radialGradient id="sclera" cx="50%" cy="50%" r="62%">
+            <stop offset="0" stop-color="#2b120e"/><stop offset="0.6" stop-color="#140806"/><stop offset="1" stop-color="#030101"/>
+          </radialGradient>
+          <pattern id="irisImg" patternUnits="userSpaceOnUse" x="320" y="80" width="360" height="360">
+            <image href="assets/img/fire.jpg" x="-140" y="0" width="640" height="360" preserveAspectRatio="xMidYMid slice"/>
+          </pattern>
+          <radialGradient id="irisTint" cx="50%" cy="50%" r="50%">
+            <stop offset="0.3" stop-color="#ff7a2e" stop-opacity="0.05"/>
+            <stop offset="0.72" stop-color="#8a1408" stop-opacity="0.45"/>
+            <stop offset="0.97" stop-color="#1a0404" stop-opacity="0.95"/>
+            <stop offset="1" stop-color="#000"/>
+          </radialGradient>
+          <radialGradient id="lidGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0.55" stop-color="#ff5a1e" stop-opacity="0"/>
+            <stop offset="1" stop-color="#ff5a1e" stop-opacity="0.18"/>
+          </radialGradient>
+        </defs>
+        <g clip-path="url(#eyeClip)">
+          <rect width="1000" height="520" fill="url(#sclera)"/>
+          <circle cx="500" cy="260" r="180" fill="url(#irisImg)"/>
+          <circle cx="500" cy="260" r="180" fill="url(#irisTint)"/>
+          <g class="iris-fibres" stroke="#ffb27a" stroke-opacity="0.12" stroke-width="1.2"></g>
+          <circle class="pupil" cx="500" cy="260" r="66" fill="#000"/>
+          <circle cx="540" cy="222" r="13" fill="#fff4ea" opacity="0.7"/>
+          <rect width="1000" height="520" fill="url(#lidGlow)"/>
+        </g>
+        <path class="lid" d="M40 260 C 250 30, 750 30, 960 260 C 750 490, 250 490, 40 260 Z"/>
+      </svg>
+
+      <div class="hero-title">
+        <h1 class="title" lang="fa" dir="rtl">چشم‌هایش</h1>
+        <p class="subtitle" lang="en">CHESHM&nbsp;HAYASH</p>
+        <p class="tagline">
+          <span class="t-fa" lang="fa">بازی‌ای درباره‌ی آنچه چشم‌هایش دید.</span>
+          <span class="t-en">A game about what his eyes saw.</span>
+        </p>
+      </div>
+      <div class="scroll-cue" aria-hidden="true"><span class="t-fa">پایین بروید</span><span class="t-en">Scroll</span><i></i></div>
+      <div class="hero-black" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- TRAILER -->
+  <section id="trailer" class="section trailer-section">
+    <p class="kicker reveal slide"><span class="t-fa">تریلر</span><span class="t-en">Trailer</span></p>
+    <!-- Replace YOUTUBE_VIDEO_ID with the video id, e.g. data-youtube="dQw4w9WgXcQ" -->
+    <div class="trailer reveal zoom-out" data-youtube="YOUTUBE_VIDEO_ID">
+      <img class="trailer-poster" src="assets/img/crowd.jpg" alt="" loading="lazy">
+      <button class="trailer-play" type="button">
+        <span class="play-icon" aria-hidden="true"></span>
+        <span class="t-fa">پخش تریلر</span><span class="t-en">Play trailer</span>
+      </button>
+      <p class="trailer-soon"><span class="t-fa">تریلر به‌زودی اینجا قرار می‌گیرد.</span><span class="t-en">The trailer will be here soon.</span></p>
+      <span class="frame-tag" lang="en">REC ● 00:55</span>
+    </div>
+  </section>
+
+  <!-- STORY, over parallax layers -->
+  <section id="story" class="section story">
+    <div class="parallax" aria-hidden="true">
+      <svg class="layer layer-damavand" data-speed="0.12"><use href="#damavand"/></svg>
+      <div class="layer layer-skyline" data-speed="0.28"></div>
+      <div class="layer layer-smoke" data-speed="0.5"></div>
+    </div>
+
+    <div class="story-inner">
+      <p class="kicker reveal slide"><span class="t-fa">داستان</span><span class="t-en">The story</span></p>
+      <h2 class="reveal zoom-in"><span class="t-fa">تهران، ۱۴۰۱</span><span class="t-en">Tehran, 1401</span></h2>
+
+      <div class="story-text">
+        <p class="reveal slide">
+          <span class="t-fa">او دانشجوست. روی تقویمِ دیوارش، دورِ یک تاریخ با قرمز خط کشیده شده: وقتِ سفارت. شش هفته تا قطاری به شهری سرد، جایی که کسی کارتِ شناسایی‌اش را نمی‌خواهد.</span>
+          <span class="t-en">He is a student. On his wall calendar, one date is circled in red: a visa appointment. Six weeks until a train to a cold city where nobody asks for his ID.</span>
+        </p>
+        <p class="reveal slide">
+          <span class="t-fa">بعد خواهرش برای خریدِ کتاب به خیابان انقلاب می‌رود، و یک ون سبز کنارش می‌ایستد.</span>
+          <span class="t-en">Then his sister goes out to buy books on Enghelab Street, and a green van stops beside her.</span>
+        </p>
+        <p class="reveal slide strong">
+          <span class="t-fa">او گوشی‌اش را برمی‌دارد و شروع می‌کند به فیلم گرفتن.</span>
+          <span class="t-en">He picks up his phone and starts to film.</span>
+        </p>
+      </div>
+
+      <div class="filmstrip">
+        <figure class="shot reveal slide-start">
+          <img src="assets/img/van.jpg" alt="A woman in a dark street in front of a green police van" loading="lazy">
+          <figcaption><span class="rec-mini"></span><span class="t-fa">شهریور ۱۴۰۱</span><span class="t-en">SHAHRIVAR 1401</span></figcaption>
+        </figure>
+        <figure class="shot reveal zoom-in">
+          <img src="assets/img/gate.jpg" alt="Families waiting at a prison gate" loading="lazy">
+          <figcaption><span class="rec-mini"></span><span class="t-fa">خیابان وزرا</span><span class="t-en">VOZARA STREET</span></figcaption>
+        </figure>
+        <figure class="shot reveal slide-end">
+          <img src="assets/img/chants.jpg" alt="Chants written across the night sky over Damavand" loading="lazy">
+          <figcaption><span class="rec-mini"></span><span class="t-fa">از پشت‌بام‌ها</span><span class="t-en">FROM THE ROOFTOPS</span></figcaption>
+        </figure>
+      </div>
+
+      <blockquote class="no-voices reveal zoom-out">
+        <p class="t-fa">در این بازی هیچ صدایی نیست.<br>کسانی که این داستان را زندگی کردند، نمی‌توانند آزادانه حرف بزنند.<br>حرف‌هایشان اینجا نوشته شده است.</p>
+        <p class="t-en">There are no voices in this game.<br>The people who lived this story cannot speak freely.<br>Their words are written here instead.</p>
+      </blockquote>
+
+      <ul class="features">
+        <li class="reveal slide">
+          <h3><span class="t-fa">از آنچه می‌بینی فیلم بگیر</span><span class="t-en">Film what you see</span></h3>
+          <p><span class="t-fa">دکمه‌ی راستِ ماوس را نگه دار تا فیلم بگیری. هر کلیپ بخشی از نسخه‌ی کارگردانِ او می‌شود.</span><span class="t-en">Hold the right mouse button to film. Every clip becomes part of his director's cut.</span></p>
+        </li>
+        <li class="reveal slide">
+          <h3><span class="t-fa">دیده نشو</span><span class="t-en">Stay unseen</span></h3>
+          <p><span class="t-fa">لباس‌شخصی‌ها، چراغ‌قوه‌ها، موتورها، ون‌ها. فیلم گرفتن تو را دیدنی‌تر می‌کند.</span><span class="t-en">Plainclothes agents, flashlights, motorcycles, vans. Filming makes you easier to see.</span></p>
+        </li>
+        <li class="reveal slide">
+          <h3><span class="t-fa">بدونِ صدا</span><span class="t-en">No voices</span></h3>
+          <p><span class="t-fa">همه‌ی حرف‌ها نوشته می‌شوند: فارسی، انگلیسی یا آلمانی، حرف به حرف.</span><span class="t-en">Every word is written: Farsi, English or German, typed letter by letter.</span></p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- THE POEM: Farsi above English, line by line -->
+  <section id="poem" class="section poem">
+    <p class="kicker reveal slide"><span class="t-fa">شعر</span><span class="t-en">The poem</span></p>
+    <div class="poem-lines">
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">در تمامیِ محاکمه‌هایی که مو حاکم بود</span><span class="en" lang="en" dir="ltr">In every trial where hair was the judge,</span></p>
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">صورت‌های دلربا، گیس‌هاشان کنده شد</span><span class="en" lang="en" dir="ltr">lovely faces had their braids torn away.</span></p>
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">قبرهای سرد و گلی برای سروهای تنومند</span><span class="en" lang="en" dir="ltr">Cold, muddy graves for tall, strong cypresses,</span></p>
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">بعد از شنیدن صدای بیگانه‌های کروکودیل‌صفت</span><span class="en" lang="en" dir="ltr">after the voices of crocodile-hearted strangers</span></p>
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">که همه‌جا را تاریک کردند و یک گلوله چشم چپش را شکافت</span><span class="en" lang="en" dir="ltr">who darkened everything, and a bullet split his left eye,</span></p>
+      <p class="poem-line"><span class="fa" lang="fa" dir="rtl">و پوکه‌اش رفت توی باارزش‌ترین دارایی موزه‌ها</span><span class="en" lang="en" dir="ltr">and its casing became the most treasured piece in the museums.</span></p>
+    </div>
+  </section>
+
+  <!-- CHAPTERS -->
+  <section id="chapters" class="section chapters">
+    <p class="kicker reveal slide"><span class="t-fa">فصل‌ها</span><span class="t-en">Chapters</span></p>
+    <div class="cards">
+      <article class="card reveal flip">
+        <div class="card-img"><img src="assets/img/van.jpg" alt="" loading="lazy"></div>
+        <div class="card-body">
+          <p class="card-num"><span class="t-fa">فصل اول · شهریور</span><span class="t-en">Chapter One · Shahrivar</span></p>
+          <h3><span class="t-fa">ون سبز</span><span class="t-en">The Green Van</span></h3>
+          <p><span class="t-fa">یک خواهر، دری در خیابان وزرا، خانواده‌ای که منتظر می‌ماند.</span><span class="t-en">A sister, a gate on Vozara Street, a family that waits.</span></p>
+        </div>
+      </article>
+      <article class="card reveal flip">
+        <div class="card-img"><img src="assets/img/crowd.jpg" alt="" loading="lazy"></div>
+        <div class="card-body">
+          <p class="card-num"><span class="t-fa">فصل دوم · مهر</span><span class="t-en">Chapter Two · Mehr</span></p>
+          <h3><span class="t-fa">زن، زندگی، آزادی</span><span class="t-en">Woman, Life, Freedom</span></h3>
+          <p><span class="t-fa">شب‌هایی که شهر پر از صدا شد. او از هر چه می‌بیند فیلم می‌گیرد.</span><span class="t-en">The nights the city filled with voices. He films everything he sees.</span></p>
+        </div>
+      </article>
+      <article class="card reveal flip">
+        <div class="card-img"><img src="assets/img/predawn.jpg" alt="" loading="lazy"></div>
+        <div class="card-body">
+          <p class="card-num"><span class="t-fa">فصل سوم · پس از آن</span><span class="t-en">Chapter Three · After</span></p>
+          <h3><span class="t-fa">آنچه ماند</span><span class="t-en">What Remains</span></h3>
+          <p><span class="t-fa">آنچه یک خانواده نگه می‌دارد.</span><span class="t-en">What a family keeps.</span></p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- SUNRISE: scroll-driven, the only warm, bright part of the page -->
+  <section id="sunrise" class="sunrise" aria-label="Sunrise">
+    <div class="sun-stage">
+      <div class="sky"></div>
+      <div class="sun"></div>
+      <img class="sun-photo" src="assets/img/sunrise.jpg" alt="The sun rising over Damavand and the rooftops of Tehran" loading="lazy">
+      <svg class="sun-mountain" aria-hidden="true"><use href="#damavand"/></svg>
+      <div class="sun-skyline" aria-hidden="true"></div>
+      <div class="sun-text">
+        <p class="sun-line" lang="fa" dir="rtl">نگاه کن… داره میاد بالا</p>
+        <p class="sun-line en" lang="en" dir="ltr">Look… it's coming up.</p>
+        <p class="sun-sub"><span class="t-fa">بالای بام‌های تهران، رو به دماوند.</span><span class="t-en">Over the rooftops of Tehran, facing Damavand.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WAS MADE -->
+  <section id="made" class="section made">
+    <p class="kicker reveal slide"><span class="t-fa">چطور ساخته شد</span><span class="t-en">How it was made</span></p>
+    <h2 class="reveal zoom-in"><span class="t-fa">نسخه‌ی کارگردان</span><span class="t-en">Director's Cut</span></h2>
+    <p class="lead reveal slide">
+      <span class="t-fa">ساخته‌شده برای <bdi>Epic AI MegaJam 2026</bdi> با موضوعِ «نسخه‌ی کارگردان». او کارگردان است: هر لحظه‌ای که فیلم می‌گیری، بخشی از نسخه‌ی نهاییِ او می‌شود.</span>
+      <span class="t-en">Made for the Epic AI MegaJam 2026, theme “Director's Cut”. He is the director: every moment you film becomes part of his final cut.</span>
+    </p>
+    <div class="facts">
+      <div class="fact reveal zoom-out">
+        <h3 lang="en">Unreal Engine 5</h3>
+        <p><span class="t-fa">فقط با <bdi>C++</bdi>. هر خیابان، بام، نور و مه در لحظه با کد ساخته می‌شود.</span><span class="t-en">C++ only. Every street, rooftop, light and wisp of fog is built by code at runtime.</span></p>
+      </div>
+      <div class="fact reveal zoom-out">
+        <h3><span class="t-fa">عامل‌های هوش مصنوعی</span><span class="t-en">AI agents</span></h3>
+        <p><span class="t-fa">کد با کمکِ عامل‌های هوش مصنوعی (<bdi>Claude Code</bdi>) و زیرِ نظرِ یک توسعه‌دهنده نوشته شد.</span><span class="t-en">The code was written with AI agents (Claude Code), directed by one developer.</span></p>
+      </div>
+      <div class="fact reveal zoom-out">
+        <h3><span class="t-fa">صدای ساخته‌شده</span><span class="t-en">Generated sound</span></h3>
+        <p><span class="t-fa">موسیقی و صدا با <bdi>fal</bdi> ساخته شد. هیچ صدای ضبط‌شده‌ای در کار نیست.</span><span class="t-en">Music and sound were generated with fal. No recorded voices, anywhere.</span></p>
+      </div>
+      <div class="fact reveal zoom-out">
+        <h3><span class="t-fa">سه زبان</span><span class="t-en">Three languages</span></h3>
+        <p><span class="t-fa">فارسی، انگلیسی، آلمانی. متنِ راست‌به‌چپ، در خودِ موتور.</span><span class="t-en">فارسی, English, Deutsch, with right-to-left text shaped inside the engine.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY IT -->
+  <section id="play" class="section play">
+    <p class="kicker reveal slide"><span class="t-fa">بازی کن</span><span class="t-en">Play it</span></p>
+    <h2 class="reveal zoom-in"><span class="t-fa">رایگان، برای ویندوز</span><span class="t-en">Free, for Windows</span></h2>
+    <!-- Replace the href with the itch.io page -->
+    <a class="play-button reveal zoom-out" href="https://YOUR-NAME.itch.io/cheshm-hayash" rel="noopener">
+      <span class="t-fa">دریافت از <bdi>itch.io</bdi></span><span class="t-en">Get it on itch.io</span>
+    </a>
+    <p class="play-note reveal slide"><span class="t-fa">ویندوز ۶۴ بیتی · نصب‌کننده یا فایل <bdi>zip</bdi></span><span class="t-en">Windows 64-bit · installer or zip</span></p>
+  </section>
+
+  <!-- DEDICATION: last, alone -->
+  <section id="dedication" class="dedication" aria-label="In loving memory of Hesam">
+    <p class="line fa" lang="fa" dir="rtl">به یاد حسام</p>
+    <p class="line en" lang="en" dir="ltr">In loving memory of Hesam</p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <ul class="credits">
+    <li><span class="t-fa">بازی از پارسا بشارت</span><span class="t-en">A game by Parsa Besharat</span> · <a href="https://parsabe.com" rel="noopener">Parsabe.com</a></li>
+    <li><span class="t-fa">ویدیوی پایانی و ترانه‌ی «باغ ۱۴۰۴»: <bdi>YasTunes</bdi></span><span class="t-en">Closing video and the song <bdi lang="fa">«باغ ۱۴۰۴»</bdi> (Baagh 1404): YasTunes</span></li>
+    <li><span class="t-fa">موسیقی و صدای بازی: <bdi>fal</bdi></span><span class="t-en">Game music and sound: fal</span></li>
+    <li><span class="t-fa">ساخته‌شده با آنریل انجین ۵ و عامل‌های هوش مصنوعی (<bdi>Claude Code</bdi>)</span><span class="t-en">Made with Unreal Engine 5 and AI agents (Claude Code)</span></li>
+    <li><span class="t-fa">ساخته‌شده برای <bdi>Epic AI MegaJam 2026</bdi></span><span class="t-en">Made for the Epic AI MegaJam 2026</span></li>
+    <li class="small"><span class="t-fa">فونت: وزیرمتن (<a href="assets/fonts/Vazirmatn-OFL.txt">SIL Open Font License</a>)</span><span class="t-en">Font: Vazirmatn (<a href="assets/fonts/Vazirmatn-OFL.txt">SIL Open Font License</a>)</span></li>
+    <li class="small"><span class="t-fa">بدونِ ردیابی، بدونِ کوکی.</span><span class="t-en">No tracking, no cookies.</span></li>
+  </ul>
+  <p class="wlf" lang="fa" dir="rtl">زن · زندگی · آزادی</p>
+</footer>
+
+</body>
+</html>
