@@ -6,12 +6,15 @@
       "location": "Boot",
       "beats": [
         { "type": "fade", "to": 1, "time": 0 },
-        { "type": "silence", "seconds": 1.0 },
+        { "type": "language_select" },
+        { "type": "silence", "seconds": 0.6 },
         {
           "type": "card",
-          "fa": [],
-          "en": ["Created by Parsa Besharat", "Made with Unreal Engine"],
+          "fa": ["ساخته‌شده با آنریل انجین"],
+          "en": ["Made with Unreal Engine"],
+          "de": ["Erstellt mit Unreal Engine"],
           "hold": 2.6,
+          "fa_size": 34,
           "en_size": 28,
           "skippable": true
         },
@@ -54,18 +57,47 @@
             "There are no voices in this game.",
             "The people who lived this story cannot speak freely.",
             "Their words are written here instead."
+          ],
+          "de": [
+            "In diesem Spiel gibt es keine Stimmen.",
+            "Die Menschen, die diese Geschichte durchlebt haben, können nicht frei sprechen.",
+            "Ihre Worte stehen stattdessen hier geschrieben."
           ]
         },
         { "type": "silence", "seconds": 1.4 },
         {
           "type": "poem",
           "lines": [
-            { "fa": "در تمامیِ محاکمه‌هایی که مو حاکم بود", "en": "In every trial where hair was the judge," },
-            { "fa": "صورت‌های دلربا، گیس‌هاشان کنده شد", "en": "lovely faces had their braids torn away." },
-            { "fa": "قبرهای سرد و گلی برای سروهای تنومند", "en": "Cold, muddy graves for tall, strong cypresses," },
-            { "fa": "بعد از شنیدن صدای بیگانه‌های کروکودیل‌صفت", "en": "after the voices of crocodile-hearted strangers" },
-            { "fa": "که همه‌جا را تاریک کردند و یک گلوله چشم چپش را شکافت", "en": "who darkened everything, and a bullet split his left eye," },
-            { "fa": "و پوکه‌اش رفت توی باارزش‌ترین دارایی موزه‌ها", "en": "and its casing became the most treasured piece in the museums." }
+            {
+              "fa": "در تمامیِ محاکمه‌هایی که مو حاکم بود",
+              "en": "In every trial where hair was the judge,",
+              "de": "In jedem Prozess, in dem das Haar der Richter war,"
+            },
+            {
+              "fa": "صورت‌های دلربا، گیس‌هاشان کنده شد",
+              "en": "lovely faces had their braids torn away.",
+              "de": "wurden lieblichen Gesichtern die Zöpfe entrissen."
+            },
+            {
+              "fa": "قبرهای سرد و گلی برای سروهای تنومند",
+              "en": "Cold, muddy graves for tall, strong cypresses,",
+              "de": "Kalte, schlammige Gräber für hohe, starke Zypressen,"
+            },
+            {
+              "fa": "بعد از شنیدن صدای بیگانه‌های کروکودیل‌صفت",
+              "en": "after the voices of crocodile-hearted strangers",
+              "de": "nach den Stimmen krokodilherziger Fremder,"
+            },
+            {
+              "fa": "که همه‌جا را تاریک کردند و یک گلوله چشم چپش را شکافت",
+              "en": "who darkened everything, and a bullet split his left eye,",
+              "de": "die alles verdunkelten, und eine Kugel spaltete sein linkes Auge,"
+            },
+            {
+              "fa": "و پوکه‌اش رفت توی باارزش‌ترین دارایی موزه‌ها",
+              "en": "and its casing became the most treasured piece in the museums.",
+              "de": "und ihre Hülse wurde zum kostbarsten Stück in den Museen."
+            }
           ]
         },
         { "type": "silence", "seconds": 1.8 }

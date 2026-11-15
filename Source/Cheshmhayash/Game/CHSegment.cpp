@@ -541,6 +541,12 @@ void UCHSegmentSubsystem::UpdateInteraction(APawn* Pawn)
 			PromptTarget = Interactable;
 		}
 	}
+
+	// Auto-pickup & auto-trigger when the player walks right up to an item, object, or person
+	if (PromptTarget.IsValid() && Best <= FMath::Min(PromptTarget->Radius * 0.85f, 150.f))
+	{
+		Interact();
+	}
 }
 
 void UCHSegmentSubsystem::Interact()

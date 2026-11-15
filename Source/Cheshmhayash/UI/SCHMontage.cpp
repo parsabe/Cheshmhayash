@@ -1,7 +1,8 @@
-// Cheshm Hayash - the director's cut.
+// Cheshm Hayash - the director's cut (single active language: English, German, or Persian).
 
 #include "UI/SCHMontage.h"
 #include "Engine/Texture.h"
+#include "Story/CHSave.h"
 #include "Styling/SlateBrush.h"
 #include "UI/CHStyle.h"
 #include "Widgets/Images/SImage.h"
@@ -42,6 +43,7 @@ void SCHMontage::Construct(const FArguments& InArgs)
 			.HAlign(HAlign_Center)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 				.Text_Lambda([this]() { return FText::FromString(TitleFa); })
 				.Font(CH::FarsiFont(56.f, CH::EWeight::Bold))
 				.ColorAndOpacity_Lambda([this]() { return GetTitleColor(true); })
@@ -51,12 +53,12 @@ void SCHMontage::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
-			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text_Lambda([this]() { return FText::FromString(TitleEn); })
-				.Font(CH::LatinFont(16.f, CH::EWeight::Light, 520))
-				.ColorAndOpacity_Lambda([this]() { return GetTitleColor(false); })
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+				.Text_Lambda([this]() { return FText::FromString(CHSettings::Latin(TitleEn)); })
+				.Font(CH::LatinFont(36.f, CH::EWeight::Regular, 380))
+				.ColorAndOpacity_Lambda([this]() { return GetTitleColor(true); })
 			]
 		]
 
@@ -141,6 +143,7 @@ void SCHMontage::Construct(const FArguments& InArgs)
 			.Padding(0.f, 28.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 				.Text(this, &SCHMontage::GetFa)
 				.Font(CH::FarsiFont(30.f))
 				.ColorAndOpacity_Lambda([this]() { return GetTextColor(true); })
@@ -150,12 +153,13 @@ void SCHMontage::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
-			.Padding(0.f, 6.f, 0.f, 0.f)
+			.Padding(0.f, 28.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 				.Text(this, &SCHMontage::GetEn)
-				.Font(CH::LatinFont(15.f, CH::EWeight::Light, 260))
-				.ColorAndOpacity_Lambda([this]() { return GetTextColor(false); })
+				.Font(CH::LatinFont(24.f, CH::EWeight::Regular, 180))
+				.ColorAndOpacity_Lambda([this]() { return GetTextColor(true); })
 			]
 		]
 	];
@@ -178,8 +182,7 @@ void SCHMontage::Play(const TArray<FCHMontageClip>& InClips, const FString& InTi
 		Brush->DrawAs = ESlateBrushDrawType::Image;
 		Brushes.Add(Brush);
 	}
-	// no title: straight to the first clip (a single clip shown on its own)
-	Index = TitleFa.IsEmpty() ? 0 : -1;
+	Index = (TitleFa.IsEmpty() && TitleEn.IsEmpty()) ? 0 : -1;
 	Time = 0.f;
 	bPlaying = Clips.Num() > 0 || Index < 0;
 }
@@ -299,7 +302,7 @@ FText SCHMontage::GetFa() const
 
 FText SCHMontage::GetEn() const
 {
-	return Clips.IsValidIndex(Index) ? FText::FromString(Clips[Index].En.ToUpper()) : FText::GetEmpty();
+	return Clips.IsValidIndex(Index) ? FText::FromString(CHSettings::Latin(Clips[Index].En).ToUpper()) : FText::GetEmpty();
 }
 
 FText SCHMontage::GetStamp() const
@@ -320,7 +323,6 @@ const FSlateBrush* SCHMontage::GetBrush() const
 
 TOptional<FSlateRenderTransform> SCHMontage::GetImageTransform() const
 {
-	// a slow push in, like a hand holding the phone; the last clip is frozen
 	const bool bLast = Index == Clips.Num() - 1;
 	const float Scale = bLast ? 1.f : 1.f + 0.06f * FMath::Clamp(Time / ClipTime, 0.f, 1.f);
 	return FSlateRenderTransform(Scale);

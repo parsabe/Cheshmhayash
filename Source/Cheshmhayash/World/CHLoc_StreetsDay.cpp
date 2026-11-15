@@ -127,6 +127,14 @@ void ACHLoc_Streets::BuildDay()
 
 	Mark(TEXT("PlayerStart"), FVector(-300.f, DayRoad * 0.5f + 200.f, 14.f), FRotator(0.f, 0.f, 0.f));
 	MarkLookAt(TEXT("Establish"), FVector(-500.f, DayRoad * 0.5f + 60.f, 210.f), FVector(2500.f, 100.f, 260.f), 66.f);
+	// 1.2.video: Mina's handheld phone view of the morality police van by the metro
+	Mark(TEXT("VanDoor"), FVector(10020.f, 120.f, 14.f), FRotator(0.f, 180.f, 0.f));
+	Mark(TEXT("VanArrestSister"), FVector(9920.f, 120.f, 14.f), FRotator(0.f, 180.f, 0.f));
+	Mark(TEXT("VanMoralityF1"), FVector(9955.f, 75.f, 14.f), FRotator(0.f, -65.f, 0.f));
+	Mark(TEXT("VanMoralityF2"), FVector(9955.f, 165.f, 14.f), FRotator(0.f, 65.f, 0.f));
+	Mark(TEXT("VanMoralityM"), FVector(9990.f, 40.f, 14.f), FRotator(0.f, -150.f, 0.f));
+	MarkLookAt(TEXT("MinaVideoCam"), FVector(9720.f, 360.f, 142.f), FVector(9960.f, 120.f, 118.f), 44.f);
+	MarkLookAt(TEXT("MinaVideoClose"), FVector(9765.f, 290.f, 138.f), FVector(9945.f, 120.f, 122.f), 34.f);
 	// the back seat of a taxi, looking out past the driver's side
 	Mark(TEXT("Taxi"), FVector(-200.f, -150.f, 128.f), FRotator(-1.f, 24.f, 0.f), 62.f);
 	if (Segment)

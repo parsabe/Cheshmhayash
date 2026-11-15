@@ -155,7 +155,19 @@ ACHNpc* ACHLevelBuilder::HandleNpcBeat(const FJsonObject& Beat)
 		ACHNpc* Npc = SpawnNpc(Name, CHJson::Str(Beat, TEXT("look"), Name), Where.Transform.GetLocation(), Yaw, static_cast<int32>(CHJson::Num(Beat, TEXT("seed"), 0.0)));
 		if (Npc)
 		{
-			Npc->SetSink(CHJson::Float(Beat, TEXT("sink"), 0.f));
+			const FString PoseStr = CHJson::Str(Beat, TEXT("pose"));
+			if (!PoseStr.IsEmpty())
+			{
+				Npc->SetPose(PoseStr);
+			}
+			else
+			{
+				Npc->SetSink(CHJson::Float(Beat, TEXT("sink"), 0.f));
+			}
+			if (CHJson::Bool(Beat, TEXT("shake"), false))
+			{
+				Npc->SetShaking(true);
+			}
 		}
 		return nullptr;
 	}
@@ -182,6 +194,10 @@ ACHNpc* ACHLevelBuilder::HandleNpcBeat(const FJsonObject& Beat)
 		{
 			Npc->FaceYaw(CHJson::Float(Beat, TEXT("yaw"), 0.f));
 		}
+	}
+	else if (Action == TEXT("pose"))
+	{
+		Npc->SetPose(CHJson::Str(Beat, TEXT("pose")));
 	}
 	else if (Action == TEXT("sink"))
 	{

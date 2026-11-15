@@ -1,7 +1,8 @@
-// Cheshm Hayash - the HUD.
+// Cheshm Hayash - the HUD (single active language: English, German, or Persian).
 
 #include "UI/SCHHud.h"
 #include "Engine/Texture.h"
+#include "Story/CHSave.h"
 #include "Styling/SlateBrush.h"
 #include "UI/CHStyle.h"
 #include "UI/SCHShapes.h"
@@ -26,6 +27,7 @@ namespace
 	TSharedRef<STextBlock> HudFa(const TAttribute<FText>& Text, float Size, const TAttribute<FSlateColor>& Color, CH::EWeight Weight = CH::EWeight::Regular)
 	{
 		return SNew(STextBlock)
+			.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 			.Text(Text)
 			.Font(CH::FarsiFont(Size, Weight))
 			.ColorAndOpacity(Color)
@@ -35,9 +37,10 @@ namespace
 			.TextFlowDirection(ETextFlowDirection::RightToLeft);
 	}
 
-	TSharedRef<STextBlock> HudEn(const TAttribute<FText>& Text, float Size, const TAttribute<FSlateColor>& Color, int32 Spacing = 0, CH::EWeight Weight = CH::EWeight::Regular)
+	TSharedRef<STextBlock> HudEn(const TAttribute<FText>& Text, float Size, const TAttribute<FSlateColor>& Color, int32 Spacing = 0, CH::EWeight Weight = CH::EWeight::Regular, bool bAlwaysVisible = false)
 	{
 		return SNew(STextBlock)
+			.Visibility_Lambda([bAlwaysVisible]() { return (bAlwaysVisible || !CHSettings::IsPersian()) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 			.Text(Text)
 			.Font(CH::LatinFont(Size, Weight, Spacing))
 			.ColorAndOpacity(Color)
@@ -110,26 +113,27 @@ void SCHHud::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				.Padding(10.f, 0.f, 0.f, 0.f)
 				[
-					HudEn(FText::FromString(TEXT("REC")), 16.f, TAttribute<FSlateColor>(this, &SCHHud::GetRecTextColor), 240, CH::EWeight::Bold)
+					HudEn(FText::FromString(TEXT("REC")), 16.f, TAttribute<FSlateColor>(this, &SCHHud::GetRecTextColor), 240, CH::EWeight::Bold, true)
 				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				.VAlign(VAlign_Center)
 				.Padding(16.f, 0.f, 0.f, 0.f)
 				[
-					HudEn(TAttribute<FText>(this, &SCHHud::GetRecTime), 15.f, TAttribute<FSlateColor>(this, &SCHHud::GetRecTextColor), 120)
+					HudEn(TAttribute<FText>(this, &SCHHud::GetRecTime), 15.f, TAttribute<FSlateColor>(this, &SCHHud::GetRecTextColor), 120, CH::EWeight::Regular, true)
 				]
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.Padding(0.f, 16.f, 0.f, 0.f)
 			[
-				HudFa(TAttribute<FText>(this, &SCHHud::GetHintFa), 19.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetHintColor, true)))
+				HudFa(TAttribute<FText>(this, &SCHHud::GetHintFa), 20.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetHintColor, true)))
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.Padding(0.f, 16.f, 0.f, 0.f)
 			[
-				HudEn(TAttribute<FText>(this, &SCHHud::GetHintEn), 12.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetHintColor, false)), 160)
+				HudEn(TAttribute<FText>(this, &SCHHud::GetHintEn), 16.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetHintColor, true)), 140)
 			]
 		]
 
@@ -158,13 +162,14 @@ void SCHHud::Construct(const FArguments& InArgs)
 			.HAlign(HAlign_Center)
 			.Padding(0.f, 6.f, 0.f, 0.f)
 			[
-				HudFa(TAttribute<FText>(this, &SCHHud::GetEyeStatusFa), 15.f, TAttribute<FSlateColor>(this, &SCHHud::GetEyeStatusColor))
+				HudFa(TAttribute<FText>(this, &SCHHud::GetEyeStatusFa), 16.f, TAttribute<FSlateColor>(this, &SCHHud::GetEyeStatusColor))
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
+			.Padding(0.f, 6.f, 0.f, 0.f)
 			[
-				HudEn(TAttribute<FText>(this, &SCHHud::GetEyeStatusEn), 10.f, TAttribute<FSlateColor>(this, &SCHHud::GetEyeStatusColor), 260)
+				HudEn(TAttribute<FText>(this, &SCHHud::GetEyeStatusEn), 13.f, TAttribute<FSlateColor>(this, &SCHHud::GetEyeStatusColor), 220)
 			]
 		]
 
@@ -199,7 +204,7 @@ void SCHHud::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				.Padding(10.f, 0.f, 0.f, 0.f)
 				[
-					HudEn(TAttribute<FText>(this, &SCHHud::GetFilmTime), 18.f, TAttribute<FSlateColor>(this, &SCHHud::GetFilmColor), 140)
+					HudEn(TAttribute<FText>(this, &SCHHud::GetFilmTime), 18.f, TAttribute<FSlateColor>(this, &SCHHud::GetFilmColor), 140, CH::EWeight::Regular, true)
 				]
 			]
 
@@ -229,15 +234,16 @@ void SCHHud::Construct(const FArguments& InArgs)
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.HAlign(HAlign_Center)
+				.Padding(0.f, 0.f, 0.f, 10.f)
 				[
 					HudFa(TAttribute<FText>(this, &SCHHud::GetTargetFa), 20.f, TAttribute<FSlateColor>(this, &SCHHud::GetFilmColor))
 				]
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.HAlign(HAlign_Center)
-				.Padding(0.f, 2.f, 0.f, 10.f)
+				.Padding(0.f, 0.f, 0.f, 10.f)
 				[
-					HudEn(TAttribute<FText>(this, &SCHHud::GetTargetEn), 12.f, TAttribute<FSlateColor>(this, &SCHHud::GetFilmHintColor), 160)
+					HudEn(TAttribute<FText>(this, &SCHHud::GetTargetEn), 16.f, TAttribute<FSlateColor>(this, &SCHHud::GetFilmColor), 140)
 				]
 				+ SVerticalBox::Slot()
 				.AutoHeight()
@@ -301,7 +307,7 @@ void SCHHud::Construct(const FArguments& InArgs)
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				[
-					HudEn(TAttribute<FText>(this, &SCHHud::GetPromptEn), 12.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetPromptColor, false)), 160)
+					HudEn(TAttribute<FText>(this, &SCHHud::GetPromptEn), 18.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetPromptColor, true)), 120)
 				]
 			]
 		]
@@ -344,9 +350,8 @@ void SCHHud::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
-			.Padding(0.f, 4.f, 0.f, 0.f)
 			[
-				HudEn(TAttribute<FText>(this, &SCHHud::GetToastEn), 14.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetToastColor, false)), 300)
+				HudEn(TAttribute<FText>(this, &SCHHud::GetToastEn), 28.f, TAttribute<FSlateColor>::Create(TAttribute<FSlateColor>::FGetter::CreateSP(this, &SCHHud::GetToastColor, true)), 220, CH::EWeight::Bold)
 			]
 		]
 
@@ -370,7 +375,7 @@ void SCHHud::Construct(const FArguments& InArgs)
 					.AutoHeight()
 					[
 						SNew(STextBlock)
-						.Text_Lambda([this]() { return FText::FromString(NoteTitle); })
+						.Text_Lambda([this]() { return FText::FromString(CHSettings::IsPersian() ? NoteTitle : CHSettings::Latin(NoteTitle)); })
 						.Font(CH::LatinFont(13.f, CH::EWeight::Bold, 160))
 						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.7f, 0.69f, 0.66f, NoteAlpha())); })
 					]
@@ -379,6 +384,7 @@ void SCHHud::Construct(const FArguments& InArgs)
 					.Padding(0.f, 10.f, 0.f, 0.f)
 					[
 						SNew(STextBlock)
+						.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 						.Text_Lambda([this]() { return FText::FromString(NoteFa); })
 						.Font(CH::FarsiFont(24.f))
 						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.95f, 0.93f, 0.9f, NoteAlpha())); })
@@ -388,12 +394,13 @@ void SCHHud::Construct(const FArguments& InArgs)
 					]
 					+ SVerticalBox::Slot()
 					.AutoHeight()
-					.Padding(0.f, 6.f, 0.f, 0.f)
+					.Padding(0.f, 10.f, 0.f, 0.f)
 					[
 						SNew(STextBlock)
-						.Text_Lambda([this]() { return FText::FromString(NoteEn); })
-						.Font(CH::LatinFont(16.f, CH::EWeight::Light))
-						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.72f, 0.71f, 0.68f, NoteAlpha())); })
+						.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+						.Text_Lambda([this]() { return FText::FromString(CHSettings::Latin(NoteEn)); })
+						.Font(CH::LatinFont(20.f, CH::EWeight::Regular))
+						.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.95f, 0.93f, 0.9f, NoteAlpha())); })
 						.WrapTextAt(560.f)
 					]
 				]
@@ -466,9 +473,23 @@ void SCHHud::Construct(const FArguments& InArgs)
 			.Padding(12.f, 0.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Saving...")))
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+				.Text_Lambda([]() { return FText::FromString(CHSettings::Latin(TEXT("Saving..."))); })
 				.Font(CH::LatinFont(17.f, CH::EWeight::Regular, 120))
 				.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.85f, 0.82f, 0.76f, SavingAlpha * 0.9f)); })
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(12.f, 0.f, 0.f, 0.f)
+			[
+				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+				.Text(FText::FromString(TEXT("در حال ذخیره...")))
+				.Font(CH::FarsiFont(18.f, CH::EWeight::Regular))
+				.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.85f, 0.82f, 0.76f, SavingAlpha * 0.9f)); })
+				.TextShapingMethod(ETextShapingMethod::FullShaping)
+				.TextFlowDirection(ETextFlowDirection::RightToLeft)
 			]
 		]
 
@@ -501,9 +522,8 @@ void SCHHud::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Right)
-			.Padding(0.f, 3.f, 0.f, 0.f)
 			[
-				HudEn(FText::FromString(TEXT("WASD MOVE  ·  SHIFT RUN  ·  CTRL SNEAK  ·  E USE  ·  HOLD RIGHT MOUSE TO FILM")), 11.f, TAttribute<FSlateColor>(this, &SCHHud::GetControlsColor), 160)
+				HudEn(TAttribute<FText>::CreateLambda([]() { return FText::FromString(CHSettings::Latin(TEXT("WASD Move  ·  Shift Run  ·  Ctrl Crouch  ·  E Interact  ·  Esc Pause"))); }), 13.f, TAttribute<FSlateColor>(this, &SCHHud::GetControlsColor), 120)
 			]
 		]
 	];
@@ -561,14 +581,14 @@ void SCHHud::Advance(float DeltaTime)
 	const float TargetOpen = State.bHidden ? 0.08f : (State.bChased ? 1.f : FMath::Clamp(0.25f + State.Suspicion, 0.f, 1.f));
 	EyeOpen = FMath::FInterpTo(EyeOpen, TargetOpen, DeltaTime, 6.f);
 
-	const bool bPrompt = State.bActive && !State.PromptFa.IsEmpty();
+	const bool bPrompt = State.bActive && (!State.PromptFa.IsEmpty() || !State.PromptEn.IsEmpty());
 	if (bPrompt)
 	{
 		LastPromptFa = State.PromptFa;
 		LastPromptEn = State.PromptEn;
 	}
 	Approach(PromptAlpha, bPrompt, 0.2f, 0.25f);
-	Approach(HintAlpha, State.bActive && !State.HintFa.IsEmpty(), 1.f, 0.6f);
+	Approach(HintAlpha, State.bActive && (!State.HintFa.IsEmpty() || !State.HintEn.IsEmpty()), 1.f, 0.6f);
 
 	if (ToastDuration > 0.f)
 	{
@@ -649,8 +669,8 @@ FText SCHHud::GetRecTime() const
 
 FSlateColor SCHHud::GetHintColor(bool bFarsi) const
 {
-	FLinearColor Color = bFarsi ? CH::Col::Paper : CH::Col::PaperDim;
-	Color.A = HintAlpha * (bFarsi ? 0.9f : 0.75f);
+	FLinearColor Color = CH::Col::Paper;
+	Color.A = HintAlpha * 0.9f;
 	return FSlateColor(Color);
 }
 
@@ -661,7 +681,7 @@ FText SCHHud::GetHintFa() const
 
 FText SCHHud::GetHintEn() const
 {
-	return FText::FromString(State.HintEn.ToUpper());
+	return FText::FromString(CHSettings::Latin(State.HintEn).ToUpper());
 }
 
 float SCHHud::GetEyeOpen() const
@@ -705,13 +725,17 @@ FText SCHHud::GetEyeStatusEn() const
 {
 	if (State.bChased)
 	{
-		return FText::FromString(TEXT("THEY ARE AFTER YOU"));
+		return FText::FromString(CHSettings::IsGerman() ? TEXT("SIE VERFOLGEN DICH") : TEXT("THEY ARE AFTER YOU"));
 	}
 	if (State.bHidden)
 	{
-		return FText::FromString(TEXT("HIDDEN"));
+		return FText::FromString(CHSettings::IsGerman() ? TEXT("VERBORGEN") : TEXT("HIDDEN"));
 	}
-	return FText::FromString(State.Suspicion > 0.5f ? TEXT("THEY ARE LOOKING") : TEXT(""));
+	if (State.Suspicion > 0.5f)
+	{
+		return FText::FromString(CHSettings::IsGerman() ? TEXT("SIE SCHAUEN HER") : TEXT("THEY ARE LOOKING"));
+	}
+	return FText::GetEmpty();
 }
 
 FSlateColor SCHHud::GetEyeStatusColor() const
@@ -747,16 +771,16 @@ FText SCHHud::GetTargetFa() const
 	{
 		return FText::FromString(State.TargetFa);
 	}
-	return FText::FromString(TEXT(""));
+	return FText::FromString(TEXT("دوربین را به سمت چیزی که مهم است بگیر"));
 }
 
 FText SCHHud::GetTargetEn() const
 {
 	if (State.bHasTarget)
 	{
-		return FText::FromString(State.TargetEn.ToUpper());
+		return FText::FromString(CHSettings::Latin(State.TargetEn).ToUpper());
 	}
-	return FText::FromString(TEXT("AIM AT SOMETHING THAT MATTERS"));
+	return FText::FromString(CHSettings::IsGerman() ? TEXT("RICHTE DIE KAMERA AUF ETWAS WICHTIGES") : TEXT("AIM AT SOMETHING THAT MATTERS"));
 }
 
 FOptionalSize SCHHud::GetFilmBarWidth() const
@@ -785,7 +809,7 @@ FSlateColor SCHHud::GetFilmHintColor() const
 
 FSlateColor SCHHud::GetPromptColor(bool bFarsi) const
 {
-	FLinearColor Color = bFarsi ? CH::Col::Paper : CH::Col::PaperDim;
+	FLinearColor Color = CH::Col::Paper;
 	Color.A = PromptAlpha;
 	return FSlateColor(Color);
 }
@@ -807,7 +831,7 @@ FText SCHHud::GetPromptFa() const
 
 FText SCHHud::GetPromptEn() const
 {
-	return FText::FromString(LastPromptEn.ToUpper());
+	return FText::FromString(CHSettings::Latin(LastPromptEn).ToUpper());
 }
 
 FSlateColor SCHHud::GetToastColor(bool bFarsi) const
@@ -818,7 +842,7 @@ FSlateColor SCHHud::GetToastColor(bool bFarsi) const
 	}
 	const float In = FMath::Clamp(ToastTime / 0.25f, 0.f, 1.f);
 	const float Out = FMath::Clamp((ToastDuration - ToastTime) / 0.6f, 0.f, 1.f);
-	FLinearColor Color = bFarsi ? ToastTint : CH::Col::PaperDim;
+	FLinearColor Color = ToastTint;
 	Color.A = In * Out;
 	return FSlateColor(Color);
 }
@@ -830,7 +854,7 @@ FText SCHHud::GetToastFa() const
 
 FText SCHHud::GetToastEn() const
 {
-	return FText::FromString(ToastEn);
+	return FText::FromString(CHSettings::Latin(ToastEn));
 }
 
 const FSlateBrush* SCHHud::GetToastBrush() const
@@ -866,5 +890,6 @@ FMargin SCHHud::GetPhonePadding() const
 FText SCHHud::GetLoadingText() const
 {
 	const int32 Dots = static_cast<int32>(Time * 2.5f) % 4;
-	return FText::FromString(FString(TEXT("LOADING")) + FString::ChrN(Dots, TEXT('.')));
+	const FString Word = CHSettings::IsGerman() ? TEXT("LÄDT") : TEXT("LOADING");
+	return FText::FromString(Word + FString::ChrN(Dots, TEXT('.')));
 }

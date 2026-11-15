@@ -1,6 +1,7 @@
-// Cheshm Hayash - dialogue overlay.
+// Cheshm Hayash - dialogue overlay (single active language: English, German, or Persian).
 
 #include "UI/SCHDialogueOverlay.h"
+#include "Story/CHSave.h"
 #include "UI/CHStyle.h"
 #include "UI/SCHShapes.h"
 #include "Widgets/Images/SImage.h"
@@ -37,7 +38,7 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 		[
 			SNew(SVerticalBox)
 
-			// speaker
+			// speaker (only active language shown)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
@@ -48,16 +49,17 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				[
 					SNew(STextBlock)
+					.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 					.Text(this, &SCHDialogueOverlay::GetSpeakerEn)
-					.Font(CH::LatinFont(15.f, CH::EWeight::Regular, 380))
-					.ColorAndOpacity(this, &SCHDialogueOverlay::GetSpeakerEnColor)
+					.Font(CH::LatinFont(18.f, CH::EWeight::Bold, 320))
+					.ColorAndOpacity(this, &SCHDialogueOverlay::GetSpeakerColor)
 				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				.VAlign(VAlign_Center)
-				.Padding(14.f, 0.f, 0.f, 0.f)
 				[
 					SNew(STextBlock)
+					.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 					.Text(this, &SCHDialogueOverlay::GetSpeakerFa)
 					.Font(CH::FarsiFont(24.f, CH::EWeight::Bold))
 					.ColorAndOpacity(this, &SCHDialogueOverlay::GetSpeakerColor)
@@ -66,13 +68,14 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				]
 			]
 
-			// Farsi line
+			// Farsi line (only when Persian is selected)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
-			.Padding(0.f, 8.f, 0.f, 0.f)
+			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 				.Text(this, &SCHDialogueOverlay::GetFaText)
 				.Font(CH::FarsiFont(34.f, CH::EWeight::Regular))
 				.ColorAndOpacity(this, &SCHDialogueOverlay::GetFaColor)
@@ -84,17 +87,18 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				.TextFlowDirection(ETextFlowDirection::RightToLeft)
 			]
 
-			// English line
+			// English / German line (only when English or German is selected)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
-			.Padding(0.f, 8.f, 0.f, 0.f)
+			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 				.Text(this, &SCHDialogueOverlay::GetEnText)
 				.Font(CH::LatinFont(34.f, CH::EWeight::Regular))
 				.ColorAndOpacity(this, &SCHDialogueOverlay::GetEnColor)
-				.ShadowOffset(FVector2D(1.f, 1.f))
+				.ShadowOffset(FVector2D(1.5f, 1.5f))
 				.ShadowColorAndOpacity(this, &SCHDialogueOverlay::GetShadowColor)
 				.Justification(ETextJustify::Center)
 				.WrapTextAt(1250.f)
@@ -116,16 +120,30 @@ void SCHDialogueOverlay::Construct(const FArguments& InArgs)
 				]
 			]
 
-			// hint
+			// hint (localized to active language)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.HAlign(HAlign_Center)
 			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Enter  /  Click to continue")))
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+				.Text_Lambda([]() { return FText::FromString(CHSettings::Latin(TEXT("Enter  /  Click to continue"))); })
 				.Font(CH::LatinFont(14.f, CH::EWeight::Regular, 200))
 				.ColorAndOpacity(this, &SCHDialogueOverlay::GetHintColor)
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.HAlign(HAlign_Center)
+			.Padding(0.f, 10.f, 0.f, 0.f)
+			[
+				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+				.Text(FText::FromString(TEXT("برای ادامه کلیک کنید یا Enter بزنید")))
+				.Font(CH::FarsiFont(16.f, CH::EWeight::Regular))
+				.ColorAndOpacity(this, &SCHDialogueOverlay::GetHintColor)
+				.TextShapingMethod(ETextShapingMethod::FullShaping)
+				.TextFlowDirection(ETextFlowDirection::RightToLeft)
 			]
 		]
 	];
@@ -154,13 +172,13 @@ void SCHDialogueOverlay::Advance(float DeltaTime)
 		Alpha = FMath::Min(1.f, Alpha + DeltaTime / 0.25f);
 		if (Revealed < 1.f)
 		{
-			const int32 Length = FMath::Max(1, FMath::Max(Fa.Len(), En.Len()));
+			const FString ActiveLine = CHSettings::IsPersian() ? Fa : CHSettings::Latin(En);
+			const int32 Length = FMath::Max(1, ActiveLine.Len());
 			Revealed = FMath::Min(1.f, Revealed + DeltaTime * Rate / Length);
-			const int32 Count = FMath::FloorToInt32(Revealed * Fa.Len());
+			const int32 Count = FMath::FloorToInt32(Revealed * ActiveLine.Len());
 			if (Count > LastFaCount)
 			{
-				// not on spaces: the click follows the letters
-				if (Fa.IsValidIndex(Count - 1) && !FChar::IsWhitespace(Fa[Count - 1]))
+				if (ActiveLine.IsValidIndex(Count - 1) && !FChar::IsWhitespace(ActiveLine[Count - 1]))
 				{
 					bTypeTick = true;
 				}
@@ -205,7 +223,7 @@ FText SCHDialogueOverlay::GetSpeakerFa() const
 
 FText SCHDialogueOverlay::GetSpeakerEn() const
 {
-	return FText::FromString(SpeakerEn);
+	return FText::FromString(CHSettings::Latin(SpeakerEn));
 }
 
 FText SCHDialogueOverlay::GetFaText() const
@@ -216,8 +234,9 @@ FText SCHDialogueOverlay::GetFaText() const
 
 FText SCHDialogueOverlay::GetEnText() const
 {
-	const int32 Count = FMath::Clamp(FMath::CeilToInt32(Revealed * En.Len()), 0, En.Len());
-	return FText::FromString(En.Left(Count));
+	const FString ActiveEn = CHSettings::Latin(En);
+	const int32 Count = FMath::Clamp(FMath::CeilToInt32(Revealed * ActiveEn.Len()), 0, ActiveEn.Len());
+	return FText::FromString(ActiveEn.Left(Count));
 }
 
 FSlateColor SCHDialogueOverlay::GetSpeakerColor() const
@@ -230,7 +249,7 @@ FSlateColor SCHDialogueOverlay::GetSpeakerColor() const
 FSlateColor SCHDialogueOverlay::GetSpeakerEnColor() const
 {
 	FLinearColor Color = Tint;
-	Color.A = Alpha * 0.8f;
+	Color.A = Alpha * 0.95f;
 	return FSlateColor(Color);
 }
 

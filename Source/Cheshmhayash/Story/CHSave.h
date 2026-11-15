@@ -56,9 +56,31 @@ namespace CHSave
 	void Delete();
 }
 
+/** Active display language. Only the single chosen language is shown on screen. */
+enum class ECHLanguage : uint8
+{
+	English = 0,
+	German = 1,
+	Persian = 2,
+};
+
 /** Player settings, kept in GameUserSettings.ini. */
 namespace CHSettings
 {
+	ECHLanguage GetLanguage();
+	void SetLanguage(ECHLanguage Lang);
+	bool HasLanguageSetting();
+	bool IsPersian();
+	bool IsGerman();
+	bool IsEnglish();
+
+	/** Registers an English -> German pair (from JSON "en"/"de" fields or C++ tables). */
+	void RegisterGerman(const FString& En, const FString& De);
+	/** Returns En when English is active, or the German translation when German is active. */
+	FString Latin(const FString& En, const FString& De = FString());
+	/** Returns Fa when Persian is active, De when German is active, or En when English is active. */
+	FString Pick(const FString& Fa, const FString& En, const FString& De = FString());
+
 	float GetSensitivity();
 	bool GetInvertY();
 	/** 0..1 */

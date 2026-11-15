@@ -1,7 +1,8 @@
-// Cheshm Hayash - the shouted words, written.
+// Cheshm Hayash - the shouted words, written (in the active language).
 
 #include "UI/SCHSlogans.h"
 #include "Math/RandomStream.h"
+#include "Story/CHSave.h"
 #include "UI/CHStyle.h"
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "Widgets/Text/STextBlock.h"
@@ -24,10 +25,10 @@ void SCHSlogans::Start(const FString& Text, int32 Count, float Seconds)
 	FadeRate = 0.f;
 	bActive = true;
 
+	const bool bFarsi = CHSettings::IsPersian();
 	FRandomStream Rng(1401);
 	for (int32 Index = 0; Index < Count; ++Index)
 	{
-		// the first voice is small and far away, at the edge of the screen
 		const FVector2D Where = Index == 0 ? FVector2D(0.84, 0.86) : FVector2D(Rng.FRandRange(0.06f, 0.94f), Rng.FRandRange(0.06f, 0.94f));
 		const float Size = Index == 0 ? 17.f : Rng.FRandRange(14.f, 15.f + 26.f * Index / Count);
 		const float Shade = Rng.FRandRange(0.45f, 1.f);
@@ -40,9 +41,11 @@ void SCHSlogans::Start(const FString& Text, int32 Count, float Seconds)
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(Text))
-				.Font(CH::FarsiFont(Size, Index % 3 == 0 ? CH::EWeight::Bold : CH::EWeight::Regular))
+				.Font(bFarsi
+					? CH::FarsiFont(Size, Index % 3 == 0 ? CH::EWeight::Bold : CH::EWeight::Regular)
+					: CH::LatinFont(Size * 0.85f, Index % 3 == 0 ? CH::EWeight::Bold : CH::EWeight::Regular, 140))
 				.TextShapingMethod(ETextShapingMethod::FullShaping)
-				.TextFlowDirection(ETextFlowDirection::RightToLeft)
+				.TextFlowDirection(bFarsi ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
 				.ColorAndOpacity(TAttribute<FSlateColor>::CreateLambda([this, Index, Shade]()
 				{
 					const float Shown = AppearAt.IsValidIndex(Index) ? FMath::Clamp((Time - AppearAt[Index]) / 0.7f, 0.f, 1.f) : 0.f;

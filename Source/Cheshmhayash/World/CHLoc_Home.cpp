@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Math/RandomStream.h"
+#include "Story/CHSave.h"
 #include "Story/CHStoryDirector.h"
 #include "UI/CHStyle.h"
 #include "Widgets/Images/SImage.h"
@@ -76,11 +77,13 @@ void ACHLoc_Home::BuildShell(const FLinearColor& WallColor, const FLinearColor& 
 void ACHLoc_Home::BuildLiving()
 {
 	const bool bYears = Variant == TEXT("years");
-	const float EV = bYears ? -0.6f : -0.4f;
+	const bool bMemorial = Variant == TEXT("memorial");
+	const bool bAfter = bYears || bMemorial;
+	const float EV = bAfter ? -0.6f : -0.4f;
 	CHLight::SetExposure(EV);
 
 	UMaterialInterface* Wood = Lit(FLinearColor(0.15f, 0.08f, 0.04f), 0.5f, 0.3f);
-	UMaterialInterface* Fabric = Lit(bYears ? FLinearColor(0.16f, 0.12f, 0.10f) : FLinearColor(0.20f, 0.06f, 0.05f), 1.f, 0.2f);
+	UMaterialInterface* Fabric = Lit(bAfter ? FLinearColor(0.16f, 0.12f, 0.10f) : FLinearColor(0.20f, 0.06f, 0.05f), 1.f, 0.2f);
 	UMaterialInterface* Dark = Lit(FLinearColor(0.012f, 0.012f, 0.014f), 0.3f, 0.f);
 	UMaterialInterface* Ceramic = Lit(FLinearColor(0.75f, 0.73f, 0.68f), 0.25f, 0.05f);
 	UMaterialInterface* Tea = Lit(FLinearColor(0.42f, 0.09f, 0.012f), 0.08f, 0.f);
@@ -88,8 +91,8 @@ void ACHLoc_Home::BuildLiving()
 	UMaterialInterface* Metal = Lit(FLinearColor(0.35f, 0.33f, 0.28f), 0.3f, 0.1f, 0.8f);
 	UMaterialInterface* Paper = Lit(FLinearColor(0.78f, 0.75f, 0.66f), 0.95f, 0.1f);
 
-	BuildShell(bYears ? FLinearColor(0.40f, 0.37f, 0.32f) : FLinearColor(0.36f, 0.31f, 0.24f),
-		bYears ? FLinearColor(0.02f, 0.035f, 0.08f) : FLinearColor(0.008f, 0.01f, 0.02f), 1.f);
+	BuildShell(bAfter ? FLinearColor(0.40f, 0.37f, 0.32f) : FLinearColor(0.36f, 0.31f, 0.24f),
+		bAfter ? FLinearColor(0.02f, 0.035f, 0.08f) : FLinearColor(0.008f, 0.01f, 0.02f), 1.f);
 	BoxAt(-130.f, HY - 6.f, 40.f, 40.f, 4.f, 210.f, Fabric, false);
 	BoxAt(90.f, HY - 6.f, 40.f, 40.f, 4.f, 210.f, Fabric, false);
 
@@ -118,7 +121,7 @@ void ACHLoc_Home::BuildLiving()
 		Cyl(At + FVector(0.f, 0.f, 0.4f), 5.f, 0.8f, Ceramic);
 		Cyl(At + FVector(0.f, 0.f, 4.5f), 2.7f, 7.5f, Tea);
 		Cyl(At + FVector(0.f, 0.f, 4.8f), 3.f, 8.6f, Glass)->SetCastShadow(false);
-		if (bYears)
+		if (bAfter)
 		{
 			// hot, this time
 			for (int32 Wisp = 0; Wisp < 3; ++Wisp)
@@ -142,7 +145,9 @@ void ACHLoc_Home::BuildLiving()
 			Screen->SetScalarParameterValue(TEXT("EmissiveStrength"), CHLight::Emissive(0.9f));
 		}
 		PointLight(FVector(HX - 80.f, 0.f, 100.f), FLinearColor(0.75f, 0.82f, 1.f), 7.f, 800.f, false, 0.3f);
-
+	}
+	if (bAfter)
+	{
 		// his photograph with a black ribbon across its corner, a flower
 		Box(FVector(HX - 25.f, 70.f, 74.f), FVector(4.f, 26.f, 34.f), Wood, false);
 		Box(FVector(HX - 27.5f, 70.f, 74.f), FVector(1.f, 22.f, 30.f), Lit(FLinearColor(0.05f, 0.05f, 0.055f), 0.6f, 0.f), false);
@@ -156,7 +161,7 @@ void ACHLoc_Home::BuildLiving()
 	Cone(FVector(-HX + 40.f, HY - 40.f, 168.f), 22.f, 30.f, Emissive(FLinearColor(1.f, 0.62f, 0.3f), CHLight::Emissive(1.5f), FLinearColor(0.2f, 0.12f, 0.06f)), false, FRotator(180.f, 0.f, 0.f));
 	PointLight(FVector(-HX + 40.f, HY - 40.f, 150.f), FLinearColor(1.f, 0.62f, 0.32f), 6.f, 700.f, true, 0.5f);
 
-	if (!bYears)
+	if (!bAfter)
 	{
 		// ---- the table: dinner laid, nobody eating
 		const FVector Table(150.f, -120.f, 0.f);
@@ -230,10 +235,16 @@ void ACHLoc_Home::BuildLiving()
 	Mark(TEXT("SofaRight"), FVector(-HX + 60.f, 50.f, 0.f), FRotator(0.f, 0.f, 0.f));
 	Mark(TEXT("SofaClose"), FVector(-HX + 60.f, 20.f, 0.f), FRotator(0.f, 0.f, 0.f));
 	Mark(TEXT("TableSeat"), FVector(110.f, -42.f, 0.f), FRotator(0.f, -90.f, 0.f));
+	Mark(TEXT("TableRight"), FVector(190.f, -42.f, 0.f), FRotator(0.f, -90.f, 0.f));
+	Mark(TEXT("CenterLeft"), FVector(-20.f, -35.f, 0.f), FRotator(0.f, 90.f, 0.f));
+	Mark(TEXT("CenterRight"), FVector(-20.f, 45.f, 0.f), FRotator(0.f, -90.f, 0.f));
+	Mark(TEXT("DoorIn"), FVector(220.f, -HY + 55.f, 0.f), FRotator(0.f, 135.f, 0.f));
 	Mark(TEXT("Balcony"), FVector(0.f, HY + 95.f, 0.f), FRotator(0.f, 90.f, 0.f));
 	MarkLookAt(TEXT("Wide"), FVector(HX - 60.f, -HY + 50.f, 190.f), FVector(-HX + 60.f, 20.f, 70.f), 62.f);
 	MarkLookAt(TEXT("TV"), FVector(-HX + 15.f, -10.f, 150.f), FVector(HX - 30.f, 0.f, 98.f), 42.f);
 	MarkLookAt(TEXT("Faces"), FVector(HX - 90.f, 30.f, 115.f), FVector(-HX + 60.f, 0.f, 95.f), 38.f);
+	MarkLookAt(TEXT("CenterCam"), FVector(160.f, -15.f, 145.f), FVector(-20.f, 5.f, 105.f), 45.f);
+	MarkLookAt(TEXT("PhotoCam"), FVector(HX - 110.f, 55.f, 92.f), FVector(HX - 26.f, 62.f, 75.f), 34.f);
 	MarkLookAt(TEXT("Tea"), FVector(-60.f, -60.f, 75.f), FVector(-122.f, 0.f, 46.f), 30.f);
 	MarkLookAt(TEXT("Table"), FVector(-140.f, 60.f, 165.f), FVector(150.f, -115.f, 80.f), 50.f);
 	MarkLookAt(TEXT("Dinner"), FVector(60.f, -HY + 30.f, 150.f), FVector(150.f, -100.f, 78.f), 44.f);
@@ -243,6 +254,8 @@ void ACHLoc_Home::BuildLiving()
 TSharedRef<SWidget> ACHLoc_Home::MakeNewsScreen() const
 {
 	// a black-bordered news screen; no name, no face, no portrait
+	const bool bFa = CHSettings::IsPersian();
+	const FString NewsLine = bFa ? TEXT("رهبر درگذشت.") : CHSettings::Latin(TEXT("The Leader has died."), TEXT("Der Führer ist gestorben."));
 	return SNew(SBox)
 		.WidthOverride(620.f)
 		.HeightOverride(360.f)
@@ -261,28 +274,12 @@ TSharedRef<SWidget> ACHLoc_Home::MakeNewsScreen() const
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-					.AutoHeight()
-					.HAlign(HAlign_Center)
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(TEXT("رهبر درگذشت.")))
-						.Font(CH::FarsiFont(58.f, CH::EWeight::Bold))
-						.ColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.95f, 0.93f, 1.f)))
-						.TextShapingMethod(ETextShapingMethod::FullShaping)
-						.TextFlowDirection(ETextFlowDirection::RightToLeft)
-					]
-					+ SVerticalBox::Slot()
-					.AutoHeight()
-					.HAlign(HAlign_Center)
-					.Padding(0.f, 10.f, 0.f, 0.f)
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(TEXT("The Leader has died.")))
-						.Font(CH::LatinFont(24.f, CH::EWeight::Regular))
-						.ColorAndOpacity(FSlateColor(FLinearColor(0.75f, 0.75f, 0.74f, 1.f)))
-					]
+					SNew(STextBlock)
+					.Text(FText::FromString(NewsLine))
+					.Font(bFa ? CH::FarsiFont(58.f, CH::EWeight::Bold) : CH::LatinFont(34.f, CH::EWeight::Bold))
+					.ColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.95f, 0.93f, 1.f)))
+					.TextShapingMethod(bFa ? ETextShapingMethod::FullShaping : ETextShapingMethod::Auto)
+					.TextFlowDirection(bFa ? ETextFlowDirection::RightToLeft : ETextFlowDirection::LeftToRight)
 				]
 			]
 		];
@@ -461,8 +458,11 @@ void ACHLoc_Home::BuildStairs()
 	// he sits at the top of the flight, his legs down the steps, facing away
 	const FVector SeatAt(TopX + 22.f, 0.f, TopZ);
 	Mark(TEXT("PlayerStart"), FVector(-300.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+	Mark(TEXT("NeighbourStep"), FVector(4.f * Depth, -45.f, 4.f * Rise), FRotator(0.f, 180.f, 0.f));
+	Mark(TEXT("HeMidStep"), FVector(2.f * Depth, 35.f, 2.f * Rise), FRotator(0.f, 0.f, 0.f));
 	Mark(TEXT("BrotherStep"), SeatAt + FVector(0.f, -42.f, 0.f), FRotator(0.f, 180.f, 0.f));
 	Mark(TEXT("HeStep"), SeatAt + FVector(0.f, 44.f, 0.f), FRotator(0.f, 180.f, 0.f));
+	MarkLookAt(TEXT("StairTalk"), FVector(7.f * Depth, 85.f, 7.f * Rise + 125.f), FVector(3.f * Depth, -5.f, 3.f * Rise + 85.f), 46.f);
 	MarkLookAt(TEXT("Above"), FVector(TopX + 235.f, 95.f, TopZ + 175.f), SeatAt + FVector(0.f, -20.f, 40.f), 50.f);
 	MarkLookAt(TEXT("Behind"), FVector(TopX + 225.f, -60.f, TopZ + 105.f), SeatAt + FVector(0.f, 5.f, 42.f), 50.f);
 	MarkLookAt(TEXT("Below"), FVector(-330.f, -70.f, 120.f), SeatAt + FVector(0.f, 0.f, 70.f), 46.f);

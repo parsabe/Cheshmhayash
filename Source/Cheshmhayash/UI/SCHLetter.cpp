@@ -1,6 +1,7 @@
-// Cheshm Hayash - his letter.
+// Cheshm Hayash - his letter (single active language: English, German, or Persian).
 
 #include "UI/SCHLetter.h"
+#include "Story/CHSave.h"
 #include "UI/CHStyle.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBorder.h"
@@ -45,7 +46,7 @@ void SCHLetter::Show(const TArray<FCHLetterLine>& InLines)
 		const bool bSignature = Index == Lines.Num() - 1;
 		Box->AddSlot()
 			.AutoHeight()
-			.HAlign(bSignature ? HAlign_Left : HAlign_Right)
+			.HAlign(HAlign_Fill)
 			.Padding(0.f, Index == 0 ? 0.f : 22.f, 0.f, 0.f)
 			[
 				SNew(SVerticalBox)
@@ -54,6 +55,7 @@ void SCHLetter::Show(const TArray<FCHLetterLine>& InLines)
 				.HAlign(bSignature ? HAlign_Left : HAlign_Right)
 				[
 					SNew(STextBlock)
+					.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 					.Text(FText::FromString(Lines[Index].Fa))
 					.Font(CH::FarsiFont(bSignature ? 27.f : 25.f, bSignature ? CH::EWeight::Bold : CH::EWeight::Regular))
 					.ColorAndOpacity(this, &SCHLetter::GetInk, Index, true)
@@ -64,13 +66,13 @@ void SCHLetter::Show(const TArray<FCHLetterLine>& InLines)
 				]
 				+ SVerticalBox::Slot()
 				.AutoHeight()
-				.HAlign(bSignature ? HAlign_Left : HAlign_Right)
-				.Padding(0.f, 3.f, 0.f, 0.f)
+				.HAlign(bSignature ? HAlign_Right : HAlign_Left)
 				[
 					SNew(STextBlock)
-					.Text(FText::FromString(Lines[Index].En))
-					.Font(CH::LatinFont(15.f, CH::EWeight::Light))
-					.ColorAndOpacity(this, &SCHLetter::GetInk, Index, false)
+					.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+					.Text_Lambda([this, Index]() { return Lines.IsValidIndex(Index) ? FText::FromString(CHSettings::Latin(Lines[Index].En)) : FText::GetEmpty(); })
+					.Font(CH::LatinFont(bSignature ? 23.f : 21.f, bSignature ? CH::EWeight::Bold : CH::EWeight::Regular))
+					.ColorAndOpacity(this, &SCHLetter::GetInk, Index, true)
 					.WrapTextAt(860.f)
 				]
 			];
@@ -113,7 +115,7 @@ FSlateColor SCHLetter::GetPaperColor() const
 FSlateColor SCHLetter::GetInk(int32 Index, bool bFarsi) const
 {
 	const float LineA = LineAlpha.IsValidIndex(Index) ? LineAlpha[Index] : 0.f;
-	FLinearColor Color = bFarsi ? FLinearColor(0.035f, 0.04f, 0.07f) : FLinearColor(0.16f, 0.15f, 0.15f);
+	FLinearColor Color = FLinearColor(0.035f, 0.04f, 0.07f);
 	Color.A = Alpha * FMath::SmoothStep(0.f, 1.f, LineA);
 	return FSlateColor(Color);
 }

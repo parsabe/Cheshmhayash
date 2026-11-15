@@ -1,6 +1,7 @@
-// Cheshm Hayash - a vertical list of Farsi/English options.
+// Cheshm Hayash - a vertical list of options (shows only the active language: English, German, or Persian).
 
 #include "UI/SCHChoiceList.h"
+#include "Story/CHSave.h"
 #include "UI/SCHShapes.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SOverlay.h"
@@ -25,6 +26,8 @@ void SCHChoiceList::Show(const TArray<FCHOption>& InOptions, EVerticalAlignment 
 	Alpha = 0.f;
 	bShown = true;
 
+	const float PrimaryLatinSize = FMath::Max(FaSize * 0.88f, 22.f);
+
 	TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
 	for (int32 Index = 0; Index < Options.Num(); ++Index)
 	{
@@ -40,6 +43,18 @@ void SCHChoiceList::Show(const TArray<FCHOption>& InOptions, EVerticalAlignment 
 				.HAlign(HAlign_Center)
 				[
 					SNew(STextBlock)
+					.Visibility_Lambda([this, Index]()
+					{
+						if (!Options.IsValidIndex(Index) || Options[Index].Fa.IsEmpty())
+						{
+							return EVisibility::Collapsed;
+						}
+						if (Options[Index].En.IsEmpty())
+						{
+							return EVisibility::HitTestInvisible;
+						}
+						return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
+					})
 					.Text_Lambda([this, Index]() { return Options.IsValidIndex(Index) ? FText::FromString(Options[Index].Fa) : FText::GetEmpty(); })
 					.Font(CH::FarsiFont(FaSize, CH::EWeight::Regular))
 					.ColorAndOpacity(this, &SCHChoiceList::GetFaColor, Index)
@@ -50,12 +65,23 @@ void SCHChoiceList::Show(const TArray<FCHOption>& InOptions, EVerticalAlignment 
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.HAlign(HAlign_Center)
-				.Padding(0.f, 2.f, 0.f, 0.f)
 				[
 					SNew(STextBlock)
-					.Text_Lambda([this, Index]() { return Options.IsValidIndex(Index) ? FText::FromString(Options[Index].En) : FText::GetEmpty(); })
-					.Font(CH::LatinFont(EnSize, CH::EWeight::Light))
-					.ColorAndOpacity(this, &SCHChoiceList::GetEnColor, Index)
+					.Visibility_Lambda([this, Index]()
+					{
+						if (!Options.IsValidIndex(Index) || Options[Index].En.IsEmpty())
+						{
+							return EVisibility::Collapsed;
+						}
+						if (Options[Index].Fa.IsEmpty())
+						{
+							return EVisibility::HitTestInvisible;
+						}
+						return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible;
+					})
+					.Text_Lambda([this, Index]() { return Options.IsValidIndex(Index) ? FText::FromString(CHSettings::Latin(Options[Index].En)) : FText::GetEmpty(); })
+					.Font(CH::LatinFont(PrimaryLatinSize, CH::EWeight::Regular, 80))
+					.ColorAndOpacity(this, &SCHChoiceList::GetFaColor, Index)
 					.Justification(ETextJustify::Center)
 				]
 				+ SVerticalBox::Slot()
@@ -83,7 +109,7 @@ void SCHChoiceList::Show(const TArray<FCHOption>& InOptions, EVerticalAlignment 
 		.Padding(0.f, 30.f, 0.f, 0.f)
 		[
 			SNew(STextBlock)
-			.Text_Lambda([this]() { return FText::FromString(Footer); })
+			.Text_Lambda([this]() { return FText::FromString(CHSettings::IsPersian() ? Footer : CHSettings::Latin(Footer)); })
 			.Font(CH::LatinFont(14.f, CH::EWeight::Regular, 200))
 			.ColorAndOpacity_Lambda([this]() { return FSlateColor(FLinearColor(0.75f, 0.75f, 0.75f, Alpha * (0.4f + 0.18f * FMath::Cos(Pulse * 3.f)))); })
 		];
@@ -182,7 +208,6 @@ int32 SCHChoiceList::HitTest() const
 	{
 		if (Rows[Index].IsValid())
 		{
-			// a generous hit box: the whole row, widened and padded
 			const FGeometry& Geo = Rows[Index]->GetTickSpaceGeometry();
 			const FVector2D Size = Geo.GetAbsoluteSize();
 			const FVector2D Min = Geo.GetAbsolutePosition() - FVector2D(Size.X * 0.5f + 80.f, 8.f);
@@ -205,8 +230,8 @@ FSlateColor SCHChoiceList::GetFaColor(int32 Index) const
 
 FSlateColor SCHChoiceList::GetEnColor(int32 Index) const
 {
-	FLinearColor Color = Index == Selected ? CH::Col::PaperDim : CH::Col::Faint;
-	Color.A *= Alpha * (Index == Selected ? 1.f : 0.8f);
+	FLinearColor Color = Index == Selected ? CH::Col::Paper : CH::Col::Faint;
+	Color.A *= Alpha;
 	return FSlateColor(Color);
 }
 
@@ -217,4 +242,3 @@ FSlateColor SCHChoiceList::GetMarkColor(int32 Index) const
 	Color.A = Index == Selected ? Alpha * Breath : 0.f;
 	return FSlateColor(Color);
 }
-

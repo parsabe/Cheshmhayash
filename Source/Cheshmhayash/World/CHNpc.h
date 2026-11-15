@@ -1,5 +1,7 @@
 // Cheshm Hayash - a person in the world who is not the player: family, friends, crowds.
-// Moves by simple scripted walks; looks come from CHLooks.
+// Uses a hidden USkeletalMeshComponent for walk/jog/idle/fall animation playback and a visible
+// UPoseableMeshComponent with CHLooks clothing/hair attached to bones so characters can sit on
+// chairs/sofas/stairs, smoke, look at phones, cry, hug, pour tea, and gesture naturally.
 
 #pragma once
 
@@ -9,7 +11,9 @@
 
 class UAnimSequence;
 class UMaterialInstanceDynamic;
+class UPoseableMeshComponent;
 class USkeletalMeshComponent;
+class USkinnedMeshComponent;
 class UStaticMeshComponent;
 
 UCLASS()
@@ -22,8 +26,12 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	/** See CHLooks: sister, brother, mother, woman, man, chador, oldwoman, student_f, guard... */
+	/** See CHLooks: he, sister, brother, mother, father, kian, woman, man, chador, oldwoman, student_f, guard... */
 	void SetLook(const FString& InLook, int32 Seed = 0);
+
+	/** Sets an articulated pose: sit_chair, sit_sofa, sit_stairs, sit_floor, smoke, phone, cry, hug, pour_tea, talk, or empty. */
+	void SetPose(const FString& InPose);
+	const FString& GetPose() const { return Pose; }
 
 	/** Walks in a straight line on flat ground. Speed in cm/s. */
 	void WalkTo(const FVector& Target, float Speed = 120.f);
@@ -32,7 +40,7 @@ public:
 	void FaceLocation(const FVector& Target, bool bInstant = false);
 	void FaceYaw(float Yaw, bool bInstant = false);
 
-	/** Lowers the body so it reads as sitting when the legs are hidden by furniture or steps. */
+	/** Legacy sink helper: converts to a real seated pose or vertical offset. */
 	void SetSink(float Centimetres);
 	/** Trembling shoulders. */
 	void SetShaking(bool bInShaking) { bShaking = bInShaking; }
@@ -42,7 +50,7 @@ public:
 	/** Freezes the current pose. */
 	void Freeze();
 
-	USkeletalMeshComponent* GetBody() const { return Body; }
+	USkinnedMeshComponent* GetBody() const;
 	const FString& GetLook() const { return Look; }
 
 	/** Story name ("sister", "brother"...). */
@@ -50,9 +58,14 @@ public:
 
 private:
 	void PlayLoop(UAnimSequence* Sequence, float Rate = 1.f);
+	void ApplyProceduralPose(float DeltaSeconds);
+	void UpdateProps();
 
 	UPROPERTY(VisibleAnywhere, Category = "Npc")
-	TObjectPtr<USkeletalMeshComponent> Body;
+	TObjectPtr<UPoseableMeshComponent> Body;
+
+	UPROPERTY(VisibleAnywhere, Category = "Npc")
+	TObjectPtr<USkeletalMeshComponent> AnimBody;
 
 	UPROPERTY()
 	TObjectPtr<UAnimSequence> IdleAnim;
@@ -73,17 +86,24 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> Shapes;
 
 	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> PropShapes;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
 
 	FString Look;
+	FString Pose;
 	FVector MoveTarget = FVector::ZeroVector;
 	float MoveSpeed = 0.f;
 	float TargetYaw = 0.f;
 	float Sink = 0.f;
+	float PoseElevation = 0.f;
 	float ShakeTime = 0.f;
+	float PoseTime = 0.f;
 	float RagdollTimer = -1.f;
 	bool bMoving = false;
 	bool bTurning = false;
 	bool bShaking = false;
 	bool bFrozen = false;
+	bool bRagdolling = false;
 };

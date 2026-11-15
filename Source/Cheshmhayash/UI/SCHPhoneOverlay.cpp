@@ -1,6 +1,7 @@
-// Cheshm Hayash - the phone overlay.
+// Cheshm Hayash - the phone overlay (single active language: English, German, or Persian).
 
 #include "UI/SCHPhoneOverlay.h"
+#include "Story/CHSave.h"
 #include "UI/CHStyle.h"
 #include "UI/SCHShapes.h"
 #include "Widgets/Images/SImage.h"
@@ -41,6 +42,7 @@ namespace
 	TSharedRef<STextBlock> FaText(const FString& Text, float Size, const FLinearColor& Color, float Wrap, CH::EWeight Weight = CH::EWeight::Regular)
 	{
 		return SNew(STextBlock)
+			.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 			.Text(FText::FromString(Text))
 			.Font(CH::FarsiFont(Size, Weight))
 			.ColorAndOpacity(FSlateColor(Color))
@@ -49,11 +51,12 @@ namespace
 			.TextFlowDirection(ETextFlowDirection::RightToLeft);
 	}
 
-	TSharedRef<STextBlock> EnText(const FString& Text, float Size, const FLinearColor& Color, float Wrap, int32 Spacing = 0)
+	TSharedRef<STextBlock> EnText(const FString& Text, float Size, const FLinearColor& Color, float Wrap, int32 Spacing = 0, bool bAlwaysVisible = false)
 	{
 		return SNew(STextBlock)
-			.Text(FText::FromString(Text))
-			.Font(CH::LatinFont(Size, CH::EWeight::Light, Spacing))
+			.Visibility_Lambda([bAlwaysVisible]() { return (bAlwaysVisible || !CHSettings::IsPersian()) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+			.Text_Lambda([Text]() { return FText::FromString(CHSettings::Latin(Text)); })
+			.Font(CH::LatinFont(Size, CH::EWeight::Regular, Spacing))
 			.ColorAndOpacity(FSlateColor(Color))
 			.WrapTextAt(Wrap);
 	}
@@ -212,6 +215,7 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildChatView()
 					.VAlign(VAlign_Center)
 					[
 						SNew(STextBlock)
+						.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 						.Text(this, &SCHPhoneOverlay::GetContactFa)
 						.Font(CH::FarsiFont(19.f, CH::EWeight::Bold))
 						.ColorAndOpacity(FSlateColor(CH::Col::Paper))
@@ -221,12 +225,12 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildChatView()
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
 					.VAlign(VAlign_Center)
-					.Padding(10.f, 3.f, 0.f, 0.f)
 					[
 						SNew(STextBlock)
+						.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 						.Text(this, &SCHPhoneOverlay::GetContactEn)
-						.Font(CH::LatinFont(12.f, CH::EWeight::Regular, 120))
-						.ColorAndOpacity(FSlateColor(CH::Col::PaperDim))
+						.Font(CH::LatinFont(16.f, CH::EWeight::Bold, 120))
+						.ColorAndOpacity(FSlateColor(CH::Col::Paper))
 					]
 				]
 				+ SVerticalBox::Slot()
@@ -296,13 +300,27 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildChatView()
 					.MinDesiredHeight(26.f)
 					.VAlign(VAlign_Center)
 					[
-						SNew(STextBlock)
-						.Text(this, &SCHPhoneOverlay::GetDraftText)
-						.Font(CH::FarsiFont(17.f))
-						.ColorAndOpacity(this, &SCHPhoneOverlay::GetDraftColor)
-						.WrapTextAt(BubbleWrap + 20.f)
-						.TextShapingMethod(ETextShapingMethod::FullShaping)
-						.TextFlowDirection(ETextFlowDirection::RightToLeft)
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot().AutoHeight()
+						[
+							SNew(STextBlock)
+							.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+							.Text(this, &SCHPhoneOverlay::GetDraftText)
+							.Font(CH::FarsiFont(17.f))
+							.ColorAndOpacity(this, &SCHPhoneOverlay::GetDraftColor)
+							.WrapTextAt(BubbleWrap + 20.f)
+							.TextShapingMethod(ETextShapingMethod::FullShaping)
+							.TextFlowDirection(ETextFlowDirection::RightToLeft)
+						]
+						+ SVerticalBox::Slot().AutoHeight()
+						[
+							SNew(STextBlock)
+							.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+							.Text(this, &SCHPhoneOverlay::GetDraftText)
+							.Font(CH::LatinFont(15.f))
+							.ColorAndOpacity(this, &SCHPhoneOverlay::GetDraftColor)
+							.WrapTextAt(BubbleWrap + 20.f)
+						]
 					]
 				]
 			]
@@ -378,6 +396,7 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildCallView()
 			.HAlign(HAlign_Center)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 				.Text(this, &SCHPhoneOverlay::GetContactFa)
 				.Font(CH::FarsiFont(32.f, CH::EWeight::Bold))
 				.ColorAndOpacity(FSlateColor(CH::Col::Paper))
@@ -389,9 +408,10 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildCallView()
 			.HAlign(HAlign_Center)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 				.Text(this, &SCHPhoneOverlay::GetContactEn)
-				.Font(CH::LatinFont(12.f, CH::EWeight::Regular, 420))
-				.ColorAndOpacity(FSlateColor(CH::Col::PaperDim))
+				.Font(CH::LatinFont(22.f, CH::EWeight::Bold, 320))
+				.ColorAndOpacity(FSlateColor(CH::Col::Paper))
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
@@ -437,9 +457,8 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildCallView()
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.HAlign(HAlign_Center)
-				.Padding(0.f, 4.f, 0.f, 0.f)
 				[
-					EnText(TEXT("POOR CONNECTION"), 11.f, CH::Col::PaperDim, 340.f, 320)
+					EnText(TEXT("POOR CONNECTION"), 14.f, CH::Col::Paper, 340.f, 260)
 				]
 			]
 		]
@@ -505,6 +524,7 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildAlert()
 			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 				.Text(this, &SCHPhoneOverlay::GetAlertFa)
 				.Font(CH::FarsiFont(19.f, CH::EWeight::Bold))
 				.ColorAndOpacity(FSlateColor(CH::Col::Paper))
@@ -514,12 +534,13 @@ TSharedRef<SWidget> SCHPhoneOverlay::BuildAlert()
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
-			.Padding(0.f, 8.f, 0.f, 0.f)
+			.Padding(0.f, 10.f, 0.f, 0.f)
 			[
 				SNew(STextBlock)
+				.Visibility_Lambda([]() { return CHSettings::IsPersian() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
 				.Text(this, &SCHPhoneOverlay::GetAlertEn)
-				.Font(CH::LatinFont(13.f, CH::EWeight::Regular))
-				.ColorAndOpacity(FSlateColor(CH::Col::PaperDim))
+				.Font(CH::LatinFont(16.f, CH::EWeight::Bold))
+				.ColorAndOpacity(FSlateColor(CH::Col::Paper))
 				.WrapTextAt(340.f)
 			]
 		];
@@ -542,13 +563,12 @@ TSharedRef<SWidget> SCHPhoneOverlay::MakeMessageWidget(int32 Index)
 			]
 			+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
 			[
-				EnText(Message.En, 10.f, CH::Col::Faint, 320.f, 200)
+				EnText(Message.En, 12.f, CH::Col::PaperDim, 320.f, 160)
 			];
 	}
 
 	if (Message.Kind == FCHPhoneMessage::EKind::Transcript)
 	{
-		// a line of the voice message, written out under the bubble
 		return SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
@@ -567,9 +587,9 @@ TSharedRef<SWidget> SCHPhoneOverlay::MakeMessageWidget(int32 Index)
 				[
 					FaText(Message.Fa, 18.f, CH::Col::Paper, BubbleWrap + 30.f)
 				]
-				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+				+ SVerticalBox::Slot().AutoHeight()
 				[
-					EnText(Message.En, 12.f, CH::Col::PaperDim, BubbleWrap + 30.f)
+					EnText(Message.En, 15.f, CH::Col::Paper, BubbleWrap + 30.f)
 				]
 			];
 	}
@@ -603,7 +623,7 @@ TSharedRef<SWidget> SCHPhoneOverlay::MakeMessageWidget(int32 Index)
 			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
-				EnText(Message.En, 12.f, CH::Col::PaperDim, 80.f)
+				EnText(Message.En, 12.f, CH::Col::PaperDim, 80.f, 0, true)
 			];
 	}
 	else
@@ -618,9 +638,9 @@ TSharedRef<SWidget> SCHPhoneOverlay::MakeMessageWidget(int32 Index)
 		}
 		if (!Message.En.IsEmpty())
 		{
-			Lines->AddSlot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
+			Lines->AddSlot().AutoHeight()
 				[
-					EnText(Message.En, 12.f, FLinearColor(0.62f, 0.62f, 0.60f, 1.f), BubbleWrap)
+					EnText(Message.En, 15.f, CH::Col::Paper, BubbleWrap)
 				];
 		}
 		Content = Lines;
@@ -647,7 +667,7 @@ TSharedRef<SWidget> SCHPhoneOverlay::MakeMessageWidget(int32 Index)
 			.HAlign(HAlign_Right)
 			.Padding(0.f, 3.f, 6.f, 0.f)
 			[
-				EnText(TEXT("SENT  ✓"), 10.f, FLinearColor(0.35f, 0.55f, 0.42f, 1.f), 200.f, 200)
+				EnText(TEXT("SENT  ✓"), 10.f, FLinearColor(0.35f, 0.55f, 0.42f, 1.f), 200.f, 200, true)
 			];
 	}
 	return Stack;
@@ -835,7 +855,6 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 {
 	Time += DeltaTime;
 
-	// slide in from below, held slightly crooked like a phone in a hand
 	OpenAlpha = FMath::Clamp(OpenAlpha + (bOpen ? DeltaTime / 0.5f : -DeltaTime / 0.4f), 0.f, 1.f);
 	if (PhoneBody.IsValid())
 	{
@@ -858,7 +877,6 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 			FVector2f(FMath::Sin(Time * 0.8f) * 5.f * Sway, FMath::Sin(Time * 1.3f) * 3.f * Sway))));
 	}
 
-	// alert card drops in
 	AlertAlpha = FMath::Clamp(AlertAlpha + (bAlert ? DeltaTime / 0.45f : -DeltaTime / 0.35f), 0.f, 1.f);
 	if (AlertCard.IsValid())
 	{
@@ -867,7 +885,6 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 		AlertCard->SetRenderTransform(TOptional<FSlateRenderTransform>(FSlateRenderTransform(FVector2f(0.f, (1.f - Eased) * -70.f))));
 	}
 
-	// bubbles fade in
 	for (int32 Index = 0; Index < Messages.Num(); ++Index)
 	{
 		FCHPhoneMessage& Message = Messages[Index];
@@ -881,7 +898,6 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 		}
 	}
 
-	// the voice message plays as its transcript appears
 	const float VoiceTarget = VoiceLines > 0 ? static_cast<float>(VoiceShown) / VoiceLines : 0.f;
 	VoiceProgress = FMath::FInterpConstantTo(VoiceProgress, bVoiceActive || VoiceShown > 0 ? VoiceTarget : 0.f, DeltaTime, 0.09f);
 
@@ -889,6 +905,9 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 	{
 		SettleTime = FMath::Max(0.f, SettleTime - DeltaTime);
 	}
+
+	const FString ActiveDraft = CHSettings::IsPersian() ? PendingFa : CHSettings::Latin(PendingEn);
+	const int32 MaxDraftLen = FMath::Max(1, ActiveDraft.Len());
 
 	switch (Action)
 	{
@@ -910,14 +929,14 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 
 	case EAction::DraftTyping:
 	{
-		DraftChars = FMath::Min(static_cast<float>(PendingFa.Len()), DraftChars + DeltaTime * 12.f);
+		DraftChars = FMath::Min(static_cast<float>(MaxDraftLen), DraftChars + DeltaTime * 14.f);
 		const int32 Count = FMath::FloorToInt32(DraftChars);
 		if (Count != LastDraftCount)
 		{
 			LastDraftCount = Count;
 			bTypeTick = true;
 		}
-		if (Count >= PendingFa.Len())
+		if (Count >= MaxDraftLen)
 		{
 			Action = bPendingSend ? EAction::DraftSending : EAction::DraftHold;
 			ActionTime = 0.f;
@@ -935,7 +954,7 @@ void SCHPhoneOverlay::Advance(float DeltaTime)
 
 	case EAction::DraftDeleting:
 	{
-		DraftChars = FMath::Max(0.f, DraftChars - DeltaTime * 26.f);
+		DraftChars = FMath::Max(0.f, DraftChars - DeltaTime * 28.f);
 		const int32 Count = FMath::CeilToInt32(DraftChars);
 		if (Count != LastDraftCount)
 		{
@@ -991,12 +1010,16 @@ FText SCHPhoneOverlay::GetContactFa() const
 
 FText SCHPhoneOverlay::GetContactEn() const
 {
-	return FText::FromString(ContactEn);
+	return FText::FromString(CHSettings::Latin(ContactEn));
 }
 
 FText SCHPhoneOverlay::GetStatusText() const
 {
-	return FText::FromString(StatusEn);
+	if (CHSettings::IsPersian() && !StatusFa.IsEmpty())
+	{
+		return FText::FromString(StatusFa);
+	}
+	return FText::FromString(CHSettings::Latin(StatusEn));
 }
 
 FText SCHPhoneOverlay::GetClockText() const
@@ -1006,7 +1029,11 @@ FText SCHPhoneOverlay::GetClockText() const
 
 FText SCHPhoneOverlay::GetServiceText() const
 {
-	return FText::FromString(bNoService ? TEXT("NO SERVICE") : TEXT("4G"));
+	if (bNoService)
+	{
+		return FText::FromString(CHSettings::IsGerman() ? TEXT("KEIN NETZ") : TEXT("NO SERVICE"));
+	}
+	return FText::FromString(TEXT("4G"));
 }
 
 FSlateColor SCHPhoneOverlay::GetServiceColor() const
@@ -1025,10 +1052,15 @@ FText SCHPhoneOverlay::GetDraftText() const
 	const bool bDrafting = Action == EAction::DraftTyping || Action == EAction::DraftHold || Action == EAction::DraftDeleting || Action == EAction::DraftSending;
 	if (!bDrafting)
 	{
-		return FText::FromString(TEXT("پیام…"));
+		if (CHSettings::IsPersian())
+		{
+			return FText::FromString(TEXT("پیام…"));
+		}
+		return FText::FromString(CHSettings::IsGerman() ? TEXT("Nachricht…") : TEXT("Message…"));
 	}
-	const int32 Count = FMath::Clamp(Action == EAction::DraftDeleting ? FMath::CeilToInt32(DraftChars) : FMath::FloorToInt32(DraftChars), 0, PendingFa.Len());
-	return FText::FromString(PendingFa.Left(Count));
+	const FString ActiveDraft = CHSettings::IsPersian() ? PendingFa : CHSettings::Latin(PendingEn);
+	const int32 Count = FMath::Clamp(Action == EAction::DraftDeleting ? FMath::CeilToInt32(DraftChars) : FMath::FloorToInt32(DraftChars), 0, ActiveDraft.Len());
+	return FText::FromString(ActiveDraft.Left(Count));
 }
 
 FSlateColor SCHPhoneOverlay::GetDraftColor() const
@@ -1045,7 +1077,7 @@ FText SCHPhoneOverlay::GetCallTimer() const
 
 FText SCHPhoneOverlay::GetAlertSource() const
 {
-	return FText::FromString(AlertSourceEn);
+	return FText::FromString(CHSettings::IsPersian() ? AlertSourceFa : CHSettings::Latin(AlertSourceEn));
 }
 
 FText SCHPhoneOverlay::GetAlertFa() const
@@ -1055,7 +1087,7 @@ FText SCHPhoneOverlay::GetAlertFa() const
 
 FText SCHPhoneOverlay::GetAlertEn() const
 {
-	return FText::FromString(AlertEn);
+	return FText::FromString(CHSettings::Latin(AlertEn));
 }
 
 FSlateColor SCHPhoneOverlay::GetDotColor(int32 Index) const

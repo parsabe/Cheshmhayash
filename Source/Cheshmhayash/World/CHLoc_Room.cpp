@@ -234,6 +234,7 @@ void ACHLoc_Room::Build(const FString& InVariant)
 	MarkLookAt(TEXT("Shadow"), FVector(-40.f, 100.f, 150.f), FVector(HX - 40.f, 25.f, 118.f), 48.f);
 	MarkLookAt(TEXT("BedBook"), BookSpot + FVector(10.f, 95.f, 75.f), BookSpot, 40.f);
 	Mark(TEXT("He"), FVector(HX - 96.f, 58.f, 0.f));
+	Mark(TEXT("ChairSeat"), FVector(HX - 118.f, -4.f, 0.f), FRotator(0.f, 0.f, 0.f));
 	Mark(TEXT("SisterHall"), FVector(-HX - T - 120.f, 105.f, 0.f));
 	Mark(TEXT("SisterIn"), FVector(-HX + 100.f, 98.f, 0.f));
 

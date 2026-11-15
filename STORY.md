@@ -4,10 +4,10 @@ Title meaning: (1) his eyes are the camera — the game is what his eyes saw; (2
 
 The main character is never named. Only "he" / «او». His name appears once, on the last card.
 
-Characters: He (university student) · Sister (~19, loud, funny, fearless) · Older Brother (practical, quiet) · Kian (best friend, migration partner) · Mom (voice-message bubbles only) · Dad (never speaks).
+Characters: He (university student) · Sister (~19, loud, funny, fearless) · Older Brother (practical, quiet) · Kian (best friend, migration partner) · Mom (at home and voice-message bubbles) · Dad (speaks only once in the entire game, in the lawyer's office).
 
 ## Global rules of the experience
-- No voices. Text only: Farsi on top, English below, typed letter by letter.
+- No voices. Text only: displayed in the player's chosen language (`English`, `Deutsch`, or `فارسی`), typed letter by letter.
 - The phone is his voice: messages typed and deleted, typing… dots, voice bubbles with transcripts, unsent drafts.
 - Silence is a weapon: worst moments = no music, no text, a few seconds of nothing.
 - Short lines. Nobody gives speeches.
@@ -46,10 +46,11 @@ CHOICE (flag `walk_offer`):
 - B "Fix your scarf. They're everywhere today." → Sister: "Let them look." She leaves.
 Door closes. The tea glass, still full.
 
-### 1.2 — 14:20 — the message
-Phone, from her friend, fast and broken:
-they took her / gasht ershad / the van at the metro / i couldnt do anything / im sorry im sorry
-GAMEPLAY: he runs through the city. No music. Breathing, footsteps.
+### 1.2 — 14:20 — the message & Mina's video (`1.2.video`)
+Phone, from her friend Mina, fast and broken:
+they took her / gasht ershad / the van at the metro / they're taking her to vozara / i filmed a few seconds / i couldnt do anything / im sorry im sorry
+`1.2.video`: Shaky handheld phone video from across the street (`REC` on). Two morality police women in black chadors (`morality_f`) and a male officer (`morality_m`) drag his sister toward the green-and-white `گشت ارشاد` van while shouting insults at her; she answers back until the video cuts off before the van doors close.
+GAMEPLAY (`1.2.run`): he runs through the city. Breathing, footsteps.
 
 ### 1.3 — The gate on Vozara Street
 Families waiting. Mothers with plastic bags of long black chadors ("bring proper clothes").
@@ -76,12 +77,15 @@ Text: "Same building. Same gate."
 All sound drops. Alert held 5 seconds in silence.
 Taxi driver: "They say it was her heart."
 He types to brother "did you see" → deletes. "she's in there" → deletes. Sends nothing.
+`1.5b`: Outside Vozara again, holding a bag of her clothes and ID card. The guard gives no names; the old woman tells him they moved detainees in white vans toward Evin in the middle of the night.
 
 ### 1.6 — The lawyer
 - Lawyer: Last week it was a hijab case. A fine, a signature, home.
-- Lawyer: Now everything is political. They're afraid.
-- Lawyer: Afraid people don't let go.
-Dad slides the house deed across the desk. Silent.
+- Lawyer: Now everything is political. They sent her file to the security court. They're afraid.
+- He: What is the charge? That she shouted by the van?
+- Lawyer: Resisting officers and disturbing order. They set bail high because they're afraid people won't let go.
+Dad slides the house deed across the desk and speaks his only line in the game:
+- Dad: Just bring her home.
 
 ### 1.7 — The rooftops
 Night window. Small text at the screen edge: «مرگ بر دیکتاتور» (Death to the dictator). Then another, another — lines multiply until the screen is full. Actual sound: only wind.
@@ -131,14 +135,16 @@ Night streets, smoke, broken streetlights.
 Enemies: Basij motorcycles (loud, fast, heard before seen); plainclothes (civilian until too close); Gasht-e Ershad green-white vans (music cuts, only heartbeat).
 Filmable moments: headscarf burning on a fire; old man lifting shop shutter for students; wall with «زن زندگی آزادی» painted over regime slogans.
 Choices each night: help wounded stranger vs keep filming; hide vs draw guards away → number of second chances in final chase.
+`2.4.home`: An older couple opens their door to take him in from the street; the woman pours hot tea while her husband watches the motorbikes pass from behind the curtain.
 
-### 2.5 — 23 Mehr — Mom
+### 2.5 — 23 Mehr — Mom & Last Dinner at Home (`2.5b`)
 Hiding in an alley. Voice bubble from "Maman", 0:47, waveform animates. Transcript line by line:
 - Your brother went to the prison again today.
 - They said she's alright. They said maybe soon.
 - Please come home tonight.
 - I can't lose two.
 He types "I'm coming home" → deletes. Types «دوستت دارم مامان» (I love you, Mom). Sent ✓.
+`2.5b`: He goes home for one quiet dinner the night before 24 Mehr. Mom puts warm rice on his plate; Brother asks why his shoes smell like smoke every night. He almost tells them, and doesn't.
 
 ### 2.6 — 24 Mehr — the last night
 Biggest street yet; singing; text slogans fill the crowd. For a few minutes, winning.
@@ -161,8 +167,9 @@ Gate opens. Sister walks out — thin, hair short, same eyes. Older brother wait
 - Sister: Is he angry I didn't let him walk me?
 - Sister: Tell him I'm sorry.
 Brother opens his mouth. No text appears. Screen slowly to white.
+`3.1b`: Sister walks into the apartment. Mom holds her without speaking, then tells her they haven't closed his door or touched a thing since that night.
 
-### 3.2 — His room
+### 3.2 — His room & The چهلم (40th-Day Memorial, `3.2b`)
 Nothing moved. Cold glass of tea. Calendar on the floor, red circle on 26 Mehr — two days after.
 She opens the grammar book; the letter falls. GAMEPLAY: player reads it line by line:
 - If you're reading this, you're home. I knew they'd have to give you back.
@@ -171,6 +178,7 @@ She opens the grammar book; the letter falls. GAMEPLAY: player reads it line by 
 - Don't let them make you small again. Not for me, not for Mom, not for anyone.
 - Drink the tea while it's hot. I never did.
 - — your brother
+`3.2b`: Forty days later (`چهلم`). The apartment is full of family, friends, and students in black; his framed photo with a black ribbon sits beside a red flower. Mina tells her that people everywhere are seeing through his eyes.
 
 ### 3.3 — Years later — the news
 Small living room. Brother and sister, older, drinking tea — hot.

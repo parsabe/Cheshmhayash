@@ -174,8 +174,59 @@ namespace
 		return Srgb(235, 215, 170);
 	}
 
-	/** A poem couplet at the bottom of the screen: Farsi, the English line right under it, slow fade-in. */
-	FCHCard MakePoemCard(const FString& Fa, const FString& En, float Hold)
+	/** Registers any English -> German pairs present in a JSON object tree. */
+	void RegisterJsonGerman(const TSharedPtr<FJsonObject>& Obj)
+	{
+		if (!Obj.IsValid())
+		{
+			return;
+		}
+		const TArray<FString> EnLines = JLines(*Obj, TEXT("en"));
+		const TArray<FString> DeLines = JLines(*Obj, TEXT("de"));
+		for (int32 i = 0; i < FMath::Min(EnLines.Num(), DeLines.Num()); ++i)
+		{
+			CHSettings::RegisterGerman(EnLines[i], DeLines[i]);
+		}
+		auto Pair = [&Obj](const TCHAR* EnKey, const TCHAR* DeKey)
+		{
+			const FString En = JStr(*Obj, EnKey);
+			const FString De = JStr(*Obj, DeKey);
+			if (!En.IsEmpty() && !De.IsEmpty())
+			{
+				CHSettings::RegisterGerman(En, De);
+			}
+		};
+		Pair(TEXT("en_title"), TEXT("de_title"));
+		Pair(TEXT("en_sub"), TEXT("de_sub"));
+		Pair(TEXT("source_en"), TEXT("source_de"));
+		Pair(TEXT("hint_en"), TEXT("hint_de"));
+		Pair(TEXT("title"), TEXT("title_de"));
+
+		for (const auto& Kvp : Obj->Values)
+		{
+			if (!Kvp.Value.IsValid())
+			{
+				continue;
+			}
+			if (Kvp.Value->Type == EJson::Object)
+			{
+				RegisterJsonGerman(Kvp.Value->AsObject());
+			}
+			else if (Kvp.Value->Type == EJson::Array)
+			{
+				for (const TSharedPtr<FJsonValue>& Elem : Kvp.Value->AsArray())
+				{
+					if (Elem.IsValid() && Elem->Type == EJson::Object)
+					{
+						RegisterJsonGerman(Elem->AsObject());
+					}
+				}
+			}
+		}
+	}
+
+	/** A poem couplet at the bottom of the screen in the single active language. */
+	FCHCard MakePoemCard(const FString& Fa, const FString& En, const FString& De, float Hold)
 	{
 		FCHCard Card;
 		Card.HAlign = HAlign_Center;
@@ -183,24 +234,28 @@ namespace
 		Card.Padding = FMargin(120.f, 0.f, 120.f, 150.f);
 		Card.MaxWidth = 1500.f;
 		Card.bSkippable = true;
-		Card.MinSkipTime = 1.2f;
+		Card.MinSkipTime = 1.0f;
 		Card.Hold = Hold;
 		Card.FadeOut = 1.6f;
 
-		FCHCardLine FaLine(Fa, true, 38.f, CH::EWeight::Regular, CH::Col::Paper);
-		FaLine.Delay = 0.4f;
-		FaLine.FadeIn = 2.2f;
-		Card.Lines.Add(FaLine);
-
-		FCHCardLine EnLine(En, false, 26.f, CH::EWeight::Light, CH::Col::PaperDim);
-		EnLine.TopPadding = 12.f;
-		EnLine.Delay = 1.4f;
-		EnLine.FadeIn = 2.2f;
-		Card.Lines.Add(EnLine);
+		if (CHSettings::IsPersian())
+		{
+			FCHCardLine FaLine(Fa, true, 38.f, CH::EWeight::Regular, CH::Col::Paper);
+			FaLine.Delay = 0.4f;
+			FaLine.FadeIn = 2.0f;
+			Card.Lines.Add(FaLine);
+		}
+		else
+		{
+			FCHCardLine EnLine(CHSettings::Latin(En, De), false, 34.f, CH::EWeight::Regular, CH::Col::Paper);
+			EnLine.Delay = 0.4f;
+			EnLine.FadeIn = 2.0f;
+			Card.Lines.Add(EnLine);
+		}
 		return Card;
 	}
 
-	/** "Click or press any key to continue" on the main menu. */
+	/** "Click or press any key to continue" on the main menu in the single active language. */
 	FCHCard MakePromptCard()
 	{
 		FCHCard Card;
@@ -211,32 +266,46 @@ namespace
 		Card.Hold = -1.f;
 		Card.FadeOut = 0.6f;
 
-		FCHCardLine FaLine(TEXT("برای ادامه کلیک کنید یا کلیدی را فشار دهید"), true, 22.f, CH::EWeight::Light, CH::Col::PaperDim);
-		FaLine.Delay = 4.0f;
-		FaLine.FadeIn = 1.6f;
-		Card.Lines.Add(FaLine);
-		FCHCardLine EnLine(TEXT("Click or press any key to continue"), false, 19.f, CH::EWeight::Light, CH::Col::PaperDim);
-		EnLine.TopPadding = 4.f;
-		EnLine.LetterSpacing = 200;
-		EnLine.Delay = 4.0f;
-		EnLine.FadeIn = 1.6f;
-		Card.Lines.Add(EnLine);
+		if (CHSettings::IsPersian())
+		{
+			FCHCardLine FaLine(TEXT("برای ادامه کلیک کنید یا کلیدی را فشار دهید"), true, 24.f, CH::EWeight::Regular, CH::Col::PaperDim);
+			FaLine.Delay = 3.2f;
+			FaLine.FadeIn = 1.6f;
+			Card.Lines.Add(FaLine);
+		}
+		else
+		{
+			const FString Prompt = CHSettings::IsGerman()
+				? TEXT("Klicken oder beliebige Taste drücken zum Fortfahren")
+				: TEXT("Click or press any key to continue");
+			FCHCardLine EnLine(Prompt, false, 20.f, CH::EWeight::Light, CH::Col::PaperDim);
+			EnLine.LetterSpacing = 200;
+			EnLine.Delay = 3.2f;
+			EnLine.FadeIn = 1.6f;
+			Card.Lines.Add(EnLine);
+		}
 		return Card;
 	}
 
 	FCHCard MakeMenuTitleCard()
 	{
 		FCHCard Card;
-		FCHCardLine Title(TEXT("چشم‌هایش"), true, 140.f, CH::EWeight::Bold, CH::Col::Paper);
-		Title.Delay = 0.8f;
-		Title.FadeIn = 3.0f;
-		Card.Lines.Add(Title);
-		FCHCardLine Sub(TEXT("CHESHM HAYASH"), false, 26.f, CH::EWeight::Light, CH::Col::Paper);
-		Sub.TopPadding = 2.f;
-		Sub.LetterSpacing = 700;
-		Sub.Delay = 2.4f;
-		Sub.FadeIn = 2.2f;
-		Card.Lines.Add(Sub);
+		if (CHSettings::IsPersian())
+		{
+			FCHCardLine Title(TEXT("چشم‌هایش"), true, 140.f, CH::EWeight::Bold, CH::Col::Paper);
+			Title.Delay = 0.6f;
+			Title.FadeIn = 2.6f;
+			Card.Lines.Add(Title);
+		}
+		else
+		{
+			const FString MainTitle = CHSettings::IsGerman() ? TEXT("SEINE AUGEN") : TEXT("HIS EYES");
+			FCHCardLine Title(MainTitle, false, 92.f, CH::EWeight::Bold, CH::Col::Paper);
+			Title.LetterSpacing = 480;
+			Title.Delay = 0.6f;
+			Title.FadeIn = 2.6f;
+			Card.Lines.Add(Title);
+		}
 		Card.Hold = -1.f;
 		Card.bSkippable = false;
 		Card.FadeOut = 1.2f;
@@ -245,55 +314,71 @@ namespace
 		return Card;
 	}
 
-	FCHCard MakeOpeningCard(const TArray<FString>& Fa, const TArray<FString>& En, float Hold)
+	FCHCard MakeOpeningCard(const TArray<FString>& Fa, const TArray<FString>& En, const TArray<FString>& De, float Hold)
 	{
 		FCHCard Card;
 		float Time = 0.5f;
-		for (int32 i = 0; i < Fa.Num(); ++i)
+		if (CHSettings::IsPersian())
 		{
-			FCHCardLine Line(Fa[i], true, 34.f, CH::EWeight::Regular, CH::Col::Paper);
-			Line.TopPadding = i == 0 ? 0.f : 12.f;
-			Line.Delay = Time;
-			Line.FadeIn = 1.6f;
-			Time += 1.7f;
-			Card.Lines.Add(Line);
+			for (int32 i = 0; i < Fa.Num(); ++i)
+			{
+				FCHCardLine Line(Fa[i], true, 36.f, CH::EWeight::Regular, CH::Col::Paper);
+				Line.TopPadding = i == 0 ? 0.f : 14.f;
+				Line.Delay = Time;
+				Line.FadeIn = 1.6f;
+				Time += 1.6f;
+				Card.Lines.Add(Line);
+			}
 		}
-		Time += 0.5f;
-		for (int32 i = 0; i < En.Num(); ++i)
+		else
 		{
-			FCHCardLine Line(En[i], false, 21.f, CH::EWeight::Light, CH::Col::PaperDim);
-			Line.TopPadding = i == 0 ? 50.f : 9.f;
-			Line.Delay = Time;
-			Line.FadeIn = 1.4f;
-			Time += 1.1f;
-			Card.Lines.Add(Line);
+			const TArray<FString>& Src = (CHSettings::IsGerman() && De.Num() > 0) ? De : En;
+			for (int32 i = 0; i < Src.Num(); ++i)
+			{
+				const FString Text = (CHSettings::IsGerman() && De.IsValidIndex(i)) ? De[i] : CHSettings::Latin(Src[i]);
+				FCHCardLine Line(Text, false, 30.f, CH::EWeight::Regular, CH::Col::Paper);
+				Line.TopPadding = i == 0 ? 0.f : 14.f;
+				Line.Delay = Time;
+				Line.FadeIn = 1.6f;
+				Time += 1.5f;
+				Card.Lines.Add(Line);
+			}
 		}
 		Card.Hold = Hold;
 		Card.FadeOut = 1.8f;
 		return Card;
 	}
 
-	FCHCard MakePlainCard(const TArray<FString>& Fa, const TArray<FString>& En, float Hold, float FaSize, float EnSize)
+	FCHCard MakePlainCard(const TArray<FString>& Fa, const TArray<FString>& En, const TArray<FString>& De, float Hold, float FaSize, float EnSize)
 	{
 		FCHCard Card;
 		float Time = 0.3f;
-		for (int32 i = 0; i < Fa.Num(); ++i)
+		if (CHSettings::IsPersian())
 		{
-			FCHCardLine Line(Fa[i], true, FaSize, CH::EWeight::Regular, CH::Col::Paper);
-			Line.TopPadding = i == 0 ? 0.f : 10.f;
-			Line.Delay = Time;
-			Line.FadeIn = 1.4f;
-			Time += 0.9f;
-			Card.Lines.Add(Line);
+			for (int32 i = 0; i < Fa.Num(); ++i)
+			{
+				FCHCardLine Line(Fa[i], true, FaSize, CH::EWeight::Regular, CH::Col::Paper);
+				Line.TopPadding = i == 0 ? 0.f : 12.f;
+				Line.Delay = Time;
+				Line.FadeIn = 1.4f;
+				Time += 0.9f;
+				Card.Lines.Add(Line);
+			}
 		}
-		for (int32 i = 0; i < En.Num(); ++i)
+		else
 		{
-			FCHCardLine Line(En[i], false, EnSize, CH::EWeight::Light, CH::Col::PaperDim);
-			Line.TopPadding = i == 0 ? 26.f : 8.f;
-			Line.Delay = Time;
-			Line.FadeIn = 1.4f;
-			Time += 0.7f;
-			Card.Lines.Add(Line);
+			const TArray<FString>& Src = (CHSettings::IsGerman() && De.Num() > 0) ? De : En;
+			const float PrimaryEnSize = FMath::Max(EnSize * 1.35f, 28.f);
+			for (int32 i = 0; i < Src.Num(); ++i)
+			{
+				const FString Text = (CHSettings::IsGerman() && De.IsValidIndex(i)) ? De[i] : CHSettings::Latin(Src[i]);
+				FCHCardLine Line(Text, false, PrimaryEnSize, CH::EWeight::Regular, CH::Col::Paper);
+				Line.TopPadding = i == 0 ? 0.f : 12.f;
+				Line.Delay = Time;
+				Line.FadeIn = 1.4f;
+				Time += 0.9f;
+				Card.Lines.Add(Line);
+			}
 		}
 		Card.Hold = Hold;
 		return Card;
@@ -302,30 +387,36 @@ namespace
 	FCHCard MakeChapterCard(const FJsonObject& Beat)
 	{
 		FCHCard Card;
+		if (CHSettings::IsPersian())
+		{
+			FCHCardLine FaSub(JStr(Beat, TEXT("fa_sub")), true, 24.f, CH::EWeight::Regular, CH::Col::PaperDim);
+			FaSub.Delay = 0.3f;
+			FaSub.FadeIn = 1.4f;
+			Card.Lines.Add(FaSub);
 
-		FCHCardLine FaSub(JStr(Beat, TEXT("fa_sub")), true, 23.f, CH::EWeight::Regular, CH::Col::PaperDim);
-		FaSub.Delay = 0.3f;
-		FaSub.FadeIn = 1.4f;
-		Card.Lines.Add(FaSub);
+			FCHCardLine FaTitle(JStr(Beat, TEXT("fa_title")), true, 96.f, CH::EWeight::Bold, CH::Col::Paper);
+			FaTitle.TopPadding = 14.f;
+			FaTitle.Delay = 1.0f;
+			FaTitle.FadeIn = 2.0f;
+			Card.Lines.Add(FaTitle);
+		}
+		else
+		{
+			const FString SubText = CHSettings::Latin(JStr(Beat, TEXT("en_sub")), JStr(Beat, TEXT("de_sub")));
+			const FString TitleText = CHSettings::Latin(JStr(Beat, TEXT("en_title")), JStr(Beat, TEXT("de_title")));
 
-		FCHCardLine FaTitle(JStr(Beat, TEXT("fa_title")), true, 96.f, CH::EWeight::Bold, CH::Col::Paper);
-		FaTitle.TopPadding = 14.f;
-		FaTitle.Delay = 1.0f;
-		FaTitle.FadeIn = 2.0f;
-		Card.Lines.Add(FaTitle);
+			FCHCardLine EnSub(SubText, false, 18.f, CH::EWeight::Regular, CH::Col::PaperDim);
+			EnSub.LetterSpacing = 420;
+			EnSub.Delay = 0.3f;
+			EnSub.FadeIn = 1.4f;
+			Card.Lines.Add(EnSub);
 
-		FCHCardLine EnTitle(JStr(Beat, TEXT("en_title")), false, 30.f, CH::EWeight::Light, CH::Col::Paper);
-		EnTitle.TopPadding = 10.f;
-		EnTitle.Delay = 1.9f;
-		EnTitle.FadeIn = 1.6f;
-		Card.Lines.Add(EnTitle);
-
-		FCHCardLine EnSub(JStr(Beat, TEXT("en_sub")), false, 14.f, CH::EWeight::Regular, CH::Col::PaperDim);
-		EnSub.TopPadding = 30.f;
-		EnSub.LetterSpacing = 420;
-		EnSub.Delay = 2.4f;
-		EnSub.FadeIn = 1.4f;
-		Card.Lines.Add(EnSub);
+			FCHCardLine EnTitle(TitleText, false, 68.f, CH::EWeight::Bold, CH::Col::Paper);
+			EnTitle.TopPadding = 16.f;
+			EnTitle.Delay = 1.0f;
+			EnTitle.FadeIn = 2.0f;
+			Card.Lines.Add(EnTitle);
+		}
 
 		Card.Hold = static_cast<float>(JNum(Beat, TEXT("hold"), 3.2));
 		Card.FadeOut = 1.8f;
@@ -335,18 +426,22 @@ namespace
 	FCHCard MakeTitleCard()
 	{
 		FCHCard Card;
-
-		FCHCardLine Title(TEXT("چشم‌هایش"), true, 150.f, CH::EWeight::Bold, CH::Col::Paper);
-		Title.Delay = 0.6f;
-		Title.FadeIn = 3.2f;
-		Card.Lines.Add(Title);
-
-		FCHCardLine Sub(TEXT("CHESHM HAYASH   ·   HIS EYES"), false, 17.f, CH::EWeight::Light, CH::Col::PaperDim);
-		Sub.TopPadding = 4.f;
-		Sub.LetterSpacing = 560;
-		Sub.Delay = 2.8f;
-		Sub.FadeIn = 2.2f;
-		Card.Lines.Add(Sub);
+		if (CHSettings::IsPersian())
+		{
+			FCHCardLine Title(TEXT("چشم‌هایش"), true, 150.f, CH::EWeight::Bold, CH::Col::Paper);
+			Title.Delay = 0.6f;
+			Title.FadeIn = 3.2f;
+			Card.Lines.Add(Title);
+		}
+		else
+		{
+			const FString MainTitle = CHSettings::IsGerman() ? TEXT("SEINE AUGEN") : TEXT("HIS EYES");
+			FCHCardLine Title(MainTitle, false, 96.f, CH::EWeight::Bold, CH::Col::Paper);
+			Title.LetterSpacing = 520;
+			Title.Delay = 0.6f;
+			Title.FadeIn = 3.2f;
+			Card.Lines.Add(Title);
+		}
 
 		Card.Hold = -1.f;
 		Card.bSkippable = false;
@@ -355,7 +450,7 @@ namespace
 		return Card;
 	}
 
-	FCHCard MakeCaptionCard(const FString& Fa, const FString& En, float Hold)
+	FCHCard MakeCaptionCard(const FString& Fa, const FString& En, const FString& De, float Hold)
 	{
 		FCHCard Card;
 		Card.HAlign = HAlign_Left;
@@ -366,21 +461,27 @@ namespace
 		Card.Hold = Hold;
 		Card.FadeOut = 2.f;
 
-		if (!Fa.IsEmpty())
+		if (CHSettings::IsPersian())
 		{
-			FCHCardLine Line(Fa, true, 24.f, CH::EWeight::Regular, CH::Col::Paper);
-			Line.Delay = 0.8f;
-			Line.FadeIn = 1.5f;
-			Card.Lines.Add(Line);
+			if (!Fa.IsEmpty())
+			{
+				FCHCardLine Line(Fa, true, 26.f, CH::EWeight::Regular, CH::Col::Paper);
+				Line.Delay = 0.8f;
+				Line.FadeIn = 1.5f;
+				Card.Lines.Add(Line);
+			}
 		}
-		if (!En.IsEmpty())
+		else
 		{
-			FCHCardLine Line(En, false, 14.f, CH::EWeight::Regular, CH::Col::PaperDim);
-			Line.TopPadding = 4.f;
-			Line.LetterSpacing = 220;
-			Line.Delay = 1.3f;
-			Line.FadeIn = 1.5f;
-			Card.Lines.Add(Line);
+			const FString Text = CHSettings::Latin(En, De);
+			if (!Text.IsEmpty())
+			{
+				FCHCardLine Line(Text, false, 20.f, CH::EWeight::Regular, CH::Col::Paper);
+				Line.LetterSpacing = 220;
+				Line.Delay = 0.8f;
+				Line.FadeIn = 1.5f;
+				Card.Lines.Add(Line);
+			}
 		}
 		return Card;
 	}
@@ -478,6 +579,7 @@ bool UCHStoryDirector::LoadStoryFile(const FString& Name)
 		UE_LOG(LogCheshmhayash, Error, TEXT("Story file %s is not valid JSON: %s"), *Path, *Reader->GetErrorMessage());
 		return false;
 	}
+	RegisterJsonGerman(RootObject);
 
 	const TArray<TSharedPtr<FJsonValue>>* SceneArray = nullptr;
 	if (!RootObject->TryGetArrayField(TEXT("scenes"), SceneArray) || !SceneArray)
@@ -1026,13 +1128,22 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 		const bool bWhite = JStr(Beat, TEXT("color")) == TEXT("white");
 		SetFade(static_cast<float>(JNum(Beat, TEXT("to"), 0.0)), static_cast<float>(JNum(Beat, TEXT("time"), 1.5)), bWhite ? FLinearColor::White : FLinearColor::Black);
 	}
+	else if (Type == TEXT("language_select"))
+	{
+		TArray<FCHOption> Options;
+		Options.Emplace(TEXT(""), TEXT("English"));
+		Options.Emplace(TEXT(""), TEXT("Deutsch"));
+		Options.Emplace(TEXT("فارسی"), TEXT(""));
+		UI->Menu->Show(Options, VAlign_Center, FMargin(0.f), 34.f, 28.f);
+		UI->Menu->SetSelected(static_cast<int32>(CHSettings::GetLanguage()));
+	}
 	else if (Type == TEXT("card"))
 	{
 		const FString Style = JStr(Beat, TEXT("style"), TEXT("plain"));
 		const float Hold = static_cast<float>(JNum(Beat, TEXT("hold"), 4.0));
 		FCHCard Card = Style == TEXT("opening")
-			? MakeOpeningCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), Hold)
-			: MakePlainCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), Hold,
+			? MakeOpeningCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), JLines(Beat, TEXT("de")), Hold)
+			: MakePlainCard(JLines(Beat, TEXT("fa")), JLines(Beat, TEXT("en")), JLines(Beat, TEXT("de")), Hold,
 				static_cast<float>(JNum(Beat, TEXT("fa_size"), 40.0)), static_cast<float>(JNum(Beat, TEXT("en_size"), 22.0)));
 		Card.bSkippable = JBool(Beat, TEXT("skippable"), true);
 		if (JBool(Beat, TEXT("below"), false))
@@ -1040,7 +1151,6 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			Card.VAlign = VAlign_Center;
 			Card.Padding = FMargin(60.f, 220.f, 60.f, 0.f);
 		}
-		// "type_rate": the lines are written letter by letter, one after another
 		const float TypeRate = static_cast<float>(JNum(Beat, TEXT("type_rate"), 0.0));
 		if (TypeRate > 0.f)
 		{
@@ -1064,12 +1174,10 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("caption"))
 	{
-		UI->Captions->Play(MakeCaptionCard(JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), static_cast<float>(JNum(Beat, TEXT("hold"), 4.5))));
+		UI->Captions->Play(MakeCaptionCard(JStr(Beat, TEXT("fa")), JStr(Beat, TEXT("en")), JStr(Beat, TEXT("de")), static_cast<float>(JNum(Beat, TEXT("hold"), 4.5))));
 	}
 	else if (Type == TEXT("memorial"))
 	{
-		// His name, typed out slowly, held at the top of the screen through the whole final song and
-		// the credits, and the last thing to fade out.
 		if (!JBool(Beat, TEXT("on"), true))
 		{
 			UI->Captions->Dismiss(static_cast<float>(JNum(Beat, TEXT("fade"), 4.0)));
@@ -1085,18 +1193,24 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 			Card.FadeOut = 4.0f;
 
 			const float Rate = 2.6f;
-			const FString Fa = TEXT("به یاد حسام");
-			const FString En = TEXT("In loving memory of Hesam");
-			FCHCardLine FaLine(Fa, true, 58.f, CH::EWeight::Regular, CH::Col::Paper);
-			FaLine.Delay = 1.0f;
-			FaLine.TypeRate = Rate;
-			Card.Lines.Add(FaLine);
-
-			FCHCardLine EnLine(En, false, 28.f, CH::EWeight::Light, CH::Col::PaperDim);
-			EnLine.TopPadding = 10.f;
-			EnLine.Delay = 1.0f + Fa.Len() / Rate + 1.0f;
-			EnLine.TypeRate = Rate;
-			Card.Lines.Add(EnLine);
+			if (CHSettings::IsPersian())
+			{
+				const FString Fa = TEXT("به یاد حسام");
+				FCHCardLine FaLine(Fa, true, 58.f, CH::EWeight::Regular, CH::Col::Paper);
+				FaLine.Delay = 1.0f;
+				FaLine.TypeRate = Rate;
+				Card.Lines.Add(FaLine);
+			}
+			else
+			{
+				const FString En = CHSettings::IsGerman()
+					? TEXT("In liebevoller Erinnerung an Hesam")
+					: TEXT("In loving memory of Hesam");
+				FCHCardLine EnLine(En, false, 40.f, CH::EWeight::Regular, CH::Col::Paper);
+				EnLine.Delay = 1.0f;
+				EnLine.TypeRate = Rate;
+				Card.Lines.Add(EnLine);
+			}
 			UI->Captions->Play(Card);
 		}
 	}
@@ -1106,14 +1220,14 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("poem"))
 	{
-		// the poem: couplets one by one at the bottom of the screen, over black
 		BeatPhase = 0;
 		const TArray<TSharedPtr<FJsonObject>> Couplets = CHJson::Objects(Beat, TEXT("lines"));
 		if (Couplets.Num() > 0)
 		{
 			const FString Fa = JStr(*Couplets[0], TEXT("fa"));
 			const FString En = JStr(*Couplets[0], TEXT("en"));
-			UI->Cards->Play(MakePoemCard(Fa, En, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
+			const FString De = JStr(*Couplets[0], TEXT("de"));
+			UI->Cards->Play(MakePoemCard(Fa, En, De, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
 			BeatPhase = 1;
 		}
 	}
@@ -1360,10 +1474,13 @@ void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 	}
 	else if (Type == TEXT("slogans"))
 	{
-		// "on": false fades them out
 		if (JBool(Beat, TEXT("on"), true))
 		{
-			UI->Slogans->Start(JStr(Beat, TEXT("fa")), static_cast<int32>(JNum(Beat, TEXT("count"), 80.0)), static_cast<float>(JNum(Beat, TEXT("time"), 16.0)));
+			const FString Slogan = CHSettings::Pick(
+				JStr(Beat, TEXT("fa")),
+				JStr(Beat, TEXT("en"), TEXT("Woman, Life, Freedom")),
+				JStr(Beat, TEXT("de"), TEXT("Frau, Leben, Freiheit")));
+			UI->Slogans->Start(Slogan, static_cast<int32>(JNum(Beat, TEXT("count"), 80.0)), static_cast<float>(JNum(Beat, TEXT("time"), 16.0)));
 		}
 		else
 		{
@@ -1689,6 +1806,25 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 		}
 		return UI->Cards->IsFinished();
 	}
+	if (Type == TEXT("language_select"))
+	{
+		if (BeatPhase == 0)
+		{
+			int32 Picked = PollMenu(*UI->Menu);
+			if (Picked == INDEX_NONE && bDevAuto && BeatTime > 1.5f)
+			{
+				Picked = static_cast<int32>(CHSettings::GetLanguage());
+			}
+			if (Picked != INDEX_NONE && Picked >= 0 && Picked <= 2)
+			{
+				CHSettings::SetLanguage(static_cast<ECHLanguage>(Picked));
+				UI->Menu->Hide();
+				BeatPhase = 1;
+			}
+			return false;
+		}
+		return UI->Menu->IsGone();
+	}
 	if (Type == TEXT("poem"))
 	{
 		if (ConsumeAdvance())
@@ -1704,7 +1840,8 @@ bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 		{
 			const FString Fa = JStr(*Couplets[BeatPhase], TEXT("fa"));
 			const FString En = JStr(*Couplets[BeatPhase], TEXT("en"));
-			UI->Cards->Play(MakePoemCard(Fa, En, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
+			const FString De = JStr(*Couplets[BeatPhase], TEXT("de"));
+			UI->Cards->Play(MakePoemCard(Fa, En, De, 2.4f + 0.055f * FMath::Max(Fa.Len(), En.Len())));
 			++BeatPhase;
 			return false;
 		}
@@ -1957,15 +2094,34 @@ namespace
 
 void UCHStoryDirector::RefreshSettings(SCHChoiceList& Menu)
 {
+	const ECHLanguage Lang = CHSettings::GetLanguage();
 	const float Sens = CHSettings::GetSensitivity();
 	const bool bInvert = CHSettings::GetInvertY();
 	const int32 Volume = FMath::RoundToInt(CHSettings::GetVolume() * 100.f);
-	Menu.UpdateOption(0, FString::Printf(TEXT("حساسیت ماوس: %s"), *CH::PersianDigits(FString::Printf(TEXT("%.2f"), Sens))),
-		FString::Printf(TEXT("Mouse sensitivity: %.2fx"), Sens));
-	Menu.UpdateOption(1, FString::Printf(TEXT("وارونه کردن محور عمودی: %s"), bInvert ? TEXT("روشن") : TEXT("خاموش")),
-		FString::Printf(TEXT("Invert Y: %s"), bInvert ? TEXT("On") : TEXT("Off")));
-	Menu.UpdateOption(2, FString::Printf(TEXT("صدا: %s٪"), *CH::PersianDigits(FString::FromInt(Volume))),
-		FString::Printf(TEXT("Volume: %d%%"), Volume));
+
+	const FString LangEn = Lang == ECHLanguage::German ? TEXT("Sprache: Deutsch") : TEXT("Language: English");
+	Menu.UpdateOption(0, TEXT("زبان: فارسی"), LangEn);
+
+	if (Lang == ECHLanguage::German)
+	{
+		Menu.UpdateOption(1, FString::Printf(TEXT("حساسیت ماوس: %s"), *CH::PersianDigits(FString::Printf(TEXT("%.2f"), Sens))),
+			FString::Printf(TEXT("Mausempfindlichkeit: %.2fx"), Sens));
+		Menu.UpdateOption(2, FString::Printf(TEXT("وارونه کردن محور عمودی: %s"), bInvert ? TEXT("روشن") : TEXT("خاموش")),
+			FString::Printf(TEXT("Y-Achse umkehren: %s"), bInvert ? TEXT("Ein") : TEXT("Aus")));
+		Menu.UpdateOption(3, FString::Printf(TEXT("صدا: %s٪"), *CH::PersianDigits(FString::FromInt(Volume))),
+			FString::Printf(TEXT("Lautstärke: %d%%"), Volume));
+		Menu.UpdateOption(4, TEXT("بازگشت"), TEXT("Zurück"));
+	}
+	else
+	{
+		Menu.UpdateOption(1, FString::Printf(TEXT("حساسیت ماوس: %s"), *CH::PersianDigits(FString::Printf(TEXT("%.2f"), Sens))),
+			FString::Printf(TEXT("Mouse sensitivity: %.2fx"), Sens));
+		Menu.UpdateOption(2, FString::Printf(TEXT("وارونه کردن محور عمودی: %s"), bInvert ? TEXT("روشن") : TEXT("خاموش")),
+			FString::Printf(TEXT("Invert Y: %s"), bInvert ? TEXT("On") : TEXT("Off")));
+		Menu.UpdateOption(3, FString::Printf(TEXT("صدا: %s٪"), *CH::PersianDigits(FString::FromInt(Volume))),
+			FString::Printf(TEXT("Volume: %d%%"), Volume));
+		Menu.UpdateOption(4, TEXT("بازگشت"), TEXT("Back"));
+	}
 }
 
 void UCHStoryDirector::ShowSettings(SCHChoiceList& Menu)
@@ -1974,8 +2130,9 @@ void UCHStoryDirector::ShowSettings(SCHChoiceList& Menu)
 	Options.Emplace(TEXT("."), TEXT("."));
 	Options.Emplace(TEXT("."), TEXT("."));
 	Options.Emplace(TEXT("."), TEXT("."));
+	Options.Emplace(TEXT("."), TEXT("."));
 	Options.Emplace(TEXT("بازگشت"), TEXT("Back"));
-	Menu.Show(Options, VAlign_Center, FMargin(0.f, 80.f, 0.f, 0.f), 26.f, 18.f);
+	Menu.Show(Options, VAlign_Center, FMargin(0.f, 80.f, 0.f, 0.f), 26.f, 20.f);
 	RefreshSettings(Menu);
 }
 
@@ -1983,14 +2140,23 @@ bool UCHStoryDirector::ActivateSetting(int32 Row, SCHChoiceList& Menu)
 {
 	if (Row == 0)
 	{
-		const int32 Step = NearestStep(SensitivitySteps, UE_ARRAY_COUNT(SensitivitySteps), CHSettings::GetSensitivity());
-		CHSettings::SetSensitivity(SensitivitySteps[(Step + 1) % UE_ARRAY_COUNT(SensitivitySteps)]);
+		const int32 Next = (static_cast<int32>(CHSettings::GetLanguage()) + 1) % 3;
+		CHSettings::SetLanguage(static_cast<ECHLanguage>(Next));
+		if (!bPauseMenu && UI.IsValid())
+		{
+			UI->Cards->Play(MakeMenuTitleCard());
+		}
 	}
 	else if (Row == 1)
 	{
-		CHSettings::SetInvertY(!CHSettings::GetInvertY());
+		const int32 Step = NearestStep(SensitivitySteps, UE_ARRAY_COUNT(SensitivitySteps), CHSettings::GetSensitivity());
+		CHSettings::SetSensitivity(SensitivitySteps[(Step + 1) % UE_ARRAY_COUNT(SensitivitySteps)]);
 	}
 	else if (Row == 2)
+	{
+		CHSettings::SetInvertY(!CHSettings::GetInvertY());
+	}
+	else if (Row == 3)
 	{
 		const int32 Step = NearestStep(VolumeSteps, UE_ARRAY_COUNT(VolumeSteps), CHSettings::GetVolume());
 		CHSettings::SetVolume(VolumeSteps[(Step + 1) % UE_ARRAY_COUNT(VolumeSteps)]);

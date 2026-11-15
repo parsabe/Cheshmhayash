@@ -13,7 +13,9 @@
           "fa_sub": "فصل دو · مهر ۱۴۰۱",
           "fa_title": "زن، زندگی، آزادی",
           "en_title": "Woman, Life, Freedom",
-          "en_sub": "CHAPTER TWO  ·  MEHR 1401"
+          "en_sub": "CHAPTER TWO  ·  MEHR 1401",
+          "de_title": "Frau, Leben, Freiheit",
+          "de_sub": "KAPITEL ZWEI  ·  MEHR 1401"
         },
         { "type": "silence", "seconds": 0.8 }
       ]
@@ -30,7 +32,7 @@
         { "type": "rec", "on": true },
         { "type": "camera", "mark": "Establish" },
         { "type": "fade", "to": 0, "time": 2.5, "wait": false },
-        { "type": "caption", "fa": "دانشگاه", "en": "THE UNIVERSITY" },
+        { "type": "caption", "fa": "دانشگاه", "en": "THE UNIVERSITY", "de": "DIE UNIVERSITÄT" },
         { "type": "silence", "seconds": 4.5 },
         { "type": "camera", "mark": "Steps", "blend": 4.0 },
         { "type": "silence", "seconds": 5.5 },
@@ -41,7 +43,8 @@
           "film": false,
           "controls": false,
           "hint_fa": "در حیاط بگرد. با آن‌ها حرف بزن.",
-          "hint_en": "Walk the yard. Talk to them."
+          "hint_en": "Walk the yard. Talk to them.",
+          "hint_de": "Geh über den Campus. Sprich mit ihnen."
         },
         { "type": "silence", "seconds": 1.0 },
         { "type": "fade", "to": 1, "time": 2.0 },
@@ -54,7 +57,9 @@
       "chapter": 2,
       "beats": [
         { "type": "camera", "mark": "ProfessorCam", "blend": 0.9 },
-        { "type": "text", "who": "professor", "fa": "استعفا دادم. نمی‌تونم بهشون اطاعت یاد بدم.", "en": "I resigned. I can't teach them to obey." }
+        { "type": "text", "who": "professor", "fa": "استعفا دادم. سی سال درس دادم، ولی نمی‌تونم بهشون اطاعت یاد بدم.", "en": "I resigned. Thirty years of teaching, and I can't teach them to obey.", "de": "Ich habe gekündigt. Dreißig Jahre Lehre – ich kann ihnen keinen Gehorsam beibringen." },
+        { "type": "text", "who": "he", "fa": "استاد، اگه شماها برید، کی تو دانشگاه پشتِ بچه‌ها می‌مونه؟", "en": "Professor, if you leave, who stands behind the students inside the faculty?", "de": "Professor, wenn Sie gehen, wer steht dann hier drinnen noch hinter den Studierenden?" },
+        { "type": "text", "who": "professor", "fa": "دیگه کلاس درسی نمونده پسرم. درسِ اصلی رو دارن تو همین حیاط به ما یاد می‌دن.", "en": "There is no classroom left, son. They're teaching us the real lesson right here in this yard.", "de": "Es gibt keinen Hörsaal mehr, mein Sohn. Die wahre Lektion bringen sie uns gerade hier auf diesem Hof bei." }
       ]
     },
     {
@@ -63,7 +68,9 @@
       "chapter": 2,
       "beats": [
         { "type": "camera", "mark": "GirlCam", "blend": 0.9 },
-        { "type": "text", "who": "girl", "fa": "مو دوباره درمیاد. اون برنمی‌گرده.", "en": "It grows back. She doesn't." }
+        { "type": "text", "who": "girl", "fa": "مو دوباره درمیاد. اون برنمی‌گرده.", "en": "It grows back. She doesn't.", "de": "Haare wachsen nach. Sie kommt nicht zurück." },
+        { "type": "text", "who": "he", "fa": "خواهرِ من هم عاشق نقاشی بود. از بیست و دوم شهریور ندیدمش.", "en": "My sister loved painting too. I haven't seen her since the twenty-second of Shahrivar.", "de": "Meine Schwester hat auch das Malen geliebt. Ich habe sie seit dem 22. Shahrivar nicht mehr gesehen." },
+        { "type": "text", "who": "girl", "fa": "اسمش رو به ما نگو، خطرناکه. ولی مطمئن باش تنها نیست. هیچ‌کدومشون تنها نیستن.", "en": "Don't tell us her name—it's dangerous. But know she isn't alone. None of them are.", "de": "Sag uns ihren Namen nicht, es ist zu gefährlich. Aber sei gewiss: Sie ist nicht allein. Keine von ihnen." }
       ]
     },
     {
@@ -72,7 +79,9 @@
       "chapter": 2,
       "beats": [
         { "type": "camera", "mark": "BoyCam", "blend": 0.9 },
-        { "type": "text", "who": "boy", "fa": "آرش چهار روزه جواب نمی‌ده.", "en": "Arash hasn't answered in four days." }
+        { "type": "text", "who": "boy", "fa": "آرش چهار روزه جواب نمی‌ده. آخرین بار جلوی سردرِ دانشگاه دیدمش.", "en": "Arash hasn't answered in four days. Last time I saw him was by the main gate.", "de": "Arash antwortet seit vier Tagen nicht. Zuletzt habe ich ihn am Haupttor gesehen." },
+        { "type": "text", "who": "he", "fa": "به خانواده‌ش خبر دادی؟ شاید بردنش اوین.", "en": "Did you tell his family? Maybe they took him to Evin.", "de": "Hast du seiner Familie Bescheid gesagt? Vielleicht haben sie ihn nach Evin gebracht." },
+        { "type": "text", "who": "boy", "fa": "مادرش از صبح جلوی زندانه. درهای حیاط رو هم بستن… دارن محاصره‌مون می‌کنن.", "en": "His mother has been outside the prison since morning. And they just locked the campus gates… they're surrounding us.", "de": "Seine Mutter steht seit dem Morgen vor dem Gefängnis. Und sie haben gerade die Campustore verschlossen… sie kesseln uns ein." }
       ]
     },
     {
@@ -87,8 +96,11 @@
         { "type": "rec", "on": true },
         { "type": "camera", "mark": "Establish" },
         { "type": "fade", "to": 0, "time": 2.5, "wait": false },
-        { "type": "caption", "fa": "محاصره · پارکینگ دانشگاه", "en": "THE SIEGE · THE PARKING GARAGE" },
-        { "type": "silence", "seconds": 4.5 },
+        { "type": "caption", "fa": "محاصره · پارکینگ دانشگاه", "en": "THE SIEGE · THE PARKING GARAGE", "de": "DIE BELAGERUNG · DIE TIEFGARAGE" },
+        { "type": "silence", "seconds": 3.5 },
+        { "type": "text", "who": "student", "fa": "درِ خروجیِ رمپ بازه، ولی بین ماشین‌ها گشت می‌زنن.", "en": "The ramp exit is open, but they're patrolling between the cars.", "de": "Die Ausfahrt an der Rampe ist offen, aber sie patrouillieren zwischen den Autos." },
+        { "type": "text", "who": "he", "fa": "نفس‌تون رو حبس کنید. من یکی‌یکی راه‌تون رو باز می‌کنم.", "en": "Keep quiet. I'll get you out one by one.", "de": "Bleibt ganz leise. Ich bringe euch einzeln hier raus." },
+        { "type": "hide_text" },
         {
           "type": "gameplay",
           "segment": "garage",
@@ -96,7 +108,8 @@
           "chances": 1,
           "film": false,
           "hint_fa": "دانشجوها را یکی‌یکی بیرون بفرست. از نور چراغ‌قوه دور بمان.",
-          "hint_en": "Send the students out, one by one. Stay out of the flashlights."
+          "hint_en": "Send the students out, one by one. Stay out of the flashlights.",
+          "hint_de": "Schicke die Studierenden einzeln hinaus. Meide das Licht der Taschenlampen."
         },
         { "type": "fade", "to": 1, "time": 1.5 },
         { "type": "silence", "seconds": 0.8 }
@@ -111,28 +124,30 @@
       "variant": "night",
       "beats": [
         { "type": "place", "mark": "He", "hidden": true },
+        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "ChairSeat", "pose": "sit_chair" },
         { "type": "camera", "mark": "Desk" },
-        { "type": "caption", "fa": "مهر ۱۴۰۱ · شب", "en": "MEHR 1401 · NIGHT · HIS ROOM" },
+        { "type": "caption", "fa": "مهر ۱۴۰۱ · شب", "en": "MEHR 1401 · NIGHT · HIS ROOM", "de": "MEHR 1401 · NACHT · SEIN ZIMMER" },
         { "type": "fade", "to": 0, "time": 2.5 },
-        { "type": "phone", "action": "call", "fa": "کیان", "en": "Kian" },
+        { "type": "phone", "action": "call", "fa": "کیان", "en": "Kian", "de": "Kian" },
         { "type": "silence", "seconds": 0.8 },
-        { "type": "text", "who": "kian", "fa": "وقت سفارت نُه روز دیگه‌ست. هنوز می‌تونی بیای.", "en": "The appointment is in nine days. You can still come." },
-        { "type": "text", "who": "kian", "fa": "از بیرون صدامون رو بلند می‌کنیم. وکیل. رسانه. همه‌چیز.", "en": "We'll be loud from outside. Lawyers. Media. Everything." },
-        { "type": "text", "who": "he", "fa": "و کی می‌مونه؟", "en": "And who stays?" },
-        { "type": "text", "who": "kian", "fa": "میلیون‌ها نفر. تو فقط یه نفری.", "en": "Millions of people. You're one guy." },
-        { "type": "text", "who": "he", "fa": "این رو هر «یه نفری» می‌گه.", "en": "That's what every one guy says." },
+        { "type": "text", "who": "kian", "fa": "پروازم فردا صبحه. وقت سفارتِ تو هم نُه روز دیگه‌ست. هنوز می‌تونی بیای.", "en": "My flight is tomorrow morning. Your embassy appointment is in nine days. You can still come.", "de": "Mein Flug geht morgen früh. Dein Botschaftstermin ist in neun Tagen. Du kannst immer noch nachkommen." },
+        { "type": "text", "who": "he", "fa": "کیان، خواهرت تو زندان بود، تو می‌رفتی فرودگاه؟", "en": "Kian, if your sister were in prison, would you get on that plane?", "de": "Kian, wenn deine Schwester im Gefängnis säße, würdest du in dieses Flugzeug steigen?" },
+        { "type": "text", "who": "kian", "fa": "از بیرون صدامون رو بلند می‌کنیم. وکیل. رسانه. همه‌چیز.", "en": "We'll be loud from outside. Lawyers. Media. Everything.", "de": "Wir werden von draußen laut sein. Anwälte. Medien. Alles." },
+        { "type": "text", "who": "he", "fa": "و کی می‌مونه؟ کی از این خیابون‌ها فیلم می‌گیره وقتی نت رو قطع می‌کنن؟", "en": "And who stays? Who films these streets when they shut off the internet?", "de": "Und wer bleibt? Wer filmt diese Straßen, wenn sie das Internet abschalten?" },
+        { "type": "text", "who": "kian", "fa": "میلیون‌ها نفر. تو فقط یه نفری.", "en": "Millions of people. You're one guy.", "de": "Millionen Menschen. Du bist nur ein Einzelner." },
+        { "type": "text", "who": "he", "fa": "این رو هر «یه نفری» می‌گه.", "en": "That's what every one guy says.", "de": "Das sagt sich jeder Einzelne." },
         { "type": "hide_text" },
         { "type": "phone", "action": "freeze", "on": true },
         { "type": "silence", "seconds": 4.0 },
         { "type": "phone", "action": "freeze", "on": false },
-        { "type": "text", "who": "kian", "fa": "فقط زنده برگرد.", "en": "Just come back alive.", "rate": 16 },
+        { "type": "text", "who": "kian", "fa": "فقط زنده برگرد. قول بده.", "en": "Just come back alive. Promise me.", "de": "Komm einfach lebend zurück. Versprich es mir.", "rate": 16 },
         {
           "type": "choice",
           "flag": "window_seat",
           "who": "he",
           "options": [
-            { "value": "A", "fa": "یه صندلی کنار پنجره برام رزرو کن.", "en": "Book me a window seat." },
-            { "value": "B", "fa": "(چیزی نمی‌گوید)", "en": "(Say nothing)", "silent": true }
+            { "value": "A", "fa": "یه صندلی کنار پنجره برام رزرو کن.", "en": "Book me a window seat.", "de": "Reservier mir einen Fensterplatz." },
+            { "value": "B", "fa": "(چیزی نمی‌گوید)", "en": "(Say nothing)", "de": "(Nichts sagen)", "silent": true }
           ]
         },
         { "type": "silence", "seconds": 1.5 },
@@ -151,7 +166,7 @@
       "beats": [
         { "type": "rec", "on": true },
         { "type": "camera", "mark": "Establish" },
-        { "type": "caption", "fa": "شب‌های مهر", "en": "THE NIGHTS OF MEHR" },
+        { "type": "caption", "fa": "شب‌های مهر", "en": "THE NIGHTS OF MEHR", "de": "DIE NÄCHTE DES MEHR" },
         { "type": "fade", "to": 0, "time": 2.5 },
         { "type": "silence", "seconds": 2.5 },
         {
@@ -160,7 +175,8 @@
           "blend": 2.0,
           "chances": 1,
           "hint_fa": "از آنچه می‌بینی فیلم بگیر. به کوچه‌ی انتهای خیابان برو.",
-          "hint_en": "Film what you see. Get to the alley at the end of the street."
+          "hint_en": "Film what you see. Get to the alley at the end of the street.",
+          "hint_de": "Filme, was du siehst. Erreiche die Gasse am Ende der Straße."
         },
         { "type": "fade", "to": 1, "time": 1.5 }
       ]
@@ -171,14 +187,14 @@
       "chapter": 2,
       "beats": [
         { "type": "camera", "mark": "WoundedCam", "blend": 1.0 },
-        { "type": "text", "who": "stranger", "fa": "پام… نمی‌تونم راه برم.", "en": "My leg… I can't walk." },
+        { "type": "text", "who": "stranger", "fa": "پام… ساچمه خورده… نمی‌تونم راه برم.", "en": "My leg… birdshot… I can't walk.", "de": "Mein Bein… Schrotkugeln… ich kann nicht laufen." },
         {
           "type": "choice",
           "flag": "helped",
           "who": "he",
           "options": [
-            { "value": "yes", "fa": "پاشو. کمکت می‌کنم.", "en": "Get up. I'll help you." },
-            { "value": "no", "fa": "باید فیلم بگیرم. دنیا باید ببینه.", "en": "I have to film this. The world has to see." }
+            { "value": "yes", "fa": "پاشو. دستت رو بنداز دور گردنم.", "en": "Get up. Put your arm around my neck.", "de": "Steh auf. Leg deinen Arm um meine Schulter." },
+            { "value": "no", "fa": "باید فیلم بگیرم. دنیا باید ببینه.", "en": "I have to film this. The world has to see.", "de": "Ich muss das filmen. Die Welt muss es sehen." }
           ]
         },
         { "type": "fade", "if": "helped=yes", "to": 1, "time": 1.2 },
@@ -188,13 +204,14 @@
           "if": "helped=yes",
           "fa": ["تا درِ خانه‌ای بردش. در را باز کردند."],
           "en": ["He carried him to a stranger's door. They opened it."],
+          "de": ["Er trug ihn bis zur Tür eines Fremden. Sie öffneten."],
           "hold": 2.5,
           "fa_size": 30,
           "en_size": 18
         },
         { "type": "fade", "if": "helped=yes", "to": 0, "time": 1.2 },
-        { "type": "clip", "if": "helped=no", "id": "wounded", "fa": "زخمی، کنار کرکره", "en": "Wounded, against a shutter" },
-        { "type": "toast", "if": "helped=no", "fa": "ثبت شد", "en": "SAVED", "seconds": 2.0 }
+        { "type": "clip", "if": "helped=no", "id": "wounded", "fa": "زخمی، کنار کرکره", "en": "Wounded, against a shutter", "de": "Verwundet, an einem Rollladen" },
+        { "type": "toast", "if": "helped=no", "fa": "ثبت شد", "en": "SAVED", "de": "GESPEICHERT", "seconds": 2.0 }
       ]
     },
     {
@@ -203,16 +220,46 @@
       "chapter": 2,
       "beats": [
         { "type": "camera", "mark": "StudentsCam", "blend": 1.0 },
-        { "type": "text", "who": "student", "fa": "دارن میان این طرف.", "en": "They're coming this way." },
+        { "type": "text", "who": "student", "fa": "موتورسوارها دارن میان این طرف! بن‌بسته!", "en": "The motorbikes are coming this way! It's a dead end!", "de": "Die Motorräder kommen hierher! Es ist eine Sackgasse!" },
         {
           "type": "choice",
           "flag": "drew",
           "who": "he",
           "options": [
-            { "value": "yes", "fa": "حواسشون رو پرت می‌کنم. شما برید.", "en": "I'll draw them away. You go." },
-            { "value": "no", "fa": "سرتون رو پایین نگه دارید.", "en": "Keep your heads down." }
+            { "value": "yes", "fa": "حواسشون رو پرت می‌کنم. شما از درِ پشتی برید.", "en": "I'll draw them away. You go through the back door.", "de": "Ich lenke sie ab. Geht ihr durch die Hintertür." },
+            { "value": "no", "fa": "سرتون رو پایین نگه دارید و تو تاریکی بمونید.", "en": "Keep your heads down and stay in the dark.", "de": "Köpfe runter und bleibt im Dunkeln." }
           ]
         }
+      ]
+    },
+    {
+      "id": "2.4.home",
+      "music": "music_table",
+      "ambient": "amb_room",
+      "chapter": 2,
+      "location": "Home",
+      "variant": "dinner",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "action": "spawn", "name": "he", "look": "he", "mark": "SofaLeft", "pose": "sit_sofa" },
+        { "type": "npc", "action": "spawn", "name": "host_w", "look": "oldwoman", "mark": "SofaRight", "pose": "pour_tea" },
+        { "type": "npc", "action": "spawn", "name": "host_m", "look": "oldman", "mark": "Balcony" },
+        { "type": "camera", "mark": "Faces" },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "caption", "fa": "خانه‌ی یک غریبه · نیمه‌شب", "en": "A STRANGER'S HOME · MIDNIGHT", "de": "DAS HAUS EINES FREMDEN · MITTERNACHT" },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "text", "who": "oldwoman", "fa": "بیا مادر، این چایی رو بخور دست‌هات یخ کرده. درِ خونهٔ ما تا صبح بازه.", "en": "Here, son, drink this tea—your hands are freezing. Our door stays unlocked until morning.", "de": "Hier, mein Sohn, trink diesen Tee – deine Hände sind eiskalt. Unsere Tür bleibt bis zum Morgen unverschlossen." },
+        { "type": "camera", "mark": "Window", "blend": 2.0 },
+        { "type": "text", "who": "oldman", "fa": "موتورها رد شدن رفتن سمتِ میدان. تا یک ساعت دیگه از کوچه بیرون نرو پسرم.", "en": "The motorbikes passed toward the square. Don't step into the alley for another hour, son.", "de": "Die Motorräder sind weiter zum Platz gefahren. Geh die nächste Stunde noch nicht auf die Gasse, mein Sohn." },
+        { "type": "camera", "mark": "Tea", "blend": 2.0 },
+        { "type": "text", "who": "he", "fa": "ممنونم مادر. نمی‌دونم چطوری جبران کنم.", "en": "Thank you, mother. I don't know how to repay you.", "de": "Danke, Mutter. Ich weiß nicht, wie ich das je wiedergutmachen soll." },
+        { "type": "text", "who": "oldwoman", "fa": "زنده بمون مادر. همین که سالم برگردی خونهٔ مادرت، جبران کردی.", "en": "Stay alive, dear. Just getting home safe to your own mother is repayment enough.", "de": "Bleib am Leben, mein Kind. Wenn du gesund zu deiner eigenen Mutter zurückkehrst, ist das Dank genug." },
+        { "type": "hide_text" },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "fade", "to": 1, "time": 2.5 },
+        { "type": "silence", "seconds": 0.8 }
       ]
     },
     {
@@ -224,32 +271,63 @@
       "variant": "nights",
       "beats": [
         { "type": "place", "mark": "AlleyHe", "hidden": true },
-        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "AlleyHe", "sink": 55 },
+        { "type": "npc", "name": "he", "action": "spawn", "look": "he", "mark": "AlleyHe", "pose": "sit_floor" },
         { "type": "camera", "mark": "AlleyCam" },
-        { "type": "caption", "fa": "۲۳ مهر", "en": "23 MEHR · AN ALLEY" },
+        { "type": "caption", "fa": "۲۳ مهر", "en": "23 MEHR · AN ALLEY", "de": "23. MEHR · EINE GASSE" },
         { "type": "fade", "to": 0, "time": 2.0 },
         { "type": "silence", "seconds": 2.0 },
-        { "type": "phone", "action": "chat", "fa": "مامان", "en": "Maman" },
+        { "type": "phone", "action": "chat", "fa": "مامان", "en": "Maman", "de": "Mama" },
         {
           "type": "phone",
           "action": "voice",
           "duration": "0:47",
           "line_time": 3.8,
           "lines": [
-            { "fa": "برادرت امروز دوباره رفت زندان.", "en": "Your brother went to the prison again today." },
-            { "fa": "گفتن حالش خوبه. گفتن شاید به‌زودی.", "en": "They said she's alright. They said maybe soon." },
-            { "fa": "تو رو خدا امشب بیا خونه.", "en": "Please come home tonight." },
-            { "fa": "من طاقت از دست دادن دو تا رو ندارم.", "en": "I can't lose two." }
+            { "fa": "برادرت امروز دوباره رفت زندان.", "en": "Your brother went to the prison again today.", "de": "Dein Bruder war heute wieder beim Gefängnis." },
+            { "fa": "گفتن حالش خوبه. گفتن شاید به‌زودی.", "en": "They said she's alright. They said maybe soon.", "de": "Sie sagten, es geht ihr gut. Sie sagten, vielleicht bald." },
+            { "fa": "تو رو خدا امشب بیا خونه.", "en": "Please come home tonight.", "de": "Bitte komm heute Abend nach Hause." },
+            { "fa": "من طاقت از دست دادن دو تا رو ندارم.", "en": "I can't lose two.", "de": "Ich ertrage es nicht, zwei zu verlieren." }
           ]
         },
         { "type": "silence", "seconds": 2.5 },
-        { "type": "phone", "action": "draft", "fa": "دارم میام خونه", "en": "I'm coming home", "pause": 1.8 },
+        { "type": "phone", "action": "draft", "fa": "دارم میام خونه", "en": "I'm coming home", "de": "Ich komme nach Hause", "pause": 1.8 },
         { "type": "silence", "seconds": 1.4 },
-        { "type": "phone", "action": "send", "fa": "دوستت دارم مامان", "en": "I love you, Mom" },
+        { "type": "phone", "action": "send", "fa": "دوستت دارم مامان", "en": "I love you, Mom", "de": "Ich hab dich lieb, Mama" },
         { "type": "silence", "seconds": 3.5 },
         { "type": "phone", "action": "close" },
         { "type": "silence", "seconds": 2.0 },
         { "type": "fade", "to": 1, "time": 2.5 }
+      ]
+    },
+    {
+      "id": "2.5b",
+      "music": "music_table",
+      "ambient": "amb_room",
+      "chapter": 2,
+      "location": "Home",
+      "variant": "dinner",
+      "beats": [
+        { "type": "fade", "to": 1, "time": 0 },
+        { "type": "rec", "on": false },
+        { "type": "place", "mark": "PlayerStart", "hidden": true },
+        { "type": "npc", "action": "spawn", "name": "mom", "look": "mother", "mark": "SofaLeft", "pose": "sit_sofa" },
+        { "type": "npc", "action": "spawn", "name": "brother", "look": "brother", "mark": "TableSeat", "pose": "sit_chair" },
+        { "type": "npc", "action": "spawn", "name": "he", "look": "he", "mark": "TableRight", "pose": "sit_chair" },
+        { "type": "npc", "action": "spawn", "name": "father", "look": "father", "mark": "Balcony", "pose": "smoke" },
+        { "type": "camera", "mark": "Dinner" },
+        { "type": "fade", "to": 0, "time": 2.5, "wait": false },
+        { "type": "caption", "fa": "۲۳ مهر · آخرین شام در خانه", "en": "23 MEHR · LAST DINNER AT HOME", "de": "23. MEHR · DAS LETZTE ABENDESSEN ZU HAUSE" },
+        { "type": "silence", "seconds": 3.0 },
+        { "type": "text", "who": "mom", "fa": "برات تهویه و برنج کشیدم. سه شبه یه لقمه غذای گرم نخوردی.", "en": "I put rice on your plate. You haven't eaten a warm meal in three nights.", "de": "Ich habe dir Reis aufgetan. Du hast seit drei Nächten nichts Warmes mehr gegessen." },
+        { "type": "camera", "mark": "Table", "blend": 2.0 },
+        { "type": "text", "who": "brother", "fa": "هر شب تا صبح کجا می‌ری؟ کفش‌هات بوی دود می‌ده.", "en": "Where do you go every night until dawn? Your shoes smell like smoke.", "de": "Wo gehst du jede Nacht bis zum Morgengrauen hin? Deine Schuhe riechen nach Rauch." },
+        { "type": "text", "who": "he", "fa": "خونهٔ بچه‌های دانشگاه. داریم برای امتحان‌ها می‌خونیم.", "en": "Staying with guys from the university. Studying.", "de": "Bei Freunden von der Uni. Wir lernen." },
+        { "type": "text", "who": "brother", "fa": "دانشگاه دو هفته‌ست تعطیله.", "en": "The university has been closed for two weeks.", "de": "Die Universität ist seit zwei Wochen geschlossen." },
+        { "type": "text", "who": "he", "fa": "…فردا شب زودتر میام خونه.", "en": "…Tomorrow night I'll come home early.", "de": "…Morgen Abend komme ich früher nach Hause." },
+        { "type": "hide_text" },
+        { "type": "silence", "seconds": 2.5 },
+        { "type": "fade", "to": 1, "time": 2.5 },
+        { "type": "silence", "seconds": 1.0 }
       ]
     },
     {
@@ -266,6 +344,7 @@
           "type": "card",
           "fa": ["۲۴ مهر ۱۴۰۱"],
           "en": ["24 Mehr 1401. The last night."],
+          "de": ["24. Mehr 1401. Die letzte Nacht."],
           "hold": 2.5,
           "fa_size": 44,
           "en_size": 18
@@ -280,7 +359,8 @@
           "chances": 0,
           "chance_flags": ["helped=yes", "drew=yes"],
           "hint_fa": "با مردم برو. جلوتر.",
-          "hint_en": "Walk with the people. Further."
+          "hint_en": "Walk with the people. Further.",
+          "hint_de": "Geh mit den Menschen. Weiter nach vorn."
         },
         { "type": "fade", "to": 1, "time": 2.0 },
         { "type": "silence", "seconds": 1.0 }
@@ -295,7 +375,7 @@
       "beats": [
         { "type": "rec", "on": true },
         { "type": "camera", "mark": "Wide" },
-        { "type": "caption", "fa": "کمی پیش از طلوع", "en": "JUST BEFORE DAWN" },
+        { "type": "caption", "fa": "کمی پیش از طلوع", "en": "JUST BEFORE DAWN", "de": "KURZ VOR SONNENAUFGANG" },
         { "type": "fade", "to": 0, "time": 3.0 },
         { "type": "silence", "seconds": 4.0 },
         {
@@ -305,7 +385,8 @@
           "controls": false,
           "film": false,
           "hint_fa": "به لبه‌ی شهر برو. رو به کوه.",
-          "hint_en": "Go to the edge of the city. Face the mountains."
+          "hint_en": "Go to the edge of the city. Face the mountains.",
+          "hint_de": "Geh an den Rand der Stadt. Blicke zu den Bergen."
         }
       ]
     },
@@ -328,9 +409,10 @@
           "keep_camera": true,
           "controls": false,
           "hint_fa": "از طلوع فیلم بگیر.",
-          "hint_en": "Film the sunrise."
+          "hint_en": "Film the sunrise.",
+          "hint_de": "Filme den Sonnenaufgang."
         },
-        { "type": "text", "who": "he", "fa": "نگاه کن… داره میاد بالا.", "en": "Look… it's coming up.", "rate": 16, "auto": 2.8 },
+        { "type": "text", "who": "he", "fa": "نگاه کن… داره میاد بالا.", "en": "Look… it's coming up.", "de": "Sieh nur… sie geht auf.", "rate": 16, "auto": 2.8 },
         { "type": "hide_text" },
         { "type": "silence", "seconds": 1.4 },
         { "type": "sfx", "name": "sting_shot", "volume": 0.9 },
@@ -357,8 +439,10 @@
           "type": "notify",
           "if": "window_seat=A",
           "title": "KIAN  ·  NOW",
+          "title_de": "KIAN  ·  JETZT",
           "fa": "صندلی کنار پنجره رزرو شد. دفعه‌ی بعد، باشه؟",
           "en": "Window seat booked. Next time, right?",
+          "de": "Fensterplatz ist reserviert. Nächstes Mal, ja?",
           "seconds": 10.0
         },
         { "type": "silence", "if": "window_seat=A", "seconds": 11.0 },
@@ -380,7 +464,7 @@
       "beats": [
         { "type": "rec", "on": true },
         { "type": "camera", "mark": "Establish" },
-        { "type": "caption", "fa": "خیابان · شب", "en": "TEST STREET · NIGHT" },
+        { "type": "caption", "fa": "خیابان · شب", "en": "TEST STREET · NIGHT", "de": "TESTSTRASSE · NACHT" },
         { "type": "fade", "to": 0, "time": 2.0 },
         { "type": "silence", "seconds": 1.0 },
         {
@@ -389,10 +473,11 @@
           "blend": 1.5,
           "chances": 1,
           "hint_fa": "به انتهای خیابان برو. از نور دور بمان.",
-          "hint_en": "Reach the end of the street. Stay out of the light."
+          "hint_en": "Reach the end of the street. Stay out of the light.",
+          "hint_de": "Erreiche das Ende der Straße. Bleib außerhalb des Lichts."
         },
         { "type": "fade", "to": 1, "time": 1.5 },
-        { "type": "card", "fa": ["رسیدی."], "en": ["You made it."], "hold": 2.0 }
+        { "type": "card", "fa": ["رسیدی."], "en": ["You made it."], "de": ["Du hast es geschafft."], "hold": 2.0 }
       ]
     }
   ]

@@ -11,6 +11,7 @@
           "type": "card",
           "fa": ["ستم پایدار نمی‌ماند"],
           "en": ["Oppression does not last."],
+          "de": ["Unterdrückung währt nicht ewig."],
           "hold": 6.0,
           "fa_size": 46,
           "en_size": 24,
@@ -27,6 +28,7 @@
           "below": true,
           "fa": ["چشم‌هایش"],
           "en": ["CHESHM HAYASH  ·  HIS EYES"],
+          "de": ["CHESHM HAYASH  ·  SEINE AUGEN"],
           "hold": 4.0,
           "fa_size": 40,
           "en_size": 20
@@ -34,17 +36,9 @@
         {
           "type": "card",
           "below": true,
-          "fa": ["بازی از پارسا بشارت"],
-          "en": ["Game by Parsa Besharat", "Parsabe.com"],
-          "hold": 4.0,
-          "fa_size": 30,
-          "en_size": 22
-        },
-        {
-          "type": "card",
-          "below": true,
           "fa": ["ساخته‌شده با آنریل انجین", "کد نوشته‌شده با عامل‌های هوش مصنوعی (Claude Code)"],
           "en": ["Built with Unreal Engine", "AI agents (Claude Code)"],
+          "de": ["Erstellt mit Unreal Engine", "KI-Agenten (Claude Code)"],
           "hold": 4.0,
           "fa_size": 28,
           "en_size": 22
@@ -54,6 +48,7 @@
           "below": true,
           "fa": ["موسیقی و صدا: fal"],
           "en": ["Music and sound: fal"],
+          "de": ["Musik und Ton: fal"],
           "hold": 3.5,
           "fa_size": 28,
           "en_size": 22
@@ -63,6 +58,7 @@
           "below": true,
           "fa": ["فونت: وزیرمتن"],
           "en": ["Font: Vazirmatn (SIL Open Font License)"],
+          "de": ["Schriftart: Vazirmatn (SIL Open Font License)"],
           "hold": 3.5,
           "fa_size": 28,
           "en_size": 22
@@ -72,6 +68,7 @@
           "below": true,
           "fa": ["زن · زندگی · آزادی"],
           "en": ["Woman · Life · Freedom"],
+          "de": ["Frau · Leben · Freiheit"],
           "hold": 5.5,
           "fa_size": 40,
           "en_size": 24
