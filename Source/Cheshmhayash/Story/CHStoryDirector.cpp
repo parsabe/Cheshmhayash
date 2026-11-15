@@ -558,7 +558,7 @@ UWorld* UCHStoryDirector::GetTickableGameObjectWorld() const
 void UCHStoryDirector::LoadStory()
 {
 	Scenes.Reset();
-	for (const TCHAR* Name : { TEXT("boot"), TEXT("ch1"), TEXT("ch2"), TEXT("ch3"), TEXT("ending") })
+	for (const TCHAR* Name : { TEXT("boot"), TEXT("ch1"), TEXT("ch2"), TEXT("ch3"), TEXT("ending"), TEXT("trailer") })
 	{
 		LoadStoryFile(Name);
 	}
@@ -694,6 +694,11 @@ void UCHStoryDirector::StartStory()
 			UE_LOG(LogCheshmhayash, Warning, TEXT("-chscene=%s: no such scene"), *DevStartScene);
 		}
 	}
+	if (bDevTrailer)
+	{
+		StartTrailer();
+		return;
+	}
 	StartScene(Index);
 }
 
@@ -717,6 +722,11 @@ void UCHStoryDirector::StartScene(int32 Index)
 		UI->SceneBrightness = 0.f;
 	}
 
+	if (bTrailer)
+	{
+		// every shot starts from a clean rig (the old one goes with the old map)
+		ClearTrailerRig();
+	}
 	const FCHScene& Scene = Scenes[Index];
 	UE_LOG(LogCheshmhayash, Log, TEXT("Scene %s (location '%s' variant '%s')"), *Scene.Id, *Scene.Location, *Scene.Variant);
 	// a checkpoint at the start of every story scene (not when resuming a saved beat)
@@ -726,7 +736,8 @@ void UCHStoryDirector::StartScene(int32 Index)
 	}
 	if (Audio && !Scene.bInterlude)
 	{
-		Audio->SetMusic(this, Scene.Music);
+		// in trailer mode the game's score stays silent (the trailer gets its own music)
+		Audio->SetMusic(this, bTrailer ? FString() : Scene.Music);
 		Audio->SetAmbient(this, Scene.Ambient);
 	}
 
@@ -743,6 +754,13 @@ void UCHStoryDirector::StartScene(int32 Index)
 
 void UCHStoryDirector::NextScene()
 {
+	if (bTrailer)
+	{
+		if (NextTrailerScene())
+		{
+			return;
+		}
+	}
 	for (int32 Index = SceneIndex + 1; Index < Scenes.Num(); ++Index)
 	{
 		if (!Scenes[Index].bDev)
@@ -873,6 +891,7 @@ void UCHStoryDirector::Tick(float DeltaTime)
 		}
 		UI->Hud->SetRec(bRec, RecSeconds, !UI->Cards->IsFinished());
 		UI->Advance(DeltaTime);
+		TickTrailer(DeltaTime);
 		if (Video)
 		{
 			Video->Update(DeltaTime);
@@ -1174,6 +1193,10 @@ void UCHStoryDirector::ShowMemorial()
 void UCHStoryDirector::BeginBeat(const FJsonObject& Beat)
 {
 	const FString Type = JStr(Beat, TEXT("type"));
+	if (BeginTrailerBeat(Type, Beat))
+	{
+		return;
+	}
 	ACHPlayerController* Controller = GetController();
 
 	if (Type == TEXT("fade"))
@@ -1819,6 +1842,11 @@ bool UCHStoryDirector::UpdateDialogueLine(const FJsonObject& Beat)
 bool UCHStoryDirector::UpdateBeat(const FJsonObject& Beat, float DeltaTime)
 {
 	const FString Type = JStr(Beat, TEXT("type"));
+	bool bTrailerDone = false;
+	if (UpdateTrailerBeat(Type, Beat, DeltaTime, bTrailerDone))
+	{
+		return bTrailerDone;
+	}
 
 	if (Type == TEXT("fade"))
 	{
@@ -2367,6 +2395,10 @@ bool UCHStoryDirector::LoadCheckpoint()
 
 void UCHStoryDirector::AutoSave(int32 Beat)
 {
+	if (bTrailer)
+	{
+		return;
+	}
 	if (!Scenes.IsValidIndex(SceneIndex) || bInInterlude)
 	{
 		return;
@@ -2449,6 +2481,7 @@ void UCHStoryDirector::ParseDevOptions()
 		}
 	}
 	bDevQuit = FParse::Param(CommandLine, TEXT("chquit"));
+	bDevTrailer = FParse::Param(CommandLine, TEXT("chtrailer"));
 	FParse::Value(CommandLine, TEXT("chpause="), DevPauseAt);
 	bDevKeys = WITH_EDITOR || FParse::Param(CommandLine, TEXT("chdev"));
 

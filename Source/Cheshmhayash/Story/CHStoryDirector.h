@@ -228,6 +228,58 @@ private:
 	/** In loving memory: the name, which stays until the very end. */
 	void ShowMemorial();
 
+public:
+	// ---- trailer mode (Story/CHStoryTrailer.cpp; console command TrailerMode)
+	void StartTrailer();
+	bool IsTrailer() const { return bTrailer; }
+
+private:
+	bool NextTrailerScene();
+	void ClearTrailerRig();
+	void TickTrailer(float DeltaTime);
+	bool BeginTrailerBeat(const FString& Type, const FJsonObject& Beat);
+	bool UpdateTrailerBeat(const FString& Type, const FJsonObject& Beat, float DeltaTime, bool& bOutDone);
+	class ACameraActor* FindTrailerCamera(const FString& Name);
+	AActor* SpawnTrailerMesh(const TCHAR* MeshPath, const FVector& Location, const FVector& Scale, class UMaterialInterface* Material);
+
+	bool bTrailer = false;
+
+	UPROPERTY()
+	TMap<FString, TObjectPtr<ACameraActor>> TrailerCams;
+
+	UPROPERTY()
+	TObjectPtr<ACameraActor> TrailerDollyCam;
+
+	UPROPERTY()
+	TObjectPtr<AActor> TrailerHeadlight;
+
+	UPROPERTY()
+	TObjectPtr<AActor> TrailerBottle;
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> TrailerArc;
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> TrailerProps;
+
+	FTransform DollyFrom;
+	FTransform DollyTo;
+	float DollyFovFrom = 60.f;
+	float DollyFovTo = 60.f;
+	float DollyTime = -1.f;
+	float DollyDuration = 1.f;
+	float DollyBob = 0.f;
+	bool DollyEase = true;
+	FVector HeadlightOffset = FVector::ZeroVector;
+	FVector MolotovFrom = FVector::ZeroVector;
+	FVector MolotovTo = FVector::ZeroVector;
+	float MolotovTime = -1.f;
+	float MolotovArcTime = 1.f;
+	float MolotovFlight = 1.f;
+	float MolotovHeight = 250.f;
+	float MolotovFleeDistance = 900.f;
+	TArray<FString> MolotovFlee;
+
 	TSharedPtr<SCHRootOverlay> UI;
 	TWeakObjectPtr<ACHLevelBuilder> Builder;
 
@@ -280,6 +332,7 @@ private:
 	bool bDevBot = false;
 	bool bDevGhost = false;
 	bool bDevQuit = false;
+	bool bDevTrailer = false;
 	bool bDevKeys = false;
 	TArray<float> DevShotTimes;
 	TArray<FString> DevInterludes;

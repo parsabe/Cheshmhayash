@@ -18,7 +18,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	/** Count lines appear over Seconds, slowly at first and then all at once. */
-	void Start(const FString& Text, int32 Count, float Seconds);
+	void Start(const FString& Text, int32 Count, float Seconds, bool bForceFarsi = false);
 	/** Fades everything out. */
 	void Stop(float FadeSeconds = 2.f);
 	void Advance(float DeltaTime);

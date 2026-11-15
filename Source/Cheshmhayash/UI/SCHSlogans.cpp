@@ -16,7 +16,7 @@ void SCHSlogans::Construct(const FArguments& InArgs)
 	];
 }
 
-void SCHSlogans::Start(const FString& Text, int32 Count, float Seconds)
+void SCHSlogans::Start(const FString& Text, int32 Count, float Seconds, bool bForceFarsi)
 {
 	Canvas->ClearChildren();
 	AppearAt.Reset();
@@ -25,7 +25,7 @@ void SCHSlogans::Start(const FString& Text, int32 Count, float Seconds)
 	FadeRate = 0.f;
 	bActive = true;
 
-	const bool bFarsi = CHSettings::IsPersian();
+	const bool bFarsi = bForceFarsi || CHSettings::IsPersian();
 	FRandomStream Rng(1401);
 	for (int32 Index = 0; Index < Count; ++Index)
 	{

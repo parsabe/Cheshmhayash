@@ -158,12 +158,19 @@ public:
 
 	const FString& GetVariant() const { return Variant; }
 
+	/** Trailer mode only: painted text on a wall (Latin). */
+	void TrailerWallText(const FString& Text, const FVector& Location, float Yaw, float FontSize, const FLinearColor& Color)
+	{
+		WorldText(Text, false, FontSize, Color, Location, FRotator(0.f, Yaw, 0.f), 1.f, false, true);
+	}
+
 	/** Third person camera distance and offset for this location (interiors keep it close). */
 	float PlayerBoomLength = 300.f;
 	FVector PlayerBoomOffset = FVector(0.f, 42.f, 62.f);
 
 	// Live handles for animated lighting (sunrise, flicker).
 	UDirectionalLightComponent* GetSun() const { return Sun; }
+	UDirectionalLightComponent* GetMoon() const { return Moon; }
 	USkyLightComponent* GetSkyLight() const { return SkyLight; }
 	UExponentialHeightFogComponent* GetFog() const { return Fog; }
 	UPostProcessComponent* GetPostProcess() const { return PostProcess; }

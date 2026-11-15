@@ -91,7 +91,9 @@ void ACHPlayerController::UpdateShake(float DeltaTime)
 	// apply only the change, so the offset never accumulates
 	SetControlRotation(GetControlRotation() + (NewOffset - ShakeOffset));
 	ShakeOffset = NewOffset;
-	if (ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn())
+	// (trailer mode moves its own camera; the shake must not snap it back)
+	const UCHStoryDirector* TrailerDirector = UCHStoryDirector::Get(this);
+	if (ActiveSceneCamera.IsValid() && ActiveSceneCamera.Get() != GetPawn() && !(TrailerDirector && TrailerDirector->IsTrailer()))
 	{
 		ActiveSceneCamera->SetActorRotation(SceneCameraBaseRot + SceneLookOffset + ShakeOffset);
 	}
