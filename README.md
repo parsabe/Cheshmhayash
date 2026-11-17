@@ -7,7 +7,7 @@
 [![Cheshm Hayash: watch the trailer](https://img.youtube.com/vi/drZl6DR5eMI/maxresdefault.jpg)](https://youtu.be/drZl6DR5eMI)
 
 **[▶ Watch the trailer](https://youtu.be/drZl6DR5eMI)** ·
-**[Website](https://parsabe.github.io/Cheshmhayash/)** ·
+**[Website](https://parsabe.com/cheshmhayash)** ·
 **[Source code](https://github.com/parsabe/Cheshmhayash/tree/game)** ·
 **[Jam version](https://github.com/parsabe/Cheshmhayash/tree/jam-submission)**
 
